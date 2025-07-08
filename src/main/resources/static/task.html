@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작업 일정 관리</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        /* 왼쪽 달력 영역 */
+        .calendar-section {
+            margin-top: 7vh;
+            flex: 1;
+            min-width: 600px;
+            padding: 20px;
+            border-right: 2px solid #e1e8ed;
+            overflow-y: auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f8f9fa;
+            color: #495057;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .calendar-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            border: 2px solid #e1e8ed;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .view-btn.active {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border-color: transparent;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 월간 달력 */
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .calendar .selected-date {
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 160, 141, 0.3) 100%);
+            border: 2px solid #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+            transform: scale(1.02);
+        }
+
+        .calendar th,
+        .calendar td {
+            width: 14.28%;
+            height: 80px;
+            border: 1px solid #e1e8ed;
+            vertical-align: top;
+            position: relative;
+            padding: 5px;
+        }
+
+        .calendar th {
+            background: #f8f9fa;
+            height: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .calendar td {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar td:hover:not(.other-month) {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.05);
+        }
+
+        .calendar .date-number {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .calendar td::after {
+            content: '더블클릭하여 작업 추가';
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .calendar td::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 4px solid rgba(0, 0, 0, 0.9);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .calendar td:hover::after,
+        .calendar td:hover::before {
+            opacity: 1;
+        }
+
+        .calendar .other-month {
+            color: #ccc;
+            background: #fafafa;
+        }
+
+        .calendar .today {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .calendar .has-tasks {
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .task-indicator {
+            display: block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin: 1px;
+            float: left;
+        }
+
+        .task-indicator.priority-low {
+            background: #95a5a6;
+        }
+
+        .task-indicator.priority-medium {
+            background: #f39c12;
+        }
+
+        .task-indicator.priority-high {
+            background: #e67e22;
+        }
+
+        .task-indicator.priority-urgent {
+            background: #e74c3c;
+        }
+
+        /* 주간 달력 */
+        .week-calendar {
+            display: none;
+        }
+
+        .week-calendar.active {
+            display: block;
+        }
+
+        .week-header {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            gap: 1px;
+            margin-bottom: 1px;
+        }
+
+        .week-header div {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .week-body {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            gap: 1px;
+            height: 400px;
+        }
+
+        .time-slot {
+            background: #f8f9fa;
+            padding: 5px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6c757d;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .day-column {
+            border: 1px solid #e1e8ed;
+            background: white;
+            position: relative;
+        }
+
+        .day-column.today {
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(68, 160, 141, 0.1) 100%);
+        }
+
+        /* 년간 달력 */
+        .year-calendar {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .year-calendar.active {
+            display: grid;
+        }
+
+        .mini-month {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .mini-month-title {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mini-month-title:hover {
+            color: #4ecdc4;
+            transform: scale(1.05);
+        }
+
+        .mini-calendar {
+            width: 100%;
+            font-size: 0.8rem;
+        }
+
+        .mini-calendar td {
+            width: 14.28%;
+            height: 25px;
+            text-align: center;
+            padding: 2px;
+            border: none;
+        }
+
+        .mini-calendar .today {
+            background: #4ecdc4;
+            color: white;
+            border-radius: 50%;
+        }
+
+        .mini-calendar .has-tasks {
+            background-color: rgba(78, 205, 196, 0.1);
+            border: 1px solid #4ecdc4;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mini-calendar .has-tasks:hover {
+            background-color: rgba(78, 205, 196, 0.3) !important;
+            transform: scale(1.1);
+            border-radius: 4px;
+        }
+
+        .mini-calendar .task-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 4px;
+            height: 4px;
+            background: #4ecdc4;
+            border-radius: 50%;
+        }
+
+        .mini-calendar td {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mini-calendar td:hover:not(.other-month) {
+            background-color: rgba(78, 205, 196, 0.2);
+        }
+
+        .mini-calendar .today.has-tasks {
+            background: #4ecdc4;
+            color: white;
+            position: relative;
+        }
+
+        .mini-calendar .today .task-dot {
+            background: white;
+        }
+
+        .tasks-section {
+            margin-top: 7vh;
+            flex: 1;
+            min-width: 400px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tasks-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sort-select, .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 20px;
+            outline: none;
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+        }
+
+        /* 테이블 형식 작업 목록 스타일 */
+        .task-list {
+            display: block;
+        }
+
+        .task-table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .task-table thead {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .task-table th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* 테이블 헤더 컬럼 너비 (7개 컬럼) */
+        .th-title { width: 30%; }
+        .th-author { width: 12%; }
+        .th-date { width: 18%; }
+        .th-priority {
+            width: 12%;
+        }
+        .th-status {
+            width: 12%;
+        }
+        .th-overdue {
+            width: 8%;
+        }
+        .th-actions {
+            width: 8%;
+            text-align: center;
+        }
+
+        .task-row {
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .task-row:hover {
+            background: rgba(78, 205, 196, 0.05);
+        }
+
+        .task-row:last-child {
+            border-bottom: none;
+        }
+
+        .task-row.priority-low {
+            border-left: 3px solid #95a5a6;
+        }
+
+        .task-row.priority-medium {
+            border-left: 3px solid #f39c12;
+        }
+
+        .task-row.priority-high {
+            border-left: 3px solid #e67e22;
+        }
+
+        .task-row.priority-urgent {
+            border-left: 3px solid #e74c3c;
+        }
+
+        .task-row.overdue {
+            background: rgba(231, 76, 60, 0.05);
+        }
+
+        .task-table td {
+            padding: 10px 8px;
+            vertical-align: middle;
+        }
+
+        .task-title-cell {
+            max-width: 0;
+        }
+
+        .task-title-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .task-description {
+            color: #7f8c8d;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0.8;
+            max-width: 100%;
+        }
+
+        .task-author-cell {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .task-date-cell {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .task-dates {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            line-height: 1.3;
+        }
+
+        .task-priority-cell {
+        }
+
+        .task-status-cell {
+        }
+
+        .task-overdue-cell {
+        }
+
+        .priority-badge, .status-badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .priority-low {
+            background: #ecf0f1;
+            color: #95a5a6;
+        }
+
+        .priority-medium {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+
+        .priority-high {
+            background: #fdf2e9;
+            color: #e67e22;
+        }
+
+        .priority-urgent {
+            background: #fdebf1;
+            color: #e74c3c;
+        }
+
+        .status-todo {
+            background: #ecf0f1;
+            color: #95a5a6;
+        }
+
+        .status-in-progress {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+
+        .status-completed {
+            background: #eafaf1;
+            color: #27ae60;
+        }
+
+        .on-time-badge {
+            background: #eafaf1;
+            color: #27ae60;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .overdue-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .task-actions-cell {
+            text-align: center;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-small {
+            padding: 4px 6px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+        }
+
+        .btn-edit {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .btn-edit:hover {
+            background: #bbdefb;
+            transform: scale(1.1);
+        }
+
+        .btn-delete {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        .btn-delete:hover {
+            background: #ffcdd2;
+            transform: scale(1.1);
+        }
+
+        .btn-complete {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .btn-complete:hover {
+            background: #c8e6c9;
+            transform: scale(1.1);
+        }
+
+        .period-header {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .period-header h3 {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .task-row:hover .task-title {
+            color: #4ecdc4;
+        }
+
+        .task-row:hover .priority-badge,
+        .task-row:hover .status-badge,
+        .task-row:hover .overdue-badge,
+        .task-row:hover .on-time-badge {
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .show-all-btn {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .show-all-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 10000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s ease;
+            color: white;
+            font-weight: 500;
+        }
+
+        .notification.success {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+
+        .notification.warning {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+
+        .task-event {
+            background: rgba(78, 205, 196, 0.1);
+            border-left: 3px solid #4ecdc4;
+            padding: 2px 5px;
+            margin: 1px 0;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .task-event:hover {
+            background: rgba(78, 205, 196, 0.2);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 2px solid #e1e8ed;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f8f9fa;
+        }
+
+        .pagination button.active {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border-color: transparent;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 커스텀 툴팁 스타일 */
+        .custom-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(0, 0, 0, 0.9);
+        }
+
+        .tooltip-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: #4ecdc4;
+        }
+
+        .tooltip-task {
+            padding: 4px 0;
+            line-height: 1.4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tooltip-task:last-child {
+            border-bottom: none;
+        }
+
+        /* 반응형 디자인 수정 - 태블릿용 */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .calendar-section {
+                min-width: auto;
+                border-right: none;
+                border-bottom: 2px solid #e1e8ed;
+            }
+
+            .tasks-section {
+                min-width: auto;
+            }
+
+            .th-title { width: 35%; }
+            .th-author { width: 0; }
+            .th-date { width: 20%; }
+            .th-priority { width: 15%; }
+            .th-status { width: 15%; }
+            .th-overdue { width: 10%; }
+            .th-actions { width: 5%; }
+
+            .task-author-cell,
+            .task-table th:nth-child(2) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .calendar-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .calendar-nav {
+                flex-wrap: wrap;
+            }
+
+            .task-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .calendar th,
+            .calendar td {
+                height: 60px;
+                font-size: 0.8rem;
+            }
+
+            .task-table {
+                font-size: 0.75rem;
+            }
+
+            .task-table th {
+                padding: 6px 3px;
+                font-size: 0.7rem;
+            }
+
+            .task-table td {
+                padding: 6px 3px;
+            }
+
+            .th-title { width: 40%; }
+            .th-author { width: 0; } /* 모바일에서 작성자 숨김 */
+            .th-date { width: 25%; }
+            .th-priority { width: 12%; }
+            .th-status { width: 12%; }
+            .th-overdue { width: 8%; }
+            .th-actions { width: 3%; }
+
+            /* 모바일에서 작성자 컬럼 숨김 */
+            .task-author-cell,
+            .task-table th:nth-child(2) {
+                display: none;
+            }
+
+            .task-dates {
+                font-size: 0.65rem;
+            }
+
+            .priority-badge, .status-badge, .overdue-badge, .on-time-badge {
+                font-size: 0.55rem;
+                padding: 1px 4px;
+            }
+
+            .btn-small {
+                min-width: 18px;
+                height: 18px;
+                font-size: 0.55rem;
+                padding: 2px 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .task-meta {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .calendar td::after {
+                font-size: 0.6rem;
+                padding: 4px 6px;
+            }
+
+            .th-title { width: 45%; }
+            .th-date { width: 0; } /* 초소형에서 날짜도 숨김 */
+            .th-priority { width: 20%; }
+            .th-status { width: 20%; }
+            .th-overdue { width: 10%; }
+            .th-actions { width: 5%; }
+
+            /* 초소형에서 날짜 컬럼도 숨김 */
+            .task-date-cell,
+            .task-table th:nth-child(3) {
+                display: none;
+            }
+
+            .task-actions {
+                flex-direction: column;
+                gap: 1px;
+            }
+
+            .btn-small {
+                min-width: 16px;
+                height: 16px;
+                font-size: 0.5rem;
+            }
+
+            .priority-badge, .status-badge, .overdue-badge, .on-time-badge {
+                font-size: 0.5rem;
+                padding: 1px 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 왼쪽 달력 영역 -->
+    <div class="calendar-section">
+        <div class="calendar-header">
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="navigateCalendar(-1)">◀ 이전</button>
+                <button class="nav-btn" onclick="goToToday()">오늘</button>
+                <button class="nav-btn" onclick="navigateCalendar(1)">다음 ▶</button>
+            </div>
+            <div class="calendar-title" id="calendarTitle">2025년 6월</div>
+            <div class="view-controls">
+                <button class="view-btn" onclick="changeView('week')">주간</button>
+                <button class="view-btn active" onclick="changeView('month')">월간</button>
+                <button class="view-btn" onclick="changeView('year')">년간</button>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <!-- 월간 달력 -->
+            <div id="monthView" class="month-calendar">
+                <table class="calendar" id="monthCalendar">
+                    <thead>
+                    <tr>
+                        <th>일</th>
+                        <th>월</th>
+                        <th>화</th>
+                        <th>수</th>
+                        <th>목</th>
+                        <th>금</th>
+                        <th>토</th>
+                    </tr>
+                    </thead>
+                    <tbody id="monthCalendarBody">
+                    <!-- 달력이 여기에 동적으로 생성됩니다 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 주간 달력 -->
+            <div id="weekView" class="week-calendar">
+                <div class="week-header">
+                    <div>시간</div>
+                    <div>일</div>
+                    <div>월</div>
+                    <div>화</div>
+                    <div>수</div>
+                    <div>목</div>
+                    <div>금</div>
+                    <div>토</div>
+                </div>
+                <div class="week-body" id="weekCalendarBody">
+                    <!-- 주간 달력이 여기에 동적으로 생성됩니다 -->
+                </div>
+            </div>
+
+            <!-- 년간 달력 -->
+            <div id="yearView" class="year-calendar">
+                <!-- 12개월 미니 달력이 여기에 동적으로 생성됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 오른쪽 작업 목록 영역 -->
+    <div class="tasks-section">
+        <div class="tasks-header">
+            <h2 class="tasks-title">📋 작업 목록</h2>
+            <button class="btn btn-primary" onclick="openTaskModal()">➕ 새 작업</button>
+        </div>
+
+        <div class="task-controls">
+            <select id="sortSelect" class="sort-select" onchange="sortTasks()">
+                <option value="endDate">만료일 순</option>
+                <option value="priority">우선도 순</option>
+                <option value="createdAt">등록일 순</option>
+            </select>
+            <select id="statusFilter" class="filter-select" onchange="filterTasks()">
+                <option value="">모든 상태</option>
+                <option value="TODO">할 일</option>
+                <option value="IN_PROGRESS">진행 중</option>
+                <option value="COMPLETED">완료</option>
+            </select>
+            <select id="priorityFilter" class="filter-select" onchange="filterTasks()">
+                <option value="">모든 우선순위</option>
+                <option value="LOW">낮음</option>
+                <option value="MEDIUM">보통</option>
+                <option value="HIGH">높음</option>
+                <option value="URGENT">긴급</option>
+            </select>
+            <button class="show-all-btn" onclick="showAllTasks()">📋 전체 작업 보기</button>
+        </div>
+
+        <div class="task-list" id="taskList">
+            <!-- 작업 목록이 여기에 동적으로 생성됩니다 -->
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <!-- 페이지네이션이 여기에 동적으로 생성됩니다 -->
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">📝</div>
+            <h3>등록된 작업이 없습니다</h3>
+            <p>새 작업 버튼을 클릭하여 작업을 등록해보세요!</p>
+        </div>
+    </div>
+</div>
+
+<!-- 작업 등록/수정 모달 -->
+<div id="taskModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeTaskModal()">&times;</span>
+        <h2 id="modalTitle">새 작업 등록</h2>
+        <form id="taskForm" onsubmit="saveTask(event)">
+            <input type="hidden" id="taskId">
+
+            <div class="form-group">
+                <label class="form-label" for="title">작업 제목 *</label>
+                <input type="text" id="title" class="form-input" required maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">작업 설명</label>
+                <textarea id="description" class="form-textarea" maxlength="1000"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="authorName">작성자 *</label>
+                <input type="text" id="authorName" class="form-input" required maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="startDate">시작일 *</label>
+                <input type="date" id="startDate" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="endDate">종료일 *</label>
+                <input type="date" id="endDate" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="priority">우선순위</label>
+                <select id="priority" class="form-select">
+                    <option value="LOW">낮음</option>
+                    <option value="MEDIUM" selected>보통</option>
+                    <option value="HIGH">높음</option>
+                    <option value="URGENT">긴급</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="status">상태</label>
+                <select id="status" class="form-select">
+                    <option value="TODO">할 일</option>
+                    <option value="IN_PROGRESS">진행 중</option>
+                    <option value="COMPLETED">완료</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                <button type="button" class="btn" onclick="closeTaskModal()"
+                        style="background: #f8f9fa; color: #6c757d;">취소
+                </button>
+                <button type="submit" class="btn btn-primary">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="sidebar-container"></div>
+<script>
+    fetch("/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById("menuToggle");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
+</script>
+<script>
+    // 전역 변수
+    let tasks = [];
+    let currentDate = new Date();
+    let currentView = 'month';
+    let editingTaskId = null;
+    let selectedDate = null;
+    let currentPage = 0;
+    let totalPages = 0;
+    const PAGE_SIZE = 10;
+
+    // API 기본 URL
+    const API_BASE_URL = '/api/tasks';
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', function () {
+        loadTasks();
+        renderCalendar();
+        setDefaultDates();
+
+        // 전역 클릭 이벤트로 툴팁 숨기기
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.custom-tooltip') && !e.target.closest('.has-tasks')) {
+                removeCustomTooltip();
+            }
+        });
+
+        // 스크롤 시 툴팁 숨기기
+        document.addEventListener('scroll', () => {
+            removeCustomTooltip();
+        });
+    });
+
+    // API 호출 함수들
+    async function apiRequest(url, options = {}) {
+        try {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+
+            const response = await fetch(url, { ...defaultOptions, ...options });
+
+            if (!response.ok) {
+                const errorData = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorData}`);
+            }
+
+            // 빈 응답 처리 (204 No Content 등)
+            if (response.status === 204 || response.headers.get('content-length') === '0') {
+                return null;
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API 요청 실패:', error);
+            showNotification(`API 요청 실패: ${error.message}`, 'error');
+            throw error;
+        }
+    }
+
+    async function loadTasks() {
+        try {
+            showLoading(true);
+
+            // showAllTasks에서 호출된 경우 전체 작업 로드, 아니면 현재 뷰 기간에 맞는 작업 로드
+            let response;
+            if (selectedDate || (currentView !== 'month' && currentView !== 'week' && currentView !== 'year')) {
+                // 전체 작업 로드 (페이지네이션 포함)
+                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=${PAGE_SIZE}`);
+            } else {
+                // 전체 작업을 먼저 로드한 후 클라이언트에서 필터링
+                response = await apiRequest(`${API_BASE_URL}?page=0&size=1000`); // 충분히 큰 사이즈로 모든 작업 가져오기
+            }
+
+            if (response) {
+                tasks = response.tasks || [];
+                totalPages = Math.ceil((response.totalCount || 0) / PAGE_SIZE);
+                renderTasks();
+
+                // 전체 작업을 로드한 경우에만 페이지네이션 표시
+                if (selectedDate || (currentView !== 'month' && currentView !== 'week' && currentView !== 'year')) {
+                    renderPagination();
+                }
+            }
+
+            renderCalendar();
+        } catch (error) {
+            showNotification('작업 목록을 불러오는데 실패했습니다.', 'error');
+            tasks = [];
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function createTask(taskData) {
+        try {
+            showLoading(true);
+            const response = await apiRequest(API_BASE_URL, {
+                method: 'POST',
+                body: JSON.stringify(taskData)
+            });
+
+            if (response) {
+                showNotification('작업이 성공적으로 등록되었습니다.', 'success');
+                await loadTasks();
+                closeTaskModal();
+            }
+        } catch (error) {
+            showNotification('작업 등록에 실패했습니다.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function updateTask(taskId, taskData) {
+        try {
+            showLoading(true);
+            const response = await apiRequest(`${API_BASE_URL}/${taskId}`, {
+                method: 'PUT',
+                body: JSON.stringify(taskData)
+            });
+
+            if (response) {
+                showNotification('작업이 성공적으로 수정되었습니다.', 'success');
+                await loadTasks();
+                closeTaskModal();
+            }
+        } catch (error) {
+            showNotification('작업 수정에 실패했습니다.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function deleteTask(taskId) {
+        if (!confirm('이 작업을 삭제하시겠습니까?')) return;
+
+        try {
+            showLoading(true);
+            await apiRequest(`${API_BASE_URL}/${taskId}`, {
+                method: 'DELETE'
+            });
+
+            showNotification('작업이 성공적으로 삭제되었습니다.', 'success');
+            await loadTasks();
+        } catch (error) {
+            showNotification('작업 삭제에 실패했습니다.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function updateTaskStatus(taskId, status) {
+        try {
+            showLoading(true);
+            const response = await apiRequest(`${API_BASE_URL}/${taskId}/status?status=${status}`, {
+                method: 'PATCH'
+            });
+
+            if (response) {
+                const statusText = status === 'COMPLETED' ? '완료' : '상태 변경';
+                showNotification(`작업이 ${statusText}되었습니다.`, 'success');
+                await loadTasks();
+            }
+        } catch (error) {
+            showNotification('작업 상태 변경에 실패했습니다.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function searchTasks() {
+        try {
+            showLoading(true);
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+
+            let url = `${API_BASE_URL}/search?page=${currentPage}&size=${PAGE_SIZE}`;
+
+            if (statusFilter) url += `&status=${statusFilter}`;
+            if (priorityFilter) url += `&priority=${priorityFilter}`;
+
+            const response = await apiRequest(url);
+
+            if (response) {
+                tasks = response.tasks || [];
+                totalPages = Math.ceil((response.totalCount || 0) / PAGE_SIZE);
+                renderTasks();
+                renderPagination();
+            }
+        } catch (error) {
+            showNotification('작업 검색에 실패했습니다.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // 달력 렌더링
+    function renderCalendar() {
+        if (currentView === 'month') {
+            renderMonthCalendar();
+        } else if (currentView === 'week') {
+            renderWeekCalendar();
+        } else if (currentView === 'year') {
+            renderYearCalendar();
+        }
+        updateCalendarTitle();
+    }
+
+    function renderMonthCalendar() {
+        const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+        const tbody = document.getElementById('monthCalendarBody');
+        tbody.innerHTML = '';
+
+        let currentWeek = startDate;
+
+        for (let week = 0; week < 6; week++) {
+            const tr = document.createElement('tr');
+
+            for (let day = 0; day < 7; day++) {
+                const td = document.createElement('td');
+                const dateNum = currentWeek.getDate();
+                const isCurrentMonth = currentWeek.getMonth() === currentDate.getMonth();
+                const isToday = isDateToday(currentWeek);
+                const dayTasks = getTasksForDate(currentWeek);
+                const currentDateCopy = new Date(currentWeek);
+
+                td.innerHTML = `
+                <div class="date-number">${dateNum}</div>
+                ${dayTasks.map(task =>
+                    `<span class="task-indicator priority-${task.priority.toLowerCase()}"></span>`
+                ).join('')}
+            `;
+
+                if (!isCurrentMonth) {
+                    td.classList.add('other-month');
+                }
+                if (isToday) {
+                    td.classList.add('today');
+                }
+                if (dayTasks.length > 0) {
+                    td.classList.add('has-tasks');
+                }
+
+                td.addEventListener('click', () => selectDateForView(new Date(currentDateCopy)));
+                td.addEventListener('dblclick', () => addTaskForDate(new Date(currentDateCopy)));
+
+                tr.appendChild(td);
+                currentWeek.setDate(currentWeek.getDate() + 1);
+            }
+
+            tbody.appendChild(tr);
+        }
+    }
+
+    function renderWeekCalendar() {
+        const weekStart = getWeekStart(currentDate);
+        const weekBody = document.getElementById('weekCalendarBody');
+        weekBody.innerHTML = '';
+
+        for (let hour = 9; hour <= 18; hour++) {
+            const timeSlot = document.createElement('div');
+            timeSlot.className = 'time-slot';
+            timeSlot.textContent = `${hour}:00`;
+            weekBody.appendChild(timeSlot);
+
+            for (let day = 0; day < 7; day++) {
+                const dayColumn = document.createElement('div');
+                dayColumn.className = 'day-column';
+
+                const currentDay = new Date(weekStart);
+                currentDay.setDate(weekStart.getDate() + day);
+
+                if (isDateToday(currentDay)) {
+                    dayColumn.classList.add('today');
+                }
+
+                const dayTasks = getTasksForDate(currentDay);
+                dayColumn.innerHTML = dayTasks.map(task =>
+                    `<div class="task-event priority-${task.priority.toLowerCase()}"
+                              onclick="selectTask(${task.id})">${escapeHtml(task.title)}</div>`
+                ).join('');
+
+                weekBody.appendChild(dayColumn);
+            }
+        }
+    }
+
+    function renderYearCalendar() {
+        const yearView = document.getElementById('yearView');
+        yearView.innerHTML = '';
+
+        for (let month = 0; month < 12; month++) {
+            const miniMonth = document.createElement('div');
+            miniMonth.className = 'mini-month';
+
+            const monthDate = new Date(currentDate.getFullYear(), month, 1);
+            const monthName = monthDate.toLocaleDateString('ko-KR', {month: 'long'});
+
+            miniMonth.innerHTML = `
+            <div class="mini-month-title">${monthName}</div>
+            <table class="mini-calendar">
+                <tr>
+                    <td>일</td><td>월</td><td>화</td><td>수</td><td>목</td><td>금</td><td>토</td>
+                </tr>
+                ${generateMiniMonthDays(monthDate)}
+            </table>
+        `;
+
+            // 월 클릭 이벤트 (제목 부분만)
+            miniMonth.querySelector('.mini-month-title').addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentDate = new Date(currentDate.getFullYear(), month, 1);
+                changeView('month');
+            });
+
+            // 날짜 셀에 호버 이벤트 추가
+            const dateCells = miniMonth.querySelectorAll('.mini-calendar td.has-tasks');
+            dateCells.forEach(cell => {
+                cell.addEventListener('mouseenter', (e) => {
+                    const dateStr = e.target.getAttribute('data-date');
+                    if (dateStr) {
+                        const date = new Date(dateStr + 'T00:00:00');
+                        const dayTasks = getTasksForDate(date);
+                        showCustomTooltip(e.target, dayTasks);
+                    }
+                });
+
+                cell.addEventListener('mouseleave', () => {
+                    removeCustomTooltip();
+                });
+            });
+
+            yearView.appendChild(miniMonth);
+        }
+    }
+
+    function generateMiniMonthDays(monthDate) {
+        const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+        const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+        let html = '';
+        let currentWeek = new Date(startDate);
+
+        for (let week = 0; week < 6; week++) {
+            html += '<tr>';
+            for (let day = 0; day < 7; day++) {
+                const dateNum = currentWeek.getDate();
+                const isCurrentMonth = currentWeek.getMonth() === monthDate.getMonth();
+
+                // 오늘 날짜 체크를 현재 월의 날짜에서만 수행
+                const isToday = isCurrentMonth && isDateToday(currentWeek);
+
+                // 일정이 있는지 확인 (현재 월의 날짜에서만)
+                const dayTasks = isCurrentMonth ? getTasksForDate(currentWeek) : [];
+                const hasTasksClass = dayTasks.length > 0 ? 'has-tasks' : '';
+
+                // 툴팁용 작업 제목들 생성
+                const taskTitles = dayTasks.map(task => escapeHtml(task.title)).join('\n');
+                const tooltipAttr = dayTasks.length > 0 ? `title="${taskTitles}"` : '';
+
+                html += `<td class="${isToday ? 'today' : ''} ${!isCurrentMonth ? 'other-month' : ''} ${hasTasksClass}"
+                     onclick="selectMiniDate('${formatDateForInput(currentWeek)}')"
+                     ${tooltipAttr}
+                     data-date="${formatDateForInput(currentWeek)}"
+                     style="position: relative;">
+                     ${isCurrentMonth ? dateNum : ''}
+                     ${dayTasks.length > 0 ? '<span class="task-dot"></span>' : ''}
+                 </td>`;
+                currentWeek.setDate(currentWeek.getDate() + 1);
+            }
+            html += '</tr>';
+        }
+
+        return html;
+    }
+
+    function showCustomTooltip(element, tasks) {
+        // 기존 툴팁 제거
+        removeCustomTooltip();
+
+        if (tasks.length === 0) return;
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'custom-tooltip';
+        tooltip.id = 'customTooltip';
+
+        const taskList = tasks.map(task => {
+            const priorityIcon = getPriorityIcon(task.priority);
+            const statusIcon = getStatusIcon(task.status);
+            return `<div class="tooltip-task">
+                    ${priorityIcon} ${statusIcon} ${escapeHtml(task.title)}
+                </div>`;
+        }).join('');
+
+        tooltip.innerHTML = `
+            <div class="tooltip-header">📋 작업 목록 (${tasks.length}개)</div>
+            ${taskList}
+        `;
+
+        document.body.appendChild(tooltip);
+
+        // 툴팁 위치 계산
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        let top = rect.top - tooltipRect.height - 10;
+
+        // 화면 경계 처리
+        if (left < 10) left = 10;
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
+        }
+        if (top < 10) {
+            top = rect.bottom + 10;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.style.opacity = '1';
+    }
+
+    // 커스텀 툴팁 제거 함수
+    function removeCustomTooltip() {
+        const existingTooltip = document.getElementById('customTooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+    }
+
+    // 우선순위 아이콘 반환 함수
+    function getPriorityIcon(priority) {
+        const priorityIcons = {
+            'LOW': '🟢',
+            'MEDIUM': '🟡',
+            'HIGH': '🟠',
+            'URGENT': '🔴'
+        };
+        return priorityIcons[priority] || '⚪';
+    }
+
+    // 상태 아이콘 반환 함수
+    function getStatusIcon(status) {
+        const statusIcons = {
+            'TODO': '📝',
+            'IN_PROGRESS': '⏳',
+            'COMPLETED': '✅'
+        };
+        return statusIcons[status] || '📋';
+    }
+
+    function selectMiniDate(dateStr) {
+        const date = new Date(dateStr + 'T00:00:00');
+        currentDate = new Date(date);
+        changeView('month');
+        selectDateForView(date);
+    }
+
+    // 유틸리티 함수들
+    function isDateToday(date) {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
+    }
+
+    function getWeekStart(date) {
+        const start = new Date(date);
+        start.setDate(date.getDate() - date.getDay());
+        return start;
+    }
+
+    function getTasksForDate(date) {
+        const dateStr = formatDateForInput(date);
+
+        return tasks.filter(task =>
+            task.startDate <= dateStr && task.endDate >= dateStr
+        );
+    }
+
+    function selectDateForView(date) {
+        selectedDate = new Date(date);
+        currentDate = new Date(date);
+
+        document.querySelectorAll('.calendar td').forEach(td => {
+            td.classList.remove('selected-date');
+        });
+
+        const targetCell = event.currentTarget;
+        if (targetCell) {
+            targetCell.classList.add('selected-date');
+        }
+
+        renderTasksForSelectedDate(date);
+    }
+
+    function addTaskForDate(date) {
+        selectedDate = new Date(date);
+        openTaskModalForDate(date);
+    }
+
+    function openTaskModalForDate(date) {
+        editingTaskId = null;
+        document.getElementById('modalTitle').textContent = `새 작업 등록 - ${date.toLocaleDateString('ko-KR')}`;
+        document.getElementById('taskForm').reset();
+
+        const dateStr = formatDateForInput(date);
+
+        document.getElementById('startDate').value = dateStr;
+        document.getElementById('endDate').value = dateStr;
+
+        document.getElementById('taskModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('title').focus();
+        }, 100);
+    }
+
+    function renderTasksForSelectedDate(date) {
+        if (!date) {
+            renderTasks();
+            return;
+        }
+
+        const taskList = document.getElementById('taskList');
+        const emptyState = document.getElementById('emptyState');
+        const pagination = document.getElementById('pagination');
+
+        const dateStr = formatDateForInput(date);
+
+        const dateTasks = tasks.filter(task =>
+            task.startDate <= dateStr && task.endDate >= dateStr
+        );
+
+        let filteredTasks = dateTasks.filter(task => {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const matchesStatus = !statusFilter || task.status === statusFilter;
+            const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+            return matchesStatus && matchesPriority;
+        });
+
+        filteredTasks = getSortedTasks(filteredTasks);
+
+        pagination.style.display = 'none';
+
+        if (filteredTasks.length === 0) {
+            taskList.style.display = 'none';
+            emptyState.style.display = 'block';
+            emptyState.innerHTML = `
+                <div style="font-size: 4rem; margin-bottom: 20px;">📅</div>
+                <h3>${date.toLocaleDateString('ko-KR')}에 등록된 작업이 없습니다</h3>
+                <p>달력의 날짜를 더블클릭하거나 새 작업 버튼을 클릭하여 작업을 등록해보세요!</p>
+            `;
+            return;
+        }
+
+        taskList.style.display = 'block';
+        emptyState.style.display = 'none';
+
+        // 수정된 테이블 형식으로 선택된 날짜의 작업 목록 생성 (7개 컬럼)
+        const tableHtml = `
+            <div class="period-header">
+                <h3>📅 ${date.toLocaleDateString('ko-KR', {
+                month: 'short',
+                day: 'numeric',
+                weekday: 'short'
+            })} (총 ${filteredTasks.length}개)</h3>
+            </div>
+            <div class="task-table-container">
+                <table class="task-table">
+                    <thead>
+                        <tr>
+                            <th class="th-title">작업명</th>
+                            <th class="th-author">작성자</th>
+                            <th class="th-date">기간</th>
+                            <th class="th-priority">우선순위</th>
+                            <th class="th-status">상태</th>
+                            <th class="th-overdue">지연</th>
+                            <th class="th-actions">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredTasks.map(task => createTaskElement(task)).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        taskList.innerHTML = tableHtml;
+    }
+
+
+    function updateCalendarTitle() {
+        const titleElement = document.getElementById('calendarTitle');
+
+        if (currentView === 'month') {
+            titleElement.textContent = currentDate.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long'
+            });
+        } else if (currentView === 'week') {
+            const weekStart = getWeekStart(currentDate);
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            titleElement.textContent = `${weekStart.toLocaleDateString('ko-KR', {
+                month: 'short',
+                day: 'numeric'
+            })} - ${weekEnd.toLocaleDateString('ko-KR', {month: 'short', day: 'numeric'})}`;
+        } else if (currentView === 'year') {
+            titleElement.textContent = `${currentDate.getFullYear()}년`;
+        }
+    }
+
+    // 달력 네비게이션
+    function navigateCalendar(direction) {
+        const newDate = new Date(currentDate);
+
+        if (currentView === 'month') {
+            newDate.setMonth(newDate.getMonth() + direction);
+        } else if (currentView === 'week') {
+            newDate.setDate(newDate.getDate() + (7 * direction));
+        } else if (currentView === 'year') {
+            newDate.setFullYear(newDate.getFullYear() + direction);
+        }
+
+        currentDate = newDate;
+
+        // 선택된 날짜 초기화
+        selectedDate = null;
+        document.querySelectorAll('.calendar td').forEach(td => {
+            td.classList.remove('selected-date');
+        });
+
+        renderCalendar();
+        renderTasks(); // 기간 변경 시 작업 목록도 다시 렌더링
+    }
+
+
+    function goToToday() {
+        currentDate = new Date();
+
+        // 선택된 날짜 초기화
+        selectedDate = null;
+        document.querySelectorAll('.calendar td').forEach(td => {
+            td.classList.remove('selected-date');
+        });
+
+        renderCalendar();
+        renderTasks(); // 오늘로 이동 시 작업 목록도 다시 렌더링
+    }
+
+    function changeView(view) {
+        currentView = view;
+
+        document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+
+        const targetBtn = document.querySelector(`[onclick="changeView('${view}')"]`);
+        if (targetBtn) {
+            targetBtn.classList.add('active');
+        }
+
+        document.getElementById('monthView').style.display = view === 'month' ? 'block' : 'none';
+        document.getElementById('weekView').className = view === 'week' ? 'week-calendar active' : 'week-calendar';
+        document.getElementById('yearView').className = view === 'year' ? 'year-calendar active' : 'year-calendar';
+
+        // 선택된 날짜 초기화 (뷰 변경 시 해당 기간의 전체 작업 표시)
+        selectedDate = null;
+        document.querySelectorAll('.calendar td').forEach(td => {
+            td.classList.remove('selected-date');
+        });
+
+        renderCalendar();
+        renderTasks(); // 뷰 변경 시 작업 목록도 다시 렌더링
+    }
+
+
+    function selectDate(date) {
+        selectDateForView(date);
+        if (currentView !== 'month') {
+            changeView('month');
+        } else {
+            renderCalendar();
+        }
+    }
+
+    // 작업 관련 함수들
+    function renderTasks() {
+        const taskList = document.getElementById('taskList');
+        const emptyState = document.getElementById('emptyState');
+        const pagination = document.getElementById('pagination');
+
+        // 선택된 날짜가 있으면 해당 날짜의 작업, 없으면 현재 뷰 기간의 작업 표시
+        let periodTasks;
+        if (selectedDate) {
+            periodTasks = getTasksForDate(selectedDate);
+        } else {
+            periodTasks = getTasksForCurrentPeriod();
+        }
+
+        // 필터 적용
+        let filteredTasks = periodTasks.filter(task => {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const matchesStatus = !statusFilter || task.status === statusFilter;
+            const matchesPriority = !priorityFilter || task.priority === priorityFilter;
+            return matchesStatus && matchesPriority;
+        });
+
+        filteredTasks = getSortedTasks(filteredTasks);
+
+        if (filteredTasks.length === 0) {
+            taskList.style.display = 'none';
+            emptyState.style.display = 'block';
+            pagination.style.display = 'none';
+
+            let periodText = '';
+            if (selectedDate) {
+                periodText = selectedDate.toLocaleDateString('ko-KR');
+            } else if (currentView === 'month') {
+                periodText = currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' });
+            } else if (currentView === 'week') {
+                const weekStart = getWeekStart(currentDate);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                periodText = `${weekStart.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}`;
+            } else if (currentView === 'year') {
+                periodText = `${currentDate.getFullYear()}년`;
+            }
+
+            emptyState.innerHTML = `
+            <div style="font-size: 4rem; margin-bottom: 20px;">📝</div>
+            <h3>${periodText}에 등록된 작업이 없습니다</h3>
+            <p>새 작업 버튼을 클릭하여 작업을 등록해보세요!</p>
+        `;
+            return;
+        }
+
+        taskList.style.display = 'block';
+        emptyState.style.display = 'none';
+        pagination.style.display = 'none';
+
+        // 테이블 헤더 생성
+        let headerHtml = '';
+        if (selectedDate) {
+            headerHtml = `
+            <div class="period-header">
+                <h3>📅 ${selectedDate.toLocaleDateString('ko-KR', {
+                month: 'short',
+                day: 'numeric',
+                weekday: 'short'
+            })} (총 ${filteredTasks.length}개)</h3>
+            </div>
+        `;
+        } else {
+            let periodInfo = '';
+            let icon = '';
+
+            if (currentView === 'month') {
+                periodInfo = currentDate.toLocaleDateString('ko-KR', { month: 'long' });
+                icon = '📅';
+            } else if (currentView === 'week') {
+                const weekStart = getWeekStart(currentDate);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                periodInfo = `${weekStart.getDate()}일-${weekEnd.getDate()}일`;
+                icon = '📊';
+            } else if (currentView === 'year') {
+                periodInfo = `${currentDate.getFullYear()}년`;
+                icon = '📋';
+            }
+
+            headerHtml = `
+            <div class="period-header">
+                <h3>${icon} ${periodInfo} (총 ${filteredTasks.length}개)</h3>
+            </div>
+        `;
+        }
+
+        // 수정된 테이블 형식으로 작업 목록 생성 (7개 컬럼)
+        const tableHtml = `
+        ${headerHtml}
+        <div class="task-table-container">
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th class="th-title">작업명</th>
+                        <th class="th-author">작성자</th>
+                        <th class="th-date">기간</th>
+                        <th class="th-priority">우선순위</th>
+                        <th class="th-status">상태</th>
+                        <th class="th-overdue">지연</th>
+                        <th class="th-actions">작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filteredTasks.map(task => createTaskElement(task)).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+        taskList.innerHTML = tableHtml;
+    }
+
+
+    function renderPagination() {
+        const pagination = document.getElementById('pagination');
+
+        if (totalPages <= 1) {
+            pagination.style.display = 'none';
+            return;
+        }
+
+        pagination.style.display = 'flex';
+        pagination.innerHTML = '';
+
+        // 이전 페이지 버튼
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '이전';
+        prevBtn.disabled = currentPage === 0;
+        prevBtn.onclick = () => changePage(currentPage - 1);
+        pagination.appendChild(prevBtn);
+
+        // 페이지 번호들
+        const startPage = Math.max(0, currentPage - 2);
+        const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.textContent = i + 1;
+            pageBtn.className = i === currentPage ? 'active' : '';
+            pageBtn.onclick = () => changePage(i);
+            pagination.appendChild(pageBtn);
+        }
+
+        // 다음 페이지 버튼
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '다음';
+        nextBtn.disabled = currentPage === totalPages - 1;
+        nextBtn.onclick = () => changePage(currentPage + 1);
+        pagination.appendChild(nextBtn);
+    }
+
+    // 현재 뷰 기간에 해당하는 작업들만 필터링하는 함수
+    function getTasksForCurrentPeriod() {
+        if (currentView === 'month') {
+            return getTasksForMonth(currentDate);
+        } else if (currentView === 'week') {
+            return getTasksForWeek(currentDate);
+        } else if (currentView === 'year') {
+            return getTasksForYear(currentDate);
+        }
+        return tasks;
+    }
+
+    // 특정 월의 작업들을 가져오는 함수
+    function getTasksForMonth(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        const firstDayStr = formatDateForInput(firstDay);
+        const lastDayStr = formatDateForInput(lastDay);
+
+        return tasks.filter(task => {
+            // 작업 기간이 해당 월과 겹치는지 확인
+            return task.startDate <= lastDayStr && task.endDate >= firstDayStr;
+        });
+    }
+
+    // 특정 주의 작업들을 가져오는 함수
+    function getTasksForWeek(date) {
+        const weekStart = getWeekStart(date);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+
+        const weekStartStr = formatDateForInput(weekStart);
+        const weekEndStr = formatDateForInput(weekEnd);
+
+        return tasks.filter(task => {
+            // 작업 기간이 해당 주와 겹치는지 확인
+            return task.startDate <= weekEndStr && task.endDate >= weekStartStr;
+        });
+    }
+
+    // 특정 년의 작업들을 가져오는 함수
+    function getTasksForYear(date) {
+        const year = date.getFullYear();
+        const firstDay = new Date(year, 0, 1);
+        const lastDay = new Date(year, 11, 31);
+
+        const firstDayStr = formatDateForInput(firstDay);
+        const lastDayStr = formatDateForInput(lastDay);
+
+        return tasks.filter(task => {
+            // 작업 기간이 해당 년과 겹치는지 확인
+            return task.startDate <= lastDayStr && task.endDate >= firstDayStr;
+        });
+    }
+
+    function changePage(page) {
+        if (page >= 0 && page < totalPages) {
+            currentPage = page;
+            if (selectedDate) {
+                renderTasksForSelectedDate(selectedDate);
+            } else {
+                loadTasks();
+            }
+        }
+    }
+
+    function createTaskElement(task) {
+        const isOverdue = new Date(task.endDate) < new Date() && task.status !== 'COMPLETED';
+        const priorityClass = task.priority.toLowerCase();
+        const statusClass = task.status.toLowerCase().replace('_', '-');
+
+        return `
+            <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''}"
+                onclick="selectTask(${task.id})">
+                <td class="task-title-cell">
+                    <div class="task-title-content">
+                        <span class="task-title">${escapeHtml(task.title)}</span>
+                        ${task.description ? `<span class="task-description">${escapeHtml(task.description)}</span>` : ''}
+                    </div>
+                </td>
+                <td class="task-author-cell">${escapeHtml(task.authorName)}</td>
+                <td class="task-date-cell">
+                    <div class="task-dates">
+                        <span>${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}</span>
+                    </div>
+                </td>
+                <td class="task-priority-cell">
+                    <span class="priority-badge priority-${priorityClass}">
+                        ${getPriorityText(task.priority)}
+                    </span>
+                </td>
+                <td class="task-status-cell">
+                    <span class="status-badge status-${statusClass}">
+                        ${getStatusText(task.status)}
+                    </span>
+                </td>
+                <td class="task-overdue-cell">
+                    ${isOverdue ? '<span class="overdue-badge">지연</span>' : '<span class="on-time-badge">정상</span>'}
+                </td>
+                <td class="task-actions-cell" onclick="event.stopPropagation();">
+                    <div class="task-actions">
+                        <button class="btn-small btn-edit" onclick="editTask(${task.id})" title="수정">✏️</button>
+                        <button class="btn-small btn-delete" onclick="deleteTask(${task.id})" title="삭제">🗑️</button>
+                        ${task.status !== 'COMPLETED' ?
+                `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
+                ''
+            }
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+
+
+    function editTask(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        editingTaskId = taskId;
+        document.getElementById('modalTitle').textContent = '작업 수정';
+
+        document.getElementById('title').value = task.title;
+        document.getElementById('description').value = task.description || '';
+        document.getElementById('authorName').value = task.authorName;
+        document.getElementById('startDate').value = task.startDate;
+        document.getElementById('endDate').value = task.endDate;
+        document.getElementById('priority').value = task.priority;
+        document.getElementById('status').value = task.status;
+
+        document.getElementById('taskModal').style.display = 'block';
+
+        setTimeout(() => {
+            const titleInput = document.getElementById('title');
+            titleInput.focus();
+            titleInput.select();
+        }, 100);
+    }
+
+    function completeTask(taskId) {
+        updateTaskStatus(taskId, 'COMPLETED');
+    }
+
+    function getSortedTasks(tasksToSort) {
+        const sortBy = document.getElementById('sortSelect').value;
+
+        return [...tasksToSort].sort((a, b) => {
+            if (sortBy === 'endDate') {
+                return new Date(a.endDate) - new Date(b.endDate);
+            } else if (sortBy === 'priority') {
+                const priorityOrder = {URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1};
+                return priorityOrder[b.priority] - priorityOrder[a.priority];
+            } else if (sortBy === 'createdAt') {
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            }
+            return 0;
+        });
+    }
+
+    function selectTask(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        const taskDate = new Date(task.startDate);
+        currentDate = new Date(taskDate);
+
+        if (currentView !== 'month') {
+            changeView('month');
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.view-btn[onclick="changeView(\'month\')"]').classList.add('active');
+        } else {
+            renderCalendar();
+        }
+
+        setTimeout(() => {
+            const taskElements = document.querySelectorAll('.task-item');
+            taskElements.forEach(el => el.style.background = 'white');
+
+            const selectedTaskElement = document.querySelector(`[onclick="selectTask(${taskId})"]`);
+            if (selectedTaskElement) {
+                selectedTaskElement.style.background = 'linear-gradient(135deg, #fff 0%, #e3f2fd 100%)';
+                selectedTaskElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }
+        }, 300);
+    }
+
+    function sortTasks() {
+        if (selectedDate) {
+            renderTasksForSelectedDate(selectedDate);
+        } else {
+            renderTasks();
+        }
+    }
+
+    async function filterTasks() {
+        currentPage = 0;
+        if (selectedDate) {
+            renderTasksForSelectedDate(selectedDate);
+        } else {
+            await searchTasks();
+        }
+    }
+
+    function showAllTasks() {
+        selectedDate = null;
+        currentPage = 0;
+        document.querySelectorAll('.calendar td').forEach(td => {
+            td.classList.remove('selected-date');
+        });
+
+        // 필터 초기화
+        document.getElementById('statusFilter').value = '';
+        document.getElementById('priorityFilter').value = '';
+
+        // 전체 작업을 보기 위해 API에서 다시 로드
+        loadTasks();
+    }
+
+    // 작업 CRUD 함수들
+    function openTaskModal() {
+        editingTaskId = null;
+
+        if (selectedDate) {
+            document.getElementById('modalTitle').textContent = `새 작업 등록 - ${selectedDate.toLocaleDateString('ko-KR')}`;
+            const dateStr = formatDateForInput(selectedDate);
+            document.getElementById('startDate').value = dateStr;
+            document.getElementById('endDate').value = dateStr;
+        } else {
+            document.getElementById('modalTitle').textContent = '새 작업 등록';
+            setDefaultDates();
+        }
+
+        document.getElementById('taskForm').reset();
+
+        if (selectedDate) {
+            const dateStr = formatDateForInput(selectedDate);
+            document.getElementById('startDate').value = dateStr;
+            document.getElementById('endDate').value = dateStr;
+        } else {
+            setDefaultDates();
+        }
+
+        document.getElementById('taskModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('title').focus();
+        }, 100);
+    }
+
+    function closeTaskModal() {
+        document.getElementById('taskModal').style.display = 'none';
+        editingTaskId = null;
+    }
+
+    function setDefaultDates() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        document.getElementById('startDate').value = formatDateForInput(today);
+        document.getElementById('endDate').value = formatDateForInput(tomorrow);
+    }
+
+    function saveTask(event) {
+        event.preventDefault();
+
+        const taskData = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            authorName: document.getElementById('authorName').value,
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            priority: document.getElementById('priority').value,
+            status: document.getElementById('status').value
+        };
+
+        const errors = validateTaskData(taskData);
+        if (errors.length > 0) {
+            alert(errors.join('\n'));
+            return;
+        }
+
+        if (editingTaskId) {
+            updateTask(editingTaskId, taskData);
+        } else {
+            createTask(taskData);
+        }
+    }
+
+    // 유틸리티 함수들
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR', {
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function getPriorityText(priority) {
+        const priorityMap = {
+            'LOW': '낮음',
+            'MEDIUM': '보통',
+            'HIGH': '높음',
+            'URGENT': '긴급'
+        };
+        return priorityMap[priority] || priority;
+    }
+
+    function getStatusText(status) {
+        const statusMap = {
+            'TODO': '할 일',
+            'IN_PROGRESS': '진행 중',
+            'COMPLETED': '완료'
+        };
+        return statusMap[status] || status;
+    }
+
+    function formatDateForInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    function validateTaskData(taskData) {
+        const errors = [];
+
+        if (!taskData.title.trim()) {
+            errors.push('작업 제목은 필수입니다.');
+        }
+
+        if (!taskData.authorName.trim()) {
+            errors.push('작성자 이름은 필수입니다.');
+        }
+
+        if (new Date(taskData.endDate) < new Date(taskData.startDate)) {
+            errors.push('종료일은 시작일보다 이후여야 합니다.');
+        }
+
+        return errors;
+    }
+
+    function showLoading(show) {
+        const container = document.querySelector('.container');
+        if (show) {
+            container.classList.add('loading');
+        } else {
+            container.classList.remove('loading');
+        }
+    }
+
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function (event) {
+        const modal = document.getElementById('taskModal');
+        if (event.target === modal) {
+            closeTaskModal();
+        }
+    }
+
+    document.addEventListener('keydown', function(event) {
+        // ESC 키로 모달 닫기
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('taskModal');
+            if (modal.style.display === 'block') {
+                closeTaskModal();
+            }
+        }
+    });
+</script>
+</body>
+</html>
