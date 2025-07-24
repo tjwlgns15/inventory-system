@@ -40,9 +40,11 @@ public class TaskDto {
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate endDate;
 
+        @Builder.Default
         private TaskStatus status = TaskStatus.TODO;
 
         @NotNull(message = "우선순위는 필수입니다")
+        @Builder.Default
         private Priority priority = Priority.MEDIUM;
     }
 
