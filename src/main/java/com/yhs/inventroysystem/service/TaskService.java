@@ -118,11 +118,11 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public TaskListResponse searchTasks(String title, String authorName, TaskStatus status, Priority priority,
+    public TaskListResponse searchTasks(String title, String authorName, List<TaskStatus> statusList, Priority priority,
                                         LocalDate startDate, LocalDate endDate, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Task> taskPage = taskRepository.findTasksWithFilters(
-                title, authorName, status, priority, startDate, endDate, pageable);
+                title, authorName, statusList, priority, startDate, endDate, pageable);
 
         List<TaskResponse> taskResponses = taskPage.getContent().stream()
                 .map(TaskResponse::from)

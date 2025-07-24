@@ -218,19 +218,123 @@
         }
 
         .task-indicator.priority-low {
-            background: #95a5a6;
+            background: #28a745;
         }
 
         .task-indicator.priority-medium {
-            background: #f39c12;
+            background: #ffc107;
         }
 
         .task-indicator.priority-high {
-            background: #e67e22;
+            background: #fd7e14;
         }
 
         .task-indicator.priority-urgent {
-            background: #e74c3c;
+            background: #dc3545;
+        }
+
+        /* 달력의 완료된 작업 인디케이터 */
+        .task-indicator.completed {
+            background: #dee2e6 !important;
+            opacity: 0.6;
+        }
+
+        /* 주간/년간 달력의 완료된 작업 이벤트 */
+        .task-event.completed {
+            background: rgba(222, 226, 230, 0.3) !important;
+            border-left: 3px solid #dee2e6 !important;
+            color: #6c757d !important;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .task-event.completed:hover {
+            background: rgba(222, 226, 230, 0.5) !important;
+            opacity: 0.85;
+        }
+
+        .mini-calendar .has-tasks.priority-low {
+            border: 2px solid #28a745 !important;
+        }
+
+        .mini-calendar .has-tasks.priority-medium {
+            border: 2px solid #ffc107 !important;
+        }
+
+        .mini-calendar .has-tasks.priority-high {
+            border: 2px solid #fd7e14 !important;
+        }
+
+        .mini-calendar .has-tasks.priority-urgent {
+            border: 2px solid #dc3545 !important;
+        }
+
+        .mini-calendar .has-tasks.priority-low:hover {
+            background-color: rgba(40, 167, 69, 0.25) !important;
+        }
+
+        .mini-calendar .has-tasks.priority-medium:hover {
+            background-color: rgba(255, 193, 7, 0.25) !important;
+        }
+
+        .mini-calendar .has-tasks.priority-high:hover {
+            background-color: rgba(253, 126, 20, 0.25) !important;
+        }
+
+        .mini-calendar .has-tasks.priority-urgent:hover {
+            background-color: rgba(220, 53, 69, 0.25) !important;
+        }
+
+        /* 년간 달력의 완료된 작업이 있는 날짜 */
+        .mini-calendar .has-tasks.has-completed-only {
+            background-color: rgba(222, 226, 230, 0.2) !important;
+            border: 1px solid #dee2e6 !important;
+        }
+
+        .mini-calendar .has-tasks.has-completed-only:hover {
+            background-color: rgba(222, 226, 230, 0.4) !important;
+        }
+
+        .mini-calendar .task-dot.priority-low {
+            background: #28a745 !important;
+        }
+
+        .mini-calendar .task-dot.priority-medium {
+            background: #ffc107 !important;
+        }
+
+        .mini-calendar .task-dot.priority-high {
+            background: #fd7e14 !important;
+        }
+
+        .mini-calendar .task-dot.priority-urgent {
+            background: #dc3545 !important;
+        }
+
+        /* 여러 우선순위가 섞여있을 때 최고 우선순위로 표시 */
+        .mini-calendar .has-tasks.mixed-priority {
+            border: 2px solid #6c757d !important;
+            background-color: rgba(108, 117, 125, 0.1) !important;
+        }
+
+        .mini-calendar .has-tasks.mixed-priority:hover {
+            background-color: rgba(108, 117, 125, 0.25) !important;
+        }
+
+        .mini-calendar .task-dot.mixed-priority {
+            background: linear-gradient(45deg, #28a745, #ffc107, #fd7e14, #dc3545) !important;
+        }
+
+        /* 완료된 작업의 점 표시 */
+        .mini-calendar .task-dot.completed {
+            background: #dee2e6 !important;
+        }
+
+        /* 커스텀 툴팁에서 완료된 작업 */
+        .tooltip-task.completed {
+            color: #6c757d !important;
+            text-decoration: line-through;
+            opacity: 0.7;
         }
 
         /* 주간 달력 */
@@ -498,21 +602,84 @@
         .task-row:last-child {
             border-bottom: none;
         }
+        /* 완료된 작업 행 전체 스타일 */
+        .task-row.completed {
+            background-color: #f8f9fa !important;
+            color: #6c757d;
+            opacity: 0.7;
+        }
+
+        .task-row.completed:hover {
+            background-color: #e9ecef !important;
+            opacity: 0.85;
+        }
+
+        /* 완료된 작업의 제목과 설명 */
+        .task-row.completed .task-title {
+            color: #6c757d !important;
+            text-decoration: line-through;
+        }
+
+        .task-row.completed .task-description {
+            color: #adb5bd !important;
+            text-decoration: line-through;
+        }
+
+        /* 완료된 작업의 작성자 */
+        .task-row.completed .task-author-cell {
+            color: #adb5bd !important;
+        }
+
+        /* 완료된 작업의 날짜 */
+        .task-row.completed .task-date-cell {
+            color: #adb5bd !important;
+        }
+
+        /* 완료된 작업의 우선순위 배지 */
+        .task-row.completed .priority-badge {
+            background-color: #e9ecef !important;
+            color: #6c757d !important;
+            opacity: 0.8;
+        }
+
+        /* 완료된 작업의 지연 상태 배지도 회색으로 */
+        .task-row.completed .overdue-badge {
+            background-color: #e9ecef !important;
+            color: #6c757d !important;
+        }
+
+        .task-row.completed .on-time-badge {
+            background-color: #e9ecef !important;
+            color: #6c757d !important;
+        }
+
+        /* 완료된 작업의 액션 버튼들 */
+        .task-row.completed .btn-small {
+            opacity: 0.6;
+        }
+
+        /* 완료된 작업의 좌측 우선순위 테두리도 회색으로 */
+        .task-row.completed.priority-low,
+        .task-row.completed.priority-medium,
+        .task-row.completed.priority-high,
+        .task-row.completed.priority-urgent {
+            border-left: 3px solid #dee2e6 !important;
+        }
 
         .task-row.priority-low {
-            border-left: 3px solid #95a5a6;
+            border-left: 3px solid #28a745;
         }
 
         .task-row.priority-medium {
-            border-left: 3px solid #f39c12;
+            border-left: 3px solid #ffc107;
         }
 
         .task-row.priority-high {
-            border-left: 3px solid #e67e22;
+            border-left: 3px solid #fd7e14;
         }
 
         .task-row.priority-urgent {
-            border-left: 3px solid #e74c3c;
+            border-left: 3px solid #dc3545;
         }
 
         .task-row.overdue {
@@ -591,23 +758,23 @@
         }
 
         .priority-low {
-            background: #ecf0f1;
-            color: #95a5a6;
+            background: #d4edda;
+            color: #155724;
         }
 
         .priority-medium {
-            background: #fef9e7;
-            color: #f39c12;
+            background: #fff3cd;
+            color: #856404;
         }
 
         .priority-high {
-            background: #fdf2e9;
-            color: #e67e22;
+            background: #ffe8d4;
+            color: #b45309;
         }
 
         .priority-urgent {
-            background: #fdebf1;
-            color: #e74c3c;
+            background: #f8d7da;
+            color: #721c24;
         }
 
         .status-todo {
@@ -1203,6 +1370,7 @@
                 <option value="">모든 상태</option>
                 <option value="TODO">할 일</option>
                 <option value="IN_PROGRESS">진행 중</option>
+                <option value="TODO,IN_PROGRESS">할 일 + 진행 중</option>
                 <option value="COMPLETED">완료</option>
             </select>
             <select id="priorityFilter" class="filter-select" onchange="filterTasks()">
@@ -1487,7 +1655,20 @@
 
             let url = `${API_BASE_URL}/search?page=${currentPage}&size=${PAGE_SIZE}`;
 
-            if (statusFilter) url += `&status=${statusFilter}`;
+            // 상태 파라미터 처리
+            if (statusFilter) {
+                if (statusFilter.includes(',')) {
+                    // 여러 상태인 경우 각각 status 파라미터로 추가
+                    const statuses = statusFilter.split(',');
+                    statuses.forEach(status => {
+                        url += `&status=${status.trim()}`;
+                    });
+                } else {
+                    // 단일 상태인 경우
+                    url += `&status=${statusFilter}`;
+                }
+            }
+
             if (priorityFilter) url += `&priority=${priorityFilter}`;
 
             const response = await apiRequest(url);
@@ -1539,11 +1720,16 @@
                 const dayTasks = getTasksForDate(currentWeek);
                 const currentDateCopy = new Date(currentWeek);
 
+                // 완료된 작업과 미완료 작업을 구분하여 표시
+                const taskIndicators = dayTasks.map(task => {
+                    const isCompleted = task.status === 'COMPLETED';
+                    const completedClass = isCompleted ? ' completed' : '';
+                    return `<span class="task-indicator priority-${task.priority.toLowerCase()}${completedClass}"></span>`;
+                }).join('');
+
                 td.innerHTML = `
                 <div class="date-number">${dateNum}</div>
-                ${dayTasks.map(task =>
-                    `<span class="task-indicator priority-${task.priority.toLowerCase()}"></span>`
-                ).join('')}
+                ${taskIndicators}
             `;
 
                 if (!isCurrentMonth) {
@@ -1567,6 +1753,7 @@
         }
     }
 
+    // 주간 달력 렌더링 함수 수정
     function renderWeekCalendar() {
         const weekStart = getWeekStart(currentDate);
         const weekBody = document.getElementById('weekCalendarBody');
@@ -1590,11 +1777,14 @@
                 }
 
                 const dayTasks = getTasksForDate(currentDay);
-                dayColumn.innerHTML = dayTasks.map(task =>
-                    `<div class="task-event priority-${task.priority.toLowerCase()}"
-                              onclick="selectTask(${task.id})">${escapeHtml(task.title)}</div>`
-                ).join('');
+                const taskEvents = dayTasks.map(task => {
+                    const isCompleted = task.status === 'COMPLETED';
+                    const completedClass = isCompleted ? ' completed' : '';
+                    return `<div class="task-event priority-${task.priority.toLowerCase()}${completedClass}"
+                              onclick="selectTask(${task.id})">${escapeHtml(task.title)}</div>`;
+                }).join('');
 
+                dayColumn.innerHTML = taskEvents;
                 weekBody.appendChild(dayColumn);
             }
         }
@@ -1663,25 +1853,62 @@
             for (let day = 0; day < 7; day++) {
                 const dateNum = currentWeek.getDate();
                 const isCurrentMonth = currentWeek.getMonth() === monthDate.getMonth();
-
-                // 오늘 날짜 체크를 현재 월의 날짜에서만 수행
                 const isToday = isCurrentMonth && isDateToday(currentWeek);
-
-                // 일정이 있는지 확인 (현재 월의 날짜에서만)
                 const dayTasks = isCurrentMonth ? getTasksForDate(currentWeek) : [];
+
+                // 완료된 작업만 있는지 확인
+                const completedTasks = dayTasks.filter(task => task.status === 'COMPLETED');
+                const hasOnlyCompletedTasks = dayTasks.length > 0 && completedTasks.length === dayTasks.length;
+
+                // 우선순위 분석
+                let priorityClass = '';
+                let taskDotClass = '';
+
+                if (dayTasks.length > 0) {
+                    if (hasOnlyCompletedTasks) {
+                        // 완료된 작업만 있는 경우
+                        priorityClass = ' has-completed-only';
+                        taskDotClass = ' completed';
+                    } else {
+                        // 미완료 작업이 있는 경우 최고 우선순위로 결정
+                        const activeTasks = dayTasks.filter(task => task.status !== 'COMPLETED');
+                        const priorities = activeTasks.map(task => task.priority);
+                        const uniquePriorities = [...new Set(priorities)];
+
+                        if (uniquePriorities.length === 1) {
+                            // 단일 우선순위
+                            priorityClass = ` priority-${uniquePriorities[0].toLowerCase()}`;
+                            taskDotClass = ` priority-${uniquePriorities[0].toLowerCase()}`;
+                        } else {
+                            // 여러 우선순위가 섞여있는 경우 최고 우선순위로 표시
+                            const priorityOrder = ['URGENT', 'HIGH', 'MEDIUM', 'LOW'];
+                            const highestPriority = priorityOrder.find(p => priorities.includes(p));
+                            priorityClass = ` priority-${highestPriority.toLowerCase()}`;
+                            taskDotClass = ` mixed-priority`;
+                        }
+                    }
+                }
+
                 const hasTasksClass = dayTasks.length > 0 ? 'has-tasks' : '';
 
-                // 툴팁용 작업 제목들 생성
-                const taskTitles = dayTasks.map(task => escapeHtml(task.title)).join('\n');
+                const taskTitles = dayTasks.map(task => {
+                    const priorityIcon = getPriorityIcon(task.priority);
+                    const statusIcon = getStatusIcon(task.status);
+                    return `${priorityIcon} ${statusIcon} ${escapeHtml(task.title)}`;
+                }).join('\n');
                 const tooltipAttr = dayTasks.length > 0 ? `title="${taskTitles}"` : '';
 
-                html += `<td class="${isToday ? 'today' : ''} ${!isCurrentMonth ? 'other-month' : ''} ${hasTasksClass}"
+                // 작업 점 표시
+                const taskDot = dayTasks.length > 0 ?
+                    `<span class="task-dot${taskDotClass}"></span>` : '';
+
+                html += `<td class="${isToday ? 'today' : ''} ${!isCurrentMonth ? 'other-month' : ''} ${hasTasksClass}${priorityClass}"
                      onclick="selectMiniDate('${formatDateForInput(currentWeek)}')"
                      ${tooltipAttr}
                      data-date="${formatDateForInput(currentWeek)}"
                      style="position: relative;">
                      ${isCurrentMonth ? dateNum : ''}
-                     ${dayTasks.length > 0 ? '<span class="task-dot"></span>' : ''}
+                     ${taskDot}
                  </td>`;
                 currentWeek.setDate(currentWeek.getDate() + 1);
             }
@@ -1691,8 +1918,8 @@
         return html;
     }
 
+    // 커스텀 툴팁 표시 함수 수정
     function showCustomTooltip(element, tasks) {
-        // 기존 툴팁 제거
         removeCustomTooltip();
 
         if (tasks.length === 0) return;
@@ -1704,15 +1931,18 @@
         const taskList = tasks.map(task => {
             const priorityIcon = getPriorityIcon(task.priority);
             const statusIcon = getStatusIcon(task.status);
-            return `<div class="tooltip-task">
-                    ${priorityIcon} ${statusIcon} ${escapeHtml(task.title)}
-                </div>`;
+            const isCompleted = task.status === 'COMPLETED';
+            const completedClass = isCompleted ? ' completed' : '';
+
+            return `<div class="tooltip-task${completedClass}">
+                ${priorityIcon} ${statusIcon} ${escapeHtml(task.title)}
+            </div>`;
         }).join('');
 
         tooltip.innerHTML = `
-            <div class="tooltip-header">📋 작업 목록 (${tasks.length}개)</div>
-            ${taskList}
-        `;
+        <div class="tooltip-header">📋 작업 목록 (${tasks.length}개)</div>
+        ${taskList}
+    `;
 
         document.body.appendChild(tooltip);
 
@@ -1850,7 +2080,20 @@
         let filteredTasks = dateTasks.filter(task => {
             const statusFilter = document.getElementById('statusFilter').value;
             const priorityFilter = document.getElementById('priorityFilter').value;
-            const matchesStatus = !statusFilter || task.status === statusFilter;
+
+            // 상태 필터 처리
+            let matchesStatus = true;
+            if (statusFilter) {
+                if (statusFilter.includes(',')) {
+                    // 여러 상태를 포함하는 경우 (예: "TODO,IN_PROGRESS")
+                    const allowedStatuses = statusFilter.split(',');
+                    matchesStatus = allowedStatuses.includes(task.status);
+                } else {
+                    // 단일 상태인 경우
+                    matchesStatus = task.status === statusFilter;
+                }
+            }
+
             const matchesPriority = !priorityFilter || task.priority === priorityFilter;
             return matchesStatus && matchesPriority;
         });
@@ -2017,7 +2260,20 @@
         let filteredTasks = periodTasks.filter(task => {
             const statusFilter = document.getElementById('statusFilter').value;
             const priorityFilter = document.getElementById('priorityFilter').value;
-            const matchesStatus = !statusFilter || task.status === statusFilter;
+
+            // 상태 필터 처리
+            let matchesStatus = true;
+            if (statusFilter) {
+                if (statusFilter.includes(',')) {
+                    // 여러 상태를 포함하는 경우 (예: "TODO,IN_PROGRESS")
+                    const allowedStatuses = statusFilter.split(',');
+                    matchesStatus = allowedStatuses.includes(task.status);
+                } else {
+                    // 단일 상태인 경우
+                    matchesStatus = task.status === statusFilter;
+                }
+            }
+
             const matchesPriority = !priorityFilter || task.priority === priorityFilter;
             return matchesStatus && matchesPriority;
         });
@@ -2230,50 +2486,49 @@
         const isOverdue = new Date(task.endDate) < new Date() && task.status !== 'COMPLETED';
         const priorityClass = task.priority.toLowerCase();
         const statusClass = task.status.toLowerCase().replace('_', '-');
+        const isCompleted = task.status === 'COMPLETED';
 
         return `
-            <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''}"
-                onclick="selectTask(${task.id})">
-                <td class="task-title-cell">
-                    <div class="task-title-content">
-                        <span class="task-title">${escapeHtml(task.title)}</span>
-                        ${task.description ? `<span class="task-description">${escapeHtml(task.description)}</span>` : ''}
-                    </div>
-                </td>
-                <td class="task-author-cell">${escapeHtml(task.authorName)}</td>
-                <td class="task-date-cell">
-                    <div class="task-dates">
-                        <span>${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}</span>
-                    </div>
-                </td>
-                <td class="task-priority-cell">
-                    <span class="priority-badge priority-${priorityClass}">
-                        ${getPriorityText(task.priority)}
-                    </span>
-                </td>
-                <td class="task-status-cell">
-                    <span class="status-badge status-${statusClass}">
-                        ${getStatusText(task.status)}
-                    </span>
-                </td>
-                <td class="task-overdue-cell">
-                    ${isOverdue ? '<span class="overdue-badge">지연</span>' : '<span class="on-time-badge">정상</span>'}
-                </td>
-                <td class="task-actions-cell" onclick="event.stopPropagation();">
-                    <div class="task-actions">
-                        <button class="btn-small btn-edit" onclick="editTask(${task.id})" title="수정">✏️</button>
-                        <button class="btn-small btn-delete" onclick="deleteTask(${task.id})" title="삭제">🗑️</button>
-                        ${task.status !== 'COMPLETED' ?
-                `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
-                ''
-            }
-                    </div>
-                </td>
-            </tr>
-        `;
+        <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''} ${isCompleted ? 'completed' : ''}"
+            onclick="selectTask(${task.id})">
+            <td class="task-title-cell">
+                <div class="task-title-content">
+                    <span class="task-title">${escapeHtml(task.title)}</span>
+                    ${task.description ? `<span class="task-description">${escapeHtml(task.description)}</span>` : ''}
+                </div>
+            </td>
+            <td class="task-author-cell">${escapeHtml(task.authorName)}</td>
+            <td class="task-date-cell">
+                <div class="task-dates">
+                    <span>${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}</span>
+                </div>
+            </td>
+            <td class="task-priority-cell">
+                <span class="priority-badge priority-${priorityClass}">
+                    ${getPriorityText(task.priority)}
+                </span>
+            </td>
+            <td class="task-status-cell">
+                <span class="status-badge status-${statusClass}">
+                    ${getStatusText(task.status)}
+                </span>
+            </td>
+            <td class="task-overdue-cell">
+                ${isOverdue ? '<span class="overdue-badge">지연</span>' : '<span class="on-time-badge">정상</span>'}
+            </td>
+            <td class="task-actions-cell" onclick="event.stopPropagation();">
+                <div class="task-actions">
+                    <button class="btn-small btn-edit" onclick="editTask(${task.id})" title="수정">✏️</button>
+                    <button class="btn-small btn-delete" onclick="deleteTask(${task.id})" title="삭제">🗑️</button>
+                    ${task.status !== 'COMPLETED' ?
+            `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
+            ''
+        }
+                </div>
+            </td>
+        </tr>
+    `;
     }
-
-
 
     function editTask(taskId) {
         const task = tasks.find(t => t.id === taskId);

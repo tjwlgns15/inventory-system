@@ -109,7 +109,7 @@ public class TaskRestController {
     public ResponseEntity<TaskListResponse> searchTasks(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String authorName,
-            @RequestParam(required = false) TaskStatus status,
+            @RequestParam(required = false) List<TaskStatus> status,
             @RequestParam(required = false) Priority priority,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,

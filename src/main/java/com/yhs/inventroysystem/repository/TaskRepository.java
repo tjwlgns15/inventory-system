@@ -55,14 +55,14 @@ public interface TaskRepository extends CrudRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE " +
             "(:title IS NULL OR UPPER(t.title) LIKE UPPER(CONCAT('%', :title, '%'))) AND " +
             "(:authorName IS NULL OR UPPER(t.authorName) LIKE UPPER(CONCAT('%', :authorName, '%'))) AND " +
-            "(:status IS NULL OR t.status = :status) AND " +
+            "(:statusList IS NULL OR t.status IN :statusList) AND " +
             "(:priority IS NULL OR t.priority = :priority) AND " +
             "(:startDate IS NULL OR t.startDate >= :startDate) AND " +
             "(:endDate IS NULL OR t.endDate <= :endDate) " +
             "ORDER BY t.priority DESC, t.createdAt DESC")
     Page<Task> findTasksWithFilters(@Param("title") String title,
                                     @Param("authorName") String authorName,
-                                    @Param("status") TaskStatus status,
+                                    @Param("statusList") List<TaskStatus> statusList,
                                     @Param("priority") Priority priority,
                                     @Param("startDate") LocalDate startDate,
                                     @Param("endDate") LocalDate endDate,
