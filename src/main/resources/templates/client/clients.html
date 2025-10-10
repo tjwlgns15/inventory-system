@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>거래처 관리</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(221, 221, 221, 0.3), transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(119, 119, 119, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .clients-section {
+            margin-top: 7vh;
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .clients-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .clients-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .search-bar {
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 420px;
+            padding: 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        .empty-state-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 1.25rem;
+        }
+
+        .empty-state-description {
+            color: #9ca3af;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 36px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 28px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a202c;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close {
+            color: #9ca3af;
+            float: right;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .close:hover {
+            color: #667eea;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.3);
+        }
+
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e6ea;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="clients-section">
+        <div class="clients-header">
+            <h2 class="clients-title">거래처 관리</h2>
+            <button class="btn btn-primary" onclick="openRegisterModal()"><span>+ 거래처 등록</span></button>
+        </div>
+
+        <div class="content-card">
+            <div class="search-bar">
+                <input type="text"
+                       class="search-input"
+                       id="searchInput"
+                       placeholder="거래처 코드 또는 거래처명으로 검색..."
+                       oninput="filterClients()">
+            </div>
+
+            <div class="table-container">
+                <table id="clientsTable">
+                    <thead>
+                    <tr>
+                        <th style="width: 10%;">거래처 코드</th>
+                        <th style="width: 18%;">거래처명</th>
+                        <th style="width: 13%;">연락처</th>
+                        <th style="width: 20%;">이메일</th>
+                        <th style="width: 20%;">주소</th>
+                        <th style="width: 8%;">국가</th>
+                        <th style="width: 6%;">통화</th>
+                        <th style="width: 5%;">작업</th>
+                    </tr>
+                    </thead>
+                    <tbody id="clientsTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">🏢</div>
+                <h3 class="empty-state-title">등록된 거래처가 없습니다</h3>
+                <p class="empty-state-description">거래처 등록 버튼을 클릭하여 새 거래처를 등록해보세요</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="registerModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRegisterModal()">&times;</span>
+        <h2 class="modal-header">거래처 등록</h2>
+        <form id="registerForm" onsubmit="registerClient(event)">
+            <div class="form-group">
+                <label class="form-label" for="clientCode">거래처 코드 *</label>
+                <input type="text" id="clientCode" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="name">거래처명 *</label>
+                <input type="text" id="name" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="contactNumber">연락처</label>
+                <input type="tel" id="contactNumber" class="form-input" placeholder="예: 010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">이메일</label>
+                <input type="email" id="email" class="form-input" placeholder="예: example@company.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="address">주소</label>
+                <input type="text" id="address" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="countryId">국가 *</label>
+                <select id="countryId" class="form-select" required>
+                    <option value="">국가 선택</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="currency">통화 *</label>
+                <select id="currency" class="form-select" required>
+                    <option value="">통화 선택</option>
+                    <option value="KRW">원화 (₩)</option>
+                    <option value="USD">달러 ($)</option>
+                    <option value="JPY">엔화 (¥)</option>
+                    <option value="EUR">유로 (€)</option>
+                    <option value="CNY">위안 (¥)</option>
+                    <option value="GBP">파운드 (£)</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeRegisterModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>등록</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="updateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUpdateModal()">&times;</span>
+        <h2 class="modal-header">거래처 정보 수정</h2>
+        <form id="updateForm" onsubmit="updateClient(event)">
+            <input type="hidden" id="updateClientId">
+
+            <div class="form-group">
+                <label class="form-label" for="updateClientCode">거래처 코드</label>
+                <input type="text" id="updateClientCode" class="form-input" disabled>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateName">거래처명 *</label>
+                <input type="text" id="updateName" class="form-input" required>
+            </div>
+
+
+            <div class="form-group">
+                <label class="form-label" for="updateContactNumber">연락처</label>
+                <input type="tel" id="updateContactNumber" class="form-input" placeholder="예: 010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateEmail">이메일</label>
+                <input type="email" id="updateEmail" class="form-input" placeholder="예: example@company.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateAddress">주소</label>
+                <input type="text" id="updateAddress" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateCountryId">국가 *</label>
+                <select id="updateCountryId" class="form-select" required>
+                    <option value="">국가 선택</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateCurrency">통화 *</label>
+                <select id="updateCurrency" class="form-select" required>
+                    <option value="">통화 선택</option>
+                    <option value="KRW">원화 (₩)</option>
+                    <option value="USD">달러 ($)</option>
+                    <option value="JPY">엔화 (¥)</option>
+                    <option value="EUR">유로 (€)</option>
+                    <option value="CNY">위안 (¥)</option>
+                    <option value="GBP">파운드 (£)</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>수정</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="sidebar-container"></div>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById("menuToggle");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
+</script>
+<script>
+    const API_BASE_URL = '/api/clients';
+    let allClients = [];
+
+    const COUNTRIES_API_URL = '/api/countries';
+    let allCountries = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCountries();
+        loadClients();
+    });
+
+    async function loadCountries() {
+        try {
+            const response = await fetch(COUNTRIES_API_URL);
+            if (!response.ok) throw new Error('국가 목록을 불러오는데 실패했습니다');
+            allCountries = await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('국가 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    async function loadClients() {
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error('거래처 목록을 불러오는데 실패했습니다');
+            allClients = await response.json();
+            renderClients(allClients);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('거래처 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    function renderClients(clients) {
+        const tbody = document.getElementById('clientsTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const table = document.getElementById('clientsTable');
+
+        if (clients.length === 0) {
+            table.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        table.style.display = 'table';
+        emptyState.style.display = 'none';
+
+        tbody.innerHTML = clients.map(client => `
+            <tr>
+                <td><strong>${escapeHtml(client.clientCode)}</strong></td>
+                <td>${escapeHtml(client.name)}</td>
+                <td>${escapeHtml(client.contactNumber || '-')}</td>
+                <td>${escapeHtml(client.email || '-')}</td>
+                <td>${escapeHtml(client.address || '-')}</td>
+                <td>${escapeHtml(client.countryName || '-')}</td>
+                <td><strong>${client.currencySymbol || ''} ${client.currency || '-'}</strong></td>
+                <td>
+                    <button class="btn btn-warning" onclick="openUpdateModal(${client.id})">수정</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterClients() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredClients = allClients.filter(client =>
+            client.clientCode.toLowerCase().includes(searchTerm) ||
+            client.name.toLowerCase().includes(searchTerm)
+        );
+        renderClients(filteredClients);
+    }
+
+    function openRegisterModal() {
+        document.getElementById('registerModal').style.display = 'block';
+        document.getElementById('registerForm').reset();
+
+        const countrySelect = document.getElementById('countryId');
+        countrySelect.innerHTML = '<option value="">국가 선택</option>' +
+            allCountries.map(country => `
+            <option value="${country.id}">${country.name} (${country.code})</option>
+        `).join('');
+    }
+
+    function closeRegisterModal() {
+        document.getElementById('registerModal').style.display = 'none';
+    }
+
+    async function registerClient(event) {
+        event.preventDefault();
+
+        const clientData = {
+            clientCode: document.getElementById('clientCode').value,
+            name: document.getElementById('name').value,
+            contactNumber: document.getElementById('contactNumber').value,
+            email: document.getElementById('email').value,
+            address: document.getElementById('address').value,
+            countryId: parseInt(document.getElementById('countryId').value),
+            currency: document.getElementById('currency').value
+        };
+
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(clientData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '거래처 등록에 실패했습니다');
+            }
+
+            showNotification('거래처가 성공적으로 등록되었습니다', 'success');
+            closeRegisterModal();
+            await loadClients();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function openUpdateModal(clientId) {
+        const client = allClients.find(c => c.id === clientId);
+        if (!client) return;
+
+        document.getElementById('updateClientId').value = clientId;
+        document.getElementById('updateClientCode').value = client.clientCode;
+        document.getElementById('updateName').value = client.name;
+        document.getElementById('updateContactNumber').value = client.contactNumber || '';
+        document.getElementById('updateEmail').value = client.email || '';
+        document.getElementById('updateAddress').value = client.address || '';
+        document.getElementById('updateCurrency').value = client.currency || '';
+
+        const countrySelect = document.getElementById('updateCountryId');
+        countrySelect.innerHTML = '<option value="">국가 선택</option>' +
+            allCountries.map(country => `
+            <option value="${country.id}" ${client.countryId === country.id ? 'selected' : ''}>
+                ${country.name} (${country.code})
+            </option>
+        `).join('');
+
+        document.getElementById('updateModal').style.display = 'block';
+    }
+
+    function closeUpdateModal() {
+        document.getElementById('updateModal').style.display = 'none';
+    }
+
+    async function updateClient(event) {
+        event.preventDefault();
+
+        const clientId = document.getElementById('updateClientId').value;
+        const clientData = {
+            name: document.getElementById('updateName').value,
+            contactNumber: document.getElementById('updateContactNumber').value,
+            email: document.getElementById('updateEmail').value,
+            address: document.getElementById('updateAddress').value,
+            countryId: parseInt(document.getElementById('updateCountryId').value),
+            currency: document.getElementById('updateCurrency').value
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${clientId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(clientData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '거래처 수정에 실패했습니다');
+            }
+
+            showNotification('거래처 정보가 성공적으로 수정되었습니다', 'success');
+            closeUpdateModal();
+            await loadClients();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const registerModal = document.getElementById('registerModal');
+        const updateModal = document.getElementById('updateModal');
+
+        if (event.target === registerModal) closeRegisterModal();
+        if (event.target === updateModal) closeUpdateModal();
+    }
+</script>
+</body>
+</html>

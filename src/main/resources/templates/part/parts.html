@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부품 관리</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(221, 221, 221, 0.3), transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(119, 119, 119, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .parts-section {
+            margin-top: 7vh;
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .parts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .parts-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .search-bar {
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 420px;
+            padding: 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .stock-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-high {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .stock-medium {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .stock-low {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        .empty-state-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 1.25rem;
+        }
+
+        .empty-state-description {
+            color: #9ca3af;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 36px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 28px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a202c;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .close {
+            color: #9ca3af;
+            float: right;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .close:hover {
+            color: #667eea;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .unit-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .unit-input-group .form-input {
+            flex: 1;
+        }
+
+        .unit-input-group .form-select {
+            width: 150px;
+            flex-shrink: 0;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e6ea;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="parts-section">
+        <div class="parts-header">
+            <h2 class="parts-title">부품 관리</h2>
+            <button class="btn btn-primary" onclick="openRegisterModal()"><span>+ 부품 등록</span></button>
+        </div>
+
+        <div class="content-card">
+            <div class="search-bar">
+                <input type="text"
+                       class="search-input"
+                       id="searchInput"
+                       placeholder="부품 코드 또는 부품명으로 검색..."
+                       oninput="filterParts()">
+            </div>
+
+            <div class="table-container">
+                <table id="partsTable">
+                    <thead>
+                    <tr>
+                        <th style="width: 15%;">부품 코드</th>
+                        <th style="width: 22%;">부품명</th>
+                        <th style="width: 23%;">규격</th>
+                        <th style="width: 12%;">재고 수량</th>
+                        <th style="width: 8%;">단위</th>
+                        <th style="width: 20%;">작업</th>
+                    </tr>
+                    </thead>
+                    <tbody id="partsTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">📦</div>
+                <h3 class="empty-state-title">등록된 부품이 없습니다</h3>
+                <p class="empty-state-description">부품 등록 버튼을 클릭하여 새 부품을 등록해보세요</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="registerModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRegisterModal()">&times;</span>
+        <h2 class="modal-header">부품 등록</h2>
+        <form id="registerForm" onsubmit="registerPart(event)">
+            <div class="form-group">
+                <label class="form-label" for="partCode">부품 코드 *</label>
+                <input type="text" id="partCode" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="name">부품명 *</label>
+                <input type="text" id="name" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="specification">규격</label>
+                <input type="text" id="specification" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="initialStock">초기 재고 *</label>
+                <input type="number" id="initialStock" class="form-input" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">단위 *</label>
+                <div class="unit-input-group">
+                    <input type="text" id="unit" class="form-input" placeholder="직접 입력" required>
+                    <select class="form-select" onchange="selectUnit(this.value)">
+                        <option value="">빠른 선택</option>
+                        <option value="개">개</option>
+                        <option value="SET">SET</option>
+                        <option value="BOX">BOX</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="m">m</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeRegisterModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>등록</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="stockModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeStockModal()">&times;</span>
+        <h2 class="modal-header" id="stockModalTitle">재고 조정</h2>
+        <form id="stockForm" onsubmit="updateStock(event)">
+            <input type="hidden" id="stockPartId">
+            <input type="hidden" id="stockAction">
+
+            <div class="form-group">
+                <label class="form-label" for="stockQuantity">수량 *</label>
+                <input type="number" id="stockQuantity" class="form-input" min="1" required>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStockModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>확인</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="updateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeUpdateModal()">&times;</span>
+        <h2 class="modal-header">부품 정보 수정</h2>
+        <form id="updateForm" onsubmit="updatePart(event)">
+            <input type="hidden" id="updatePartId">
+
+            <div class="form-group">
+                <label class="form-label" for="updatePartCode">부품 코드</label>
+                <input type="text" id="updatePartCode" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateName">부품명</label>
+                <input type="text" id="updateName" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateSpecification">규격</label>
+                <input type="text" id="updateSpecification" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">단위</label>
+                <div class="unit-input-group">
+                    <input type="text" id="updateUnit" class="form-input" placeholder="직접 입력">
+                    <select class="form-select" onchange="selectUpdateUnit(this.value)">
+                        <option value="">빠른 선택</option>
+                        <option value="개">개</option>
+                        <option value="SET">SET</option>
+                        <option value="BOX">BOX</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="m">m</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeUpdateModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>수정</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="sidebar-container"></div>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById("menuToggle");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
+</script>
+<script>
+    const API_BASE_URL = '/api/parts';
+    let allParts = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadParts();
+    });
+
+    async function loadParts() {
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error('부품 목록을 불러오는데 실패했습니다');
+            allParts = await response.json();
+            renderParts(allParts);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('부품 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    function renderParts(parts) {
+        const tbody = document.getElementById('partsTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const table = document.getElementById('partsTable');
+
+        if (parts.length === 0) {
+            table.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        table.style.display = 'table';
+        emptyState.style.display = 'none';
+
+        tbody.innerHTML = parts.map(part => `
+            <tr>
+                <td><strong>${escapeHtml(part.partCode)}</strong></td>
+                <td>${escapeHtml(part.name)}</td>
+                <td>${escapeHtml(part.specification || '-')}</td>
+                <td>
+                    <span class="stock-badge ${getStockClass(part.stockQuantity)}">
+                        ${part.stockQuantity}
+                    </span>
+                </td>
+                <td>${escapeHtml(part.unit)}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
+                        <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
+                        <button class="btn btn-danger" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterParts() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredParts = allParts.filter(part =>
+            part.partCode.toLowerCase().includes(searchTerm) ||
+            part.name.toLowerCase().includes(searchTerm)
+        );
+        renderParts(filteredParts);
+    }
+
+    function getStockClass(quantity) {
+        if (quantity >= 100) return 'stock-high';
+        if (quantity >= 50) return 'stock-medium';
+        return 'stock-low';
+    }
+
+    function openRegisterModal() {
+        document.getElementById('registerModal').style.display = 'block';
+        document.getElementById('registerForm').reset();
+    }
+
+    function closeRegisterModal() {
+        document.getElementById('registerModal').style.display = 'none';
+    }
+
+    async function registerPart(event) {
+        event.preventDefault();
+
+        const partData = {
+            partCode: document.getElementById('partCode').value,
+            name: document.getElementById('name').value,
+            specification: document.getElementById('specification').value,
+            initialStock: parseInt(document.getElementById('initialStock').value),
+            unit: document.getElementById('unit').value
+        };
+
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(partData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '부품 등록에 실패했습니다');
+            }
+
+            showNotification('부품이 성공적으로 등록되었습니다', 'success');
+            closeRegisterModal();
+            await loadParts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function selectUnit(value) {
+        if (value) {
+            document.getElementById('unit').value = value;
+        }
+    }
+
+    function openStockModal(partId, action) {
+        document.getElementById('stockPartId').value = partId;
+        document.getElementById('stockAction').value = action;
+        document.getElementById('stockModalTitle').textContent =
+            action === 'increase' ? '재고 입고' : '재고 출고';
+        document.getElementById('stockForm').reset();
+        document.getElementById('stockModal').style.display = 'block';
+    }
+
+    function closeStockModal() {
+        document.getElementById('stockModal').style.display = 'none';
+    }
+
+    async function updateStock(event) {
+        event.preventDefault();
+
+        const partId = document.getElementById('stockPartId').value;
+        const action = document.getElementById('stockAction').value;
+        const quantity = parseInt(document.getElementById('stockQuantity').value);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}/stock/${action}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '재고 조정에 실패했습니다');
+            }
+
+            showNotification(
+                action === 'increase' ? '재고가 입고되었습니다' : '재고가 출고되었습니다',
+                'success'
+            );
+            closeStockModal();
+            await loadParts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function openUpdateModal(partId) {
+        const part = allParts.find(p => p.id === partId);
+        if (!part) {
+            showNotification('부품을 찾을 수 없습니다', 'error');
+            return;
+        }
+
+        document.getElementById('updatePartId').value = part.id;
+        document.getElementById('updatePartCode').value = part.partCode;
+        document.getElementById('updateName').value = part.name;
+        document.getElementById('updateSpecification').value = part.specification || '';
+        document.getElementById('updateUnit').value = part.unit;
+
+        document.getElementById('updateModal').style.display = 'block';
+    }
+
+    // 부품 수정 모달 닫기
+    function closeUpdateModal() {
+        document.getElementById('updateModal').style.display = 'none';
+    }
+
+    // 부품 정보 수정
+    async function updatePart(event) {
+        event.preventDefault();
+
+        const partId = document.getElementById('updatePartId').value;
+        const updateData = {
+            partCode: document.getElementById('updatePartCode').value,
+            name: document.getElementById('updateName').value,
+            specification: document.getElementById('updateSpecification').value,
+            unit: document.getElementById('updateUnit').value
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '부품 수정에 실패했습니다');
+            }
+
+            showNotification('부품 정보가 성공적으로 수정되었습니다', 'success');
+            closeUpdateModal();
+            await loadParts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    // 수정 폼의 단위 빠른 선택
+    function selectUpdateUnit(value) {
+        if (value) {
+            document.getElementById('updateUnit').value = value;
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const registerModal = document.getElementById('registerModal');
+        const stockModal = document.getElementById('stockModal');
+        const updateModal = document.getElementById('updateModal');
+
+        if (event.target === registerModal) closeRegisterModal();
+        if (event.target === stockModal) closeStockModal();
+        if (event.target === updateModal) closeUpdateModal();
+    }
+</script>
+</body>
+</html>

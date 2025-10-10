@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매 현황</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(221, 221, 221, 0.3), transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(119, 119, 119, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-section {
+            margin-top: 7vh;
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+            max-width: 1800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stats-header {
+            margin-bottom: 24px;
+        }
+
+        .stats-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .weekly-comparison {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 32px;
+        }
+
+        .comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .comparison-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .period-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            background: white;
+            min-width: 800px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            white-space: nowrap;
+        }
+
+        th:first-child {
+            text-align: left;
+            min-width: 100px;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: 600;
+            background: #f9fafb;
+        }
+
+        tr:hover td {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .last-week-row {
+            background: #f9fafb;
+        }
+
+        .this-week-row {
+            background: #f0f4ff;
+        }
+
+        .increase-row {
+            background: #fef3c7;
+            font-weight: 700;
+        }
+
+        .increase-positive {
+            color: #059669;
+        }
+
+        .increase-negative {
+            color: #dc2626;
+        }
+
+        .increase-zero {
+            color: #6b7280;
+        }
+
+        .price-text {
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .year-selector {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 24px;
+        }
+
+        .year-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-year {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-year.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .btn-year:hover:not(.active) {
+            background: #f8f9ff;
+        }
+
+        .client-section {
+            margin-bottom: 32px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .client-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .client-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .client-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .client-country {
+            font-size: 0.875rem;
+            color: #6b7280;
+            padding: 4px 12px;
+            background: #f3f4f6;
+            border-radius: 20px;
+        }
+
+        .client-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 32px;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        canvas {
+            max-height: 350px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="stats-section">
+        <div class="stats-header">
+            <h2 class="stats-title">판매 현황</h2>
+        </div>
+
+        <!-- 주간 판매 비교 -->
+        <div class="weekly-comparison">
+            <div class="comparison-header">
+                <h3 class="comparison-title">주간 판매 비교</h3>
+                <div class="period-info" id="periodInfo"></div>
+            </div>
+            <div class="table-container">
+                <table id="comparisonTable">
+                    <thead>
+                    <tr>
+                        <th>구분</th>
+                        <!-- 제품 컬럼이 동적으로 추가됩니다 -->
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 주간 비교 차트 -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title">주간 판매량 비교</h3>
+                <canvas id="weeklyComparisonChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 class="chart-title">제품별 증감률</h3>
+                <canvas id="weeklyChangeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 연간 거래처별 판매 현황 -->
+        <div class="year-selector">
+            <div class="year-buttons" id="yearButtons"></div>
+        </div>
+
+        <!-- 금년 제품별 누적 판매량 -->
+        <div class="weekly-comparison">
+            <div class="comparison-header">
+                <h3 class="comparison-title">금년 제품별 누적 판매량</h3>
+                <div class="period-info" id="yearlyTotalPeriod"></div>
+            </div>
+            <div class="table-container">
+                <table id="yearlyTotalTable">
+                    <thead>
+                    <tr>
+                        <th>제품코드</th>
+                        <th>제품명</th>
+                        <th>누적 판매량</th>
+                        <th>누적 판매액</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 연간 누적 차트 -->
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3 class="chart-title">제품별 판매량 분포</h3>
+                <canvas id="yearlyPieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3 class="chart-title">제품별 판매액</h3>
+                <canvas id="yearlyBarChart"></canvas>
+            </div>
+        </div>
+
+        <div id="yearlyStats"></div>
+    </div>
+</div>
+
+<div id="sidebar-container"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById("menuToggle");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
+</script>
+<script>
+    const API_BASE_URL = '/api/sales-stats';
+    let selectedYear = new Date().getFullYear();
+    let weeklyComparisonChart = null;
+    let weeklyChangeChart = null;
+    let yearlyPieChart = null;
+    let yearlyBarChart = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initYearButtons();
+        loadWeeklyComparison();
+        loadYearlySales(selectedYear);
+    });
+
+    function initYearButtons() {
+        const currentYear = new Date().getFullYear();
+        const years = [currentYear - 1, currentYear];
+        const yearButtons = document.getElementById('yearButtons');
+
+        yearButtons.innerHTML = years.map(year => `
+            <button class="btn-year ${year === selectedYear ? 'active' : ''}"
+                    onclick="selectYear(${year})">
+                ${year}년
+            </button>
+        `).join('');
+    }
+
+    function selectYear(year) {
+        selectedYear = year;
+        initYearButtons();
+        loadYearlySales(year);
+    }
+
+    async function loadWeeklyComparison() {
+        try {
+            const [lastWeekResponse, thisWeekResponse, allProductsResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/weekly/last`),
+                fetch(`${API_BASE_URL}/weekly/current`),
+                fetch(`/api/products`)
+            ]);
+
+            if (!lastWeekResponse.ok || !thisWeekResponse.ok || !allProductsResponse.ok) {
+                throw new Error('데이터 로드 실패');
+            }
+
+            const lastWeekData = await lastWeekResponse.json();
+            const thisWeekData = await thisWeekResponse.json();
+            const allProducts = await allProductsResponse.json();
+
+            document.getElementById('periodInfo').innerHTML = `
+                지난주: ${formatDate(lastWeekData.weekStart)} ~ ${formatDate(lastWeekData.weekEnd)} /
+                이번주: ${formatDate(thisWeekData.weekStart)} ~ ${formatDate(thisWeekData.weekEnd)}
+            `;
+
+            renderWeeklyComparison(lastWeekData.productSales, thisWeekData.productSales, allProducts);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function renderWeeklyComparison(lastWeekProducts, thisWeekProducts, allProducts) {
+        const table = document.getElementById('comparisonTable');
+        const thead = table.querySelector('thead tr');
+        const tbody = table.querySelector('tbody');
+
+        // 전체 제품 목록 기준으로 테이블 생성
+        const products = allProducts.map(product => {
+            const lastWeek = lastWeekProducts.find(p => p.productCode === product.productCode);
+            const thisWeek = thisWeekProducts.find(p => p.productCode === product.productCode);
+
+            return {
+                code: product.productCode,
+                name: product.name,
+                lastWeekQty: lastWeek?.quantity || 0,
+                thisWeekQty: thisWeek?.quantity || 0
+            };
+        });
+
+        // 각 행의 총합 계산
+        const lastWeekTotal = products.reduce((sum, p) => sum + p.lastWeekQty, 0);
+        const thisWeekTotal = products.reduce((sum, p) => sum + p.thisWeekQty, 0);
+        const increaseTotal = thisWeekTotal - lastWeekTotal;
+
+        // 헤더 생성
+        thead.innerHTML = '<th>구분</th>' +
+            products.map(p => `<th>${p.name}<br><small>(${p.code})</small></th>`).join('') +
+            '<th>총 판매량</th>';
+
+        // 판매량 행들만 생성
+        const qtyRows = `
+            <tr class="last-week-row">
+                <td>지난주</td>
+                ${products.map(p => `<td>${p.lastWeekQty.toLocaleString()}</td>`).join('')}
+                <td><strong>${lastWeekTotal.toLocaleString()}</strong></td>
+            </tr>
+            <tr class="this-week-row">
+                <td>이번주</td>
+                ${products.map(p => `<td>${p.thisWeekQty.toLocaleString()}</td>`).join('')}
+                <td><strong>${thisWeekTotal.toLocaleString()}</strong></td>
+            </tr>
+            <tr class="increase-row">
+                <td>증가량</td>
+                ${products.map(p => {
+            const increase = p.thisWeekQty - p.lastWeekQty;
+            const className = increase > 0 ? 'increase-positive' :
+                increase < 0 ? 'increase-negative' : 'increase-zero';
+            const sign = increase > 0 ? '+' : '';
+            return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
+        }).join('')}
+                <td class="${increaseTotal > 0 ? 'increase-positive' : increaseTotal < 0 ? 'increase-negative' : 'increase-zero'}">
+                    <strong>${increaseTotal > 0 ? '+' : ''}${increaseTotal.toLocaleString()}</strong>
+                </td>
+            </tr>
+        `;
+
+        tbody.innerHTML = qtyRows;
+
+        // 차트 렌더링
+        renderWeeklyCharts(products);
+    }
+
+    function renderWeeklyCharts(products) {
+        // 주간 판매량 비교 차트
+        const comparisonCtx = document.getElementById('weeklyComparisonChart').getContext('2d');
+        if (weeklyComparisonChart) {
+            weeklyComparisonChart.destroy();
+        }
+
+        weeklyComparisonChart = new Chart(comparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: products.map(p => p.name),
+                datasets: [
+                    {
+                        label: '지난주',
+                        data: products.map(p => p.lastWeekQty),
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2  // 변경: 1 → 2
+                    },
+                    {
+                        label: '이번주',
+                        data: products.map(p => p.thisWeekQty),
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // 증감률 차트
+        const changeCtx = document.getElementById('weeklyChangeChart').getContext('2d');
+        if (weeklyChangeChart) {
+            weeklyChangeChart.destroy();
+        }
+
+        const changeData = products.map(p => {
+            if (p.lastWeekQty === 0) return p.thisWeekQty > 0 ? 100 : 0;
+            return ((p.thisWeekQty - p.lastWeekQty) / p.lastWeekQty * 100).toFixed(1);
+        });
+
+        weeklyChangeChart = new Chart(changeCtx, {
+            type: 'bar',
+            data: {
+                labels: products.map(p => p.name),
+                datasets: [{
+                    label: '증감률 (%)',
+                    data: changeData,
+                    backgroundColor: changeData.map(val =>
+                        val > 0 ? 'rgba(16, 185, 129, 0.8)' :
+                            val < 0 ? 'rgba(239, 68, 68, 0.8)' :
+                                'rgba(156, 163, 175, 0.8)'
+                    ),
+                    borderColor: changeData.map(val =>
+                        val > 0 ? 'rgba(16, 185, 129, 1)' :
+                            val < 0 ? 'rgba(239, 68, 68, 1)' :
+                                'rgba(156, 163, 175, 1)'
+                    ),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadYearlySales(year) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/yearly/${year}`);
+            if (!response.ok) throw new Error('연간 판매 데이터 로드 실패');
+
+            const data = await response.json();
+
+            // 금년 제품별 누적 판매량 계산 및 표시
+            if (year === new Date().getFullYear()) {
+                renderYearlyTotalSales(data.clientSales);
+            } else {
+                document.getElementById('yearlyTotalTable').querySelector('tbody').innerHTML =
+                    '<tr><td colspan="4" class="empty-state">금년 데이터만 표시됩니다</td></tr>';
+                document.getElementById('yearlyTotalPeriod').textContent = '';
+            }
+
+            renderYearlySales(data.clientSales);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function renderYearlyTotalSales(clientSales) {
+        const tbody = document.getElementById('yearlyTotalTable').querySelector('tbody');
+        const productMap = new Map();
+
+        // 모든 거래처의 제품 판매량 집계
+        clientSales.forEach(client => {
+            client.productSales.forEach(product => {
+                if (productMap.has(product.productCode)) {
+                    const existing = productMap.get(product.productCode);
+                    existing.quantity += product.quantity;
+                    existing.totalAmount += product.totalAmount;
+                } else {
+                    productMap.set(product.productCode, {
+                        productCode: product.productCode,
+                        productName: product.productName,
+                        quantity: product.quantity,
+                        totalAmount: product.totalAmount
+                    });
+                }
+            });
+        });
+
+        const products = Array.from(productMap.values());
+
+        if (products.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">판매 데이터가 없습니다</td></tr>';
+            document.getElementById('yearlyTotalPeriod').textContent = '';
+            return;
+        }
+
+        // 판매량 기준 내림차순 정렬
+        products.sort((a, b) => b.quantity - a.quantity);
+
+        const totalQty = products.reduce((sum, p) => sum + p.quantity, 0);
+        const totalAmount = products.reduce((sum, p) => sum + p.totalAmount, 0);
+
+        document.getElementById('yearlyTotalPeriod').textContent =
+            `${new Date().getFullYear()}년 1월 1일 ~ 현재`;
+
+        tbody.innerHTML = products.map(product => `
+            <tr>
+                <td><strong>${product.productCode}</strong></td>
+                <td>${product.productName}</td>
+                <td>${product.quantity.toLocaleString()}</td>
+                <td class="price-text">${formatPrice(product.totalAmount)}</td>
+            </tr>
+        `).join('') + `
+            <tr style="background: #f3f4f6; font-weight: 700;">
+                <td colspan="2">총계</td>
+                <td>${totalQty.toLocaleString()}</td>
+                <td class="price-text">${formatPrice(totalAmount)}</td>
+            </tr>
+        `;
+
+        // 차트 렌더링
+        renderYearlyCharts(products);
+    }
+
+    function renderYearlyCharts(products) {
+        // 파이 차트 - 제품별 판매량 분포
+        const pieCtx = document.getElementById('yearlyPieChart').getContext('2d');
+        if (yearlyPieChart) {
+            yearlyPieChart.destroy();
+        }
+
+        const colors = [
+            'rgba(255, 99, 132, 0.9)',   // 빨강
+            'rgba(54, 162, 235, 0.9)',   // 파랑
+            'rgba(255, 206, 86, 0.9)',   // 노랑
+            'rgba(75, 192, 192, 0.9)',   // 청록
+            'rgba(153, 102, 255, 0.9)',  // 보라
+            'rgba(255, 159, 64, 0.9)',   // 주황
+            'rgba(16, 185, 129, 0.9)',   // 그린
+            'rgba(236, 72, 153, 0.9)',   // 핑크
+            'rgba(59, 130, 246, 0.9)',   // 하늘색
+            'rgba(245, 158, 11, 0.9)'    // 앰버
+        ];
+
+
+        yearlyPieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: products.map(p => p.productName),
+                datasets: [{
+                    data: products.map(p => p.quantity),
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: ${value.toLocaleString()} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 막대 차트 - 제품별 판매액
+        const barCtx = document.getElementById('yearlyBarChart').getContext('2d');
+        if (yearlyBarChart) {
+            yearlyBarChart.destroy();
+        }
+
+        yearlyBarChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: products.map(p => p.productName),
+                datasets: [{
+                    label: '판매액 (원)',
+                    data: products.map(p => p.totalAmount),
+                    backgroundColor: products.map((_, i) => colors[i % colors.length]),
+                    borderColor: products.map((_, i) => colors[i % colors.length].replace('0.9', '1')),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return formatPrice(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₩' + (value / 1000000).toFixed(0) + 'M';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderYearlySales(clientSales) {
+        const container = document.getElementById('yearlyStats');
+
+        if (clientSales.length === 0) {
+            container.innerHTML = '<div class="empty-state">판매 데이터가 없습니다</div>';
+            return;
+        }
+
+        container.innerHTML = clientSales.map(client => {
+            // 통화 정보 표시
+            const currencyInfo = client.currency && client.currency !== 'KRW'
+                ? `<span class="client-country">${client.currency}</span>`
+                : '';
+
+            // 원화 환산 금액 표시
+            const krwAmount = client.totalAmountKRW && client.currency !== 'KRW'
+                ? `<div style="font-size: 0.875rem; color: #6b7280; margin-top: 4px;">(₩${formatNumber(client.totalAmountKRW)})</div>`
+                : '';
+
+            return `
+                <div class="client-section">
+                    <div class="client-header">
+                        <div class="client-info">
+                            <span class="client-name">${client.clientName}</span>
+                            <span class="client-country">${client.countryName}</span>
+                            ${currencyInfo}
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="client-total">${formatPriceByCurrency(client.totalAmount, client.currency)}</span>
+                            ${krwAmount}
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>제품코드</th>
+                                <th>제품명</th>
+                                <th>판매량</th>
+                                <th>판매액</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                ${client.productSales.map(product => `
+                                    <tr>
+                                        <td><strong>${product.productCode}</strong></td>
+                                        <td>${product.productName}</td>
+                                        <td>${product.quantity.toLocaleString()}</td>
+                                        <td class="price-text">${formatPriceByCurrency(product.totalAmount, client.currency)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+
+    function formatPriceByCurrency(price, currency) {
+        if (!currency || currency === 'KRW') {
+            return formatPrice(price); // 기존 원화 포맷팅
+        }
+
+        const localeMap = {
+            'USD': 'en-US',
+            'JPY': 'ja-JP',
+            'EUR': 'de-DE',
+            'CNY': 'zh-CN',
+            'GBP': 'en-GB'
+        };
+
+        const locale = localeMap[currency] || 'ko-KR';
+
+        return new Intl.NumberFormat(locale, {
+            style: 'currency',
+            currency: currency
+        }).format(price);
+    }
+
+    function formatNumber(num) {
+        if (!num) return '0';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function formatPrice(price) {
+        return new Intl.NumberFormat('ko-KR', {
+            style: 'currency',
+            currency: 'KRW'
+        }).format(price);
+    }
+</script>
+</body>
+</html>

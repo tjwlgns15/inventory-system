@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>납품 관리</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(221, 221, 221, 0.3), transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(119, 119, 119, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .deliveries-section {
+            margin-top: 7vh;
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .deliveries-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .deliveries-header .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .deliveries-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-sales {
+            background-color: #64748b; /* slate gray tone */
+            color: #fff;
+            border: 1px solid #64748b;
+        }
+
+        .btn-sales:hover {
+            background-color: #475569;
+            border-color: #475569;
+        }
+
+        /*
+        파츠별 재고,
+         */
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-info {
+            background: white;
+            color: #667eea;
+            padding: 8px 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-info:hover {
+            background: #f8f9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-remove {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-remove:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-add {
+            background: rgba(255, 255, 255, 0.95);
+            color: #667eea;
+            border: 2px dashed #667eea;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-top: 12px;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-add:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+            transform: translateY(-1px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .search-bar {
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 420px;
+            padding: 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .font-weight-600 {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .status-completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+
+        .empty-state-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 1.25rem;
+        }
+
+        .empty-state-description {
+            color: #9ca3af;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 36px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 650px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 28px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a202c;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+        }
+
+        .close {
+            color: #9ca3af;
+            float: right;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .close:hover {
+            color: #667eea;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .item-mapping-list {
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 320px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+
+        .item-mapping-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .item-mapping-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .item-mapping-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-select {
+            flex: 2;
+        }
+
+        .quantity-input {
+            flex: 1;
+        }
+
+        .price-display {
+            min-width: 130px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: right;
+            font-size: 1rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .detail-info {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-info p {
+            margin-bottom: 10px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .detail-info p:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-info strong {
+            color: #374151;
+            font-weight: 600;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .detail-section-title {
+            margin-bottom: 16px;
+            font-weight: 700;
+            font-size: 1.125rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .detail-table {
+            width: 100%;
+            font-size: 0.875rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-table thead tr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .detail-table th {
+            padding: 12px;
+            font-weight: 600;
+        }
+
+        .detail-table td {
+            padding: 12px;
+            background: white;
+        }
+
+        .detail-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.03);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="deliveries-section">
+        <div class="deliveries-header">
+            <h2 class="deliveries-title">납품 관리</h2>
+            <div>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <span>+ 납품 등록</span>
+                </button>
+                <button class="btn btn-sales" onclick="location.href='/sales'">
+                    <span>📈 판매량</span>
+                </button>
+            </div>
+        </div>
+
+
+        <div class="content-card">
+            <div class="search-bar">
+                <input type="text"
+                       class="search-input"
+                       id="searchInput"
+                       placeholder="납품번호 또는 거래처명으로 검색..."
+                       oninput="filterDeliveries()">
+            </div>
+
+            <div class="table-container">
+                <table id="deliveriesTable">
+                    <thead>
+                        <tr>
+                            <th>납품번호</th>
+                            <th>거래처</th>
+                            <th>금액</th>
+                            <th>원화환산</th>
+                            <th>통화</th>
+                            <th>상태</th>
+                            <th>납품일시</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deliveriesTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">📦</div>
+                <h3 class="empty-state-title">등록된 납품이 없습니다</h3>
+                <p class="empty-state-description">납품 등록 버튼을 클릭하여 새 납품을 등록해보세요</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateModal()">&times;</span>
+        <h2 class="modal-header">납품 등록</h2>
+        <form id="createForm" onsubmit="createDelivery(event)">
+            <div class="form-group">
+                <label class="form-label" for="clientId">거래처 *</label>
+                <select id="clientId" class="form-select" required onchange="onClientChange()">
+                    <option value="">거래처 선택</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">납품 항목 *</label>
+                <div class="item-mapping-list" id="itemMappingList"></div>
+                <button type="button" class="btn-add" onclick="addItemMappingRow()">+ 항목 추가</button>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>등록</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDetailModal()">&times;</span>
+        <h2 class="modal-header">납품 상세 정보</h2>
+        <div id="detailContent"></div>
+    </div>
+</div>
+
+<div id="sidebar-container"></div>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById("menuToggle");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
+</script>
+<script>
+    const API_BASE_URL = '/api/deliveries';
+    const CLIENTS_API_URL = '/api/clients';
+    const PRODUCTS_API_URL = '/api/products';
+    let allDeliveries = [];
+    let allClients = [];
+    let allProducts = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadClients();
+        loadProducts();
+        loadDeliveries();
+    });
+
+    async function loadClients() {
+        try {
+            const response = await fetch(CLIENTS_API_URL);
+            if (!response.ok) throw new Error('거래처 목록을 불러오는데 실패했습니다');
+            allClients = await response.json();
+
+            const clientSelect = document.getElementById('clientId');
+            clientSelect.innerHTML = '<option value="">거래처 선택</option>' +
+                allClients.map(client => `
+                    <option value="${client.id}">${client.name}</option>
+                `).join('');
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('거래처 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    async function loadProducts() {
+        try {
+            const response = await fetch(PRODUCTS_API_URL);
+            if (!response.ok) throw new Error('제품 목록을 불러오는데 실패했습니다');
+            allProducts = await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('제품 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    async function onClientChange() {
+        const clientId = document.getElementById('clientId').value;
+        const itemList = document.getElementById('itemMappingList');
+
+        if (!clientId) {
+            itemList.innerHTML = '';
+            addItemMapping();
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/prices/client/${clientId}`);
+            if (!response.ok) throw new Error('거래처 제품 정보를 불러오는데 실패했습니다');
+
+            const prices = await response.json();
+
+            if (prices.length === 0) {
+                showNotification('해당 거래처에 등록된 제품이 없습니다', 'error');
+                itemList.innerHTML = '';
+                return;
+            }
+
+            itemList.innerHTML = '';
+            addItemMappingWithPrices(prices);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('거래처 제품 정보를 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    async function loadDeliveries() {
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error('납품 목록을 불러오는데 실패했습니다');
+
+            allDeliveries = await response.json();
+            renderDeliveries(allDeliveries);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('납품 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    function renderDeliveries(deliveries) {
+        const tbody = document.getElementById('deliveriesTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const table = document.getElementById('deliveriesTable');
+
+        if (deliveries.length === 0) {
+            table.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        table.style.display = 'table';
+        emptyState.style.display = 'none';
+
+        tbody.innerHTML = deliveries.map(delivery => `
+            <tr>
+                <td><strong>${escapeHtml(delivery.deliveryNumber)}</strong></td>
+                <td>${escapeHtml(delivery.clientName)}</td>
+                <td class="font-weight-600">${formatPrice(delivery.totalAmount, delivery.currency)}</td>
+                <td class="font-weight-600">₩${formatNumber(delivery.totalAmountKRW || 0)}</td>
+                <td><strong>${delivery.currencySymbol || ''} ${delivery.currency || '-'}</strong></td>
+                <td>
+                    <span class="status-badge ${getStatusClass(delivery.status)}">
+                        ${getStatusText(delivery.status)}
+                    </span>
+                </td>
+                <td>${formatDateTime(delivery.deliveredAt)}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="viewDeliveryDetail(${delivery.id})">상세</button>
+                        ${delivery.status === 'PENDING' ? `
+                            <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">완료</button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function filterDeliveries() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filteredDeliveries = allDeliveries.filter(delivery =>
+            delivery.deliveryNumber.toLowerCase().includes(searchTerm) ||
+            delivery.clientName.toLowerCase().includes(searchTerm)
+        );
+        renderDeliveries(filteredDeliveries);
+    }
+
+    function getStatusClass(status) {
+        return status === 'COMPLETED' ? 'status-completed' : 'status-pending';
+    }
+
+    function getStatusText(status) {
+        return status === 'COMPLETED' ? '완료' : '대기';
+    }
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    function formatDateTime(dateTime) {
+        if (!dateTime) return '-';
+        const date = new Date(dateTime);
+        return date.toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function openCreateModal() {
+        document.getElementById('createModal').style.display = 'block';
+        document.getElementById('createForm').reset();
+        document.getElementById('itemMappingList').innerHTML = '';
+        addItemMapping();
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').style.display = 'none';
+    }
+
+    function addItemMapping() {
+        const list = document.getElementById('itemMappingList');
+
+        const item = document.createElement('div');
+        item.className = 'item-mapping-item';
+        item.innerHTML = `
+            <select class="form-select item-select" required disabled>
+                <option value="">거래처를 먼저 선택해주세요</option>
+            </select>
+            <input type="number" class="form-input quantity-input" placeholder="수량" min="1" required disabled>
+            <button type="button" class="btn-remove" onclick="removeItemMapping(this)">삭제</button>
+        `;
+
+        list.appendChild(item);
+    }
+
+    function addItemMappingWithPrices(prices) {
+        const list = document.getElementById('itemMappingList');
+
+        const item = document.createElement('div');
+        item.className = 'item-mapping-item';
+        item.innerHTML = `
+            <select class="form-select item-select product-select" required onchange="updatePriceDisplay(this)">
+                <option value="">제품 선택</option>
+                ${prices.map(price => `
+                    <option value="${price.productId}" data-price="${price.unitPrice}" data-currency="${price.currency || 'KRW'}" data-currency-symbol="${price.currencySymbol || '₩'}">
+                        ${price.productName} - ${price.currencySymbol || '₩'}${formatNumber(price.unitPrice)}
+                    </option>
+                `).join('')}
+            </select>
+            <input type="number" class="form-input quantity-input" placeholder="수량" min="1" required oninput="updatePriceDisplay(this)">
+            <span class="price-display">₩0</span>
+            <button type="button" class="btn-remove" onclick="removeItemMapping(this)">삭제</button>
+        `;
+
+        list.appendChild(item);
+    }
+
+    function updatePriceDisplay(element) {
+        const itemDiv = element.closest('.item-mapping-item');
+        const select = itemDiv.querySelector('.product-select');
+        const quantityInput = itemDiv.querySelector('.quantity-input');
+        const priceDisplay = itemDiv.querySelector('.price-display');
+
+        if (select && quantityInput && priceDisplay) {
+            const selectedOption = select.options[select.selectedIndex];
+            const unitPrice = parseFloat(selectedOption.dataset.price) || 0;
+            const quantity = parseInt(quantityInput.value) || 0;
+            const totalPrice = unitPrice * quantity;
+            const currencySymbol = selectedOption.dataset.currencySymbol || '₩';
+
+            priceDisplay.textContent = `${currencySymbol}${formatNumber(totalPrice)}`;
+        }
+    }
+
+    function removeItemMapping(button) {
+        const list = document.getElementById('itemMappingList');
+        if (list.children.length > 1) {
+            button.parentElement.remove();
+        } else {
+            showNotification('최소 1개의 항목이 필요합니다', 'error');
+        }
+    }
+
+    async function createDelivery(event) {
+        event.preventDefault();
+
+        const itemMappingItems = document.querySelectorAll('.item-mapping-item');
+        const items = [];
+
+        itemMappingItems.forEach(item => {
+            const select = item.querySelector('select');
+            const input = item.querySelector('input[type="number"]');
+            if (select.value && input.value) {
+                items.push({
+                    productId: parseInt(select.value),
+                    quantity: parseInt(input.value)
+                });
+            }
+        });
+
+        if (items.length === 0) {
+            showNotification('최소 1개의 항목을 추가해주세요', 'error');
+            return;
+        }
+
+        const deliveryData = {
+            clientId: parseInt(document.getElementById('clientId').value),
+            items: items
+        };
+
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(deliveryData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '납품 등록에 실패했습니다');
+            }
+
+            showNotification('납품이 성공적으로 등록되었습니다', 'success');
+            closeCreateModal();
+            await loadDeliveries();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function addItemMappingRow() {
+        const clientId = document.getElementById('clientId').value;
+
+        if (!clientId) {
+            showNotification('거래처를 먼저 선택해주세요', 'error');
+            return;
+        }
+
+        fetch(`/api/prices/client/${clientId}`)
+            .then(res => res.json())
+            .then(prices => {
+                if (prices.length === 0) {
+                    showNotification('해당 거래처에 등록된 제품이 없습니다', 'error');
+                    return;
+                }
+                addItemMappingWithPrices(prices);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('제품 정보를 불러오는데 실패했습니다', 'error');
+            });
+    }
+
+    async function viewDeliveryDetail(deliveryId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deliveryId}`);
+            if (!response.ok) throw new Error('납품 상세 정보를 불러오는데 실패했습니다');
+
+            const delivery = await response.json();
+            const detailContent = document.getElementById('detailContent');
+
+            detailContent.innerHTML = `
+            <div class="detail-info">
+                <p><strong>납품번호:</strong> ${escapeHtml(delivery.deliveryNumber)}</p>
+                <p><strong>거래처:</strong> ${escapeHtml(delivery.clientName)}</p>
+                <p><strong>상태:</strong> <span class="status-badge ${getStatusClass(delivery.status)}">${getStatusText(delivery.status)}</span></p>
+                <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
+                <p><strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
+                ${delivery.exchangeRate ? `<p><strong>환율:</strong> ${formatNumber(delivery.exchangeRate)}</p>` : ''}
+                ${delivery.totalAmountKRW ? `<p><strong>원화 환산:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
+                <p><strong>납품일시:</strong> ${formatDateTime(delivery.deliveredAt)}</p>
+            </div>
+            <div>
+                <h3 class="detail-section-title">납품 항목</h3>
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>제품명</th>
+                            <th>수량</th>
+                            <th>단가</th>
+                            <th>금액</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${delivery.items.map(item => `
+                            <tr>
+                                <td>${escapeHtml(item.productName)}</td>
+                                <td>${item.quantity}</td>
+                                <td>${formatPrice(item.unitPrice, delivery.currency)}</td>
+                                <td>${formatPrice(item.totalPrice, delivery.currency)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+            document.getElementById('detailModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('납품 상세 정보를 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    async function completeDelivery(deliveryId) {
+        if (!confirm('이 납품을 완료 처리하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deliveryId}/complete`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '납품 완료 처리에 실패했습니다');
+            }
+
+            showNotification('납품이 완료 처리되었습니다', 'success');
+            await loadDeliveries();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatPrice(price, currency) {
+        if (!currency) {
+            return '₩' + formatNumber(price);
+        }
+
+        // 통화별 locale 매핑
+        const localeMap = {
+            'KRW': 'ko-KR',
+            'USD': 'en-US',
+            'JPY': 'ja-JP',
+            'EUR': 'de-DE',
+            'CNY': 'zh-CN',
+            'GBP': 'en-GB'
+        };
+
+        const locale = localeMap[currency] || 'ko-KR';
+
+        return new Intl.NumberFormat(locale, {
+            style: 'currency',
+            currency: currency
+        }).format(price);
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const createModal = document.getElementById('createModal');
+        const detailModal = document.getElementById('detailModal');
+
+        if (event.target === createModal) {
+            closeCreateModal();
+        }
+        if (event.target === detailModal) {
+            closeDetailModal();
+        }
+    }
+</script>
+</body>
+</html>
