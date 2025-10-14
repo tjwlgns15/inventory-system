@@ -66,6 +66,27 @@
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+        }
+
+        .item-badge strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+
         .btn {
             padding: 11px 24px;
             border: none;
@@ -196,6 +217,32 @@
             background: #f8f9ff;
             border-color: #764ba2;
             transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .status-cancelled {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+        }
+
+        .confirm-text {
+            background: #fff3cd;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-weight: 500;
+            border-left: 4px solid #ffc107;
         }
 
         .content-card {
@@ -620,14 +667,15 @@
                 <table id="deliveriesTable">
                     <thead>
                         <tr>
-                            <th>납품번호</th>
-                            <th>거래처</th>
-                            <th>금액</th>
-                            <th>원화환산</th>
-                            <th>통화</th>
-                            <th>상태</th>
-                            <th>납품일시</th>
-                            <th>작업</th>
+                            <th style="width: 10%;">납품번호</th>
+                            <th style="width: 12%;">거래처</th>
+                            <th style="width: 15%;">품목</th>
+                            <th style="width: 10%;">금액</th>
+                            <th style="width: 10%;">원화환산</th>
+                            <th style="width: 8%;">통화</th>
+                            <th style="width: 7%;">상태</th>
+                            <th style="width: 12%;">납품일시</th>
+                            <th style="width: 16%;">작업</th>
                         </tr>
                     </thead>
                     <tbody id="deliveriesTableBody">
@@ -678,6 +726,23 @@
     </div>
 </div>
 
+<div id="cancelModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeCancelModal()">&times;</span>
+        <h2 class="modal-header">납품 취소</h2>
+        <div class="confirm-text">
+            정말로 이 납품을 취소하시겠습니까?<br>
+            취소된 납품의 제품 재고가 복구됩니다.
+        </div>
+        <div id="cancelDeliveryInfo" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 10px;">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeCancelModal()">돌아가기</button>
+            <button type="button" class="btn btn-danger" onclick="confirmCancel()">취소 확정</button>
+        </div>
+    </div>
+</div>
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -691,6 +756,7 @@
             });
         });
 </script>
+
 <script>
     const API_BASE_URL = '/api/deliveries';
     const CLIENTS_API_URL = '/api/clients';
@@ -698,6 +764,7 @@
     let allDeliveries = [];
     let allClients = [];
     let allProducts = [];
+    let cancelTargetId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         loadClients();
@@ -791,29 +858,40 @@
         emptyState.style.display = 'none';
 
         tbody.innerHTML = deliveries.map(delivery => `
-            <tr>
-                <td><strong>${escapeHtml(delivery.deliveryNumber)}</strong></td>
-                <td>${escapeHtml(delivery.clientName)}</td>
-                <td class="font-weight-600">${formatPrice(delivery.totalAmount, delivery.currency)}</td>
-                <td class="font-weight-600">₩${formatNumber(delivery.totalAmountKRW || 0)}</td>
-                <td><strong>${delivery.currencySymbol || ''} ${delivery.currency || '-'}</strong></td>
-                <td>
-                    <span class="status-badge ${getStatusClass(delivery.status)}">
-                        ${getStatusText(delivery.status)}
-                    </span>
-                </td>
-                <td>${formatDateTime(delivery.deliveredAt)}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-info" onclick="viewDeliveryDetail(${delivery.id})">상세</button>
-                        ${delivery.status === 'PENDING' ? `
-                            <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">완료</button>
-                        ` : ''}
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+        <tr>
+            <td><strong>${escapeHtml(delivery.deliveryNumber)}</strong></td>
+            <td>${escapeHtml(delivery.clientName)}</td>
+            <td>
+                <div class="items-list">
+                    ${delivery.items.map(item => `
+                        <span class="item-badge">
+                            ${escapeHtml(item.productName)} <strong>x${item.quantity}</strong>
+                        </span>
+                    `).join('')}
+                </div>
+            </td>
+            <td class="font-weight-600">${formatPrice(delivery.totalAmount, delivery.currency)}</td>
+            <td class="font-weight-600">₩${formatNumber(delivery.totalAmountKRW || 0)}</td>
+            <td><strong>${delivery.currencySymbol || ''} ${delivery.currency || '-'}</strong></td>
+            <td>
+                <span class="status-badge ${getStatusClass(delivery.status)}">
+                    ${getStatusText(delivery.status)}
+                </span>
+            </td>
+            <td>${formatDateTime(delivery.deliveredAt)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-info" onclick="viewDeliveryDetail(${delivery.id})">상세</button>
+                    ${delivery.status === 'PENDING' ? `
+                        <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">완료</button>
+                        <button class="btn btn-danger" onclick="openCancelModal(${delivery.id})">취소</button>
+                    ` : ''}
+                </div>
+            </td>
+        </tr>
+    `).join('');
     }
+
 
     function filterDeliveries() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -825,11 +903,15 @@
     }
 
     function getStatusClass(status) {
-        return status === 'COMPLETED' ? 'status-completed' : 'status-pending';
+        if (status === 'COMPLETED') return 'status-completed';
+        if (status === 'CANCELLED') return 'status-cancelled';
+        return 'status-pending';
     }
 
     function getStatusText(status) {
-        return status === 'COMPLETED' ? '완료' : '대기';
+        if (status === 'COMPLETED') return '완료';
+        if (status === 'CANCELLED') return '취소됨';
+        return '대기';
     }
 
     function formatNumber(num) {
@@ -1074,6 +1156,53 @@
         }
     }
 
+    // 취소 모달 열기
+    function openCancelModal(deliveryId) {
+        const delivery = allDeliveries.find(d => d.id === deliveryId);
+        if (!delivery) {
+            showNotification('납품을 찾을 수 없습니다', 'error');
+            return;
+        }
+
+        cancelTargetId = deliveryId;
+        document.getElementById('cancelDeliveryInfo').innerHTML = `
+        <strong>납품번호:</strong> ${escapeHtml(delivery.deliveryNumber)}<br>
+        <strong>거래처:</strong> ${escapeHtml(delivery.clientName)}<br>
+        <strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}<br>
+        <strong>납품일시:</strong> ${formatDateTime(delivery.deliveredAt)}
+    `;
+        document.getElementById('cancelModal').style.display = 'block';
+    }
+
+    // 취소 모달 닫기
+    function closeCancelModal() {
+        document.getElementById('cancelModal').style.display = 'none';
+        cancelTargetId = null;
+    }
+
+    // 취소 확인
+    async function confirmCancel() {
+        if (!cancelTargetId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${cancelTargetId}/cancel`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '납품 취소에 실패했습니다');
+            }
+
+            showNotification('납품이 성공적으로 취소되었습니다', 'success');
+            closeCancelModal();
+            await loadDeliveries();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -1119,6 +1248,7 @@
     window.onclick = function(event) {
         const createModal = document.getElementById('createModal');
         const detailModal = document.getElementById('detailModal');
+        const cancelModal = document.getElementById('cancelModal');
 
         if (event.target === createModal) {
             closeCreateModal();
@@ -1126,17 +1256,23 @@
         if (event.target === detailModal) {
             closeDetailModal();
         }
+        if (event.target === cancelModal) {
+            closeCancelModal();
+        }
     }
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
             const createModal = document.getElementById('createModal');
             const detailModal = document.getElementById('detailModal');
+            const cancelModal = document.getElementById('cancelModal');
 
             if (createModal.style.display === 'block') {
                 closeCreateModal();
             } else if (detailModal.style.display === 'block') {
                 closeDetailModal();
+            } else if (cancelModal.style.display === 'block') {
+                closeCancelModal();
             }
         }
     });

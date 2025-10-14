@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "clients")
 @Getter
@@ -53,6 +55,12 @@ public class Client extends BaseTimeEntity {
         this.contactNumber = contactNumber;
         this.email = email;
         this.currency = currency;
+    }
+
+    public void markAsDeleted() {
+        ensureNotDeleted();
+        this.clientCode = this.clientCode + "_DELETED_" + System.currentTimeMillis();
+        this.deletedAt = LocalDateTime.now();
     }
 }
 

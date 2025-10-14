@@ -106,6 +106,32 @@
             z-index: 1;
         }
 
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .confirm-text {
+            background: #fff3cd;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-weight: 500;
+            border-left: 4px solid #ffc107;
+        }
+
         .content-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -398,16 +424,16 @@
             <div class="table-container">
                 <table id="clientsTable">
                     <thead>
-                    <tr>
-                        <th style="width: 10%;">거래처 코드</th>
-                        <th style="width: 18%;">거래처명</th>
-                        <th style="width: 13%;">연락처</th>
-                        <th style="width: 20%;">이메일</th>
-                        <th style="width: 20%;">주소</th>
-                        <th style="width: 8%;">국가</th>
-                        <th style="width: 6%;">통화</th>
-                        <th style="width: 5%;">작업</th>
-                    </tr>
+                        <tr>
+                            <th style="width: 13%;">거래처 코드</th>
+                            <th style="width: 15%;">거래처명</th>
+                            <th style="width: 13%;">연락처</th>
+                            <th style="width: 13%;">이메일</th>
+                            <th style="width: 20%;">주소</th>
+                            <th style="width: 8%;">국가</th>
+                            <th style="width: 6%;">통화</th>
+                            <th style="width: 12%;">작업</th>
+                        </tr>
                     </thead>
                     <tbody id="clientsTableBody">
                     </tbody>
@@ -516,14 +542,14 @@
 
             <div class="form-group">
                 <label class="form-label" for="updateCountryId">국가 *</label>
-                <select id="updateCountryId" class="form-select" required>
+                <select id="updateCountryId" class="form-select" required disabled>
                     <option value="">국가 선택</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="updateCurrency">통화 *</label>
-                <select id="updateCurrency" class="form-select" required>
+                <select id="updateCurrency" class="form-select" required disabled>
                     <option value="">통화 선택</option>
                     <option value="KRW">원화 (₩)</option>
                     <option value="USD">달러 ($)</option>
@@ -542,6 +568,23 @@
     </div>
 </div>
 
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+        <h2 class="modal-header">거래처 삭제</h2>
+        <div class="confirm-text">
+            정말로 이 거래처를 삭제하시겠습니까?<br>
+            삭제된 거래처는 복구할 수 없습니다.
+        </div>
+        <div id="deleteClientInfo" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 10px;">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">취소</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+        </div>
+    </div>
+</div>
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -555,9 +598,11 @@
             });
         });
 </script>
+
 <script>
     const API_BASE_URL = '/api/clients';
     let allClients = [];
+    let deleteTargetId = null;
 
     const COUNTRIES_API_URL = '/api/countries';
     let allCountries = [];
@@ -612,9 +657,13 @@
                 <td>${escapeHtml(client.email || '-')}</td>
                 <td>${escapeHtml(client.address || '-')}</td>
                 <td>${escapeHtml(client.countryName || '-')}</td>
-                <td><strong>${client.currencySymbol || ''} ${client.currency || '-'}</strong></td>
                 <td>
+                    <strong>${client.currencySymbol || ''} ${client.currency || '-'}</strong>
+                </td>
+                <td>
+                <div class="action-buttons">
                     <button class="btn btn-warning" onclick="openUpdateModal(${client.id})">수정</button>
+                    <button class="btn btn-danger" onclick="openDeleteModal(${client.id})">삭제</button>
                 </td>
             </tr>
         `).join('');
@@ -748,6 +797,51 @@
         }
     }
 
+    function openDeleteModal(clientId) {
+        const client = allClients.find(c => c.id === clientId);
+        if (!client) {
+            showNotification('거래처를 찾을 수 없습니다', 'error');
+            return;
+        }
+
+        deleteTargetId = clientId;
+        document.getElementById('deleteClientInfo').innerHTML = `
+        <strong>거래처 코드:</strong> ${escapeHtml(client.clientCode)}<br>
+        <strong>거래처명:</strong> ${escapeHtml(client.name)}<br>
+        <strong>국가:</strong> ${escapeHtml(client.countryName || '-')}<br>
+        <strong>통화:</strong> ${client.currencySymbol || ''} ${client.currency || '-'}
+    `;
+        document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    // 삭제 모달 닫기
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        deleteTargetId = null;
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '거래처 삭제에 실패했습니다');
+            }
+
+            showNotification('거래처가 성공적으로 삭제되었습니다', 'success');
+            closeDeleteModal();
+            await loadClients();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -770,9 +864,11 @@
     window.onclick = function(event) {
         const registerModal = document.getElementById('registerModal');
         const updateModal = document.getElementById('updateModal');
+        const deleteModal = document.getElementById('deleteModal');
 
         if (event.target === registerModal) closeRegisterModal();
         if (event.target === updateModal) closeUpdateModal();
+        if (event.target === deleteModal) closeDeleteModal();
     }
 
     document.addEventListener('keydown', function(event) {

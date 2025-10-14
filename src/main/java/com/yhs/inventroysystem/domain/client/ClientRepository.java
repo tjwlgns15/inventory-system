@@ -9,10 +9,22 @@ import java.util.Optional;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client, Long> {
-    Optional<Client> findByClientCode(String clientCode);
-    boolean existsByClientCode(String clientCode);
 
-    @Query("SELECT c FROM Client c JOIN FETCH c.country")
-    List<Client> findAllWithCountry();
+    @Query("SELECT COUNT(c) > 0 FROM Client c WHERE c.clientCode = :clientCode AND c.deletedAt IS NULL")
+    boolean existsByClientCodeAndNotDeleted(String clientCode);
+
+    @Query("SELECT c FROM Client c " +
+            "WHERE c.id = :clientId AND c.deletedAt IS NULL")
+    Optional<Client> findByIdAndDeletedAt(Long clientId);
+
+    @Query("SELECT c FROM Client c " +
+            "WHERE c.clientCode = :clientCode AND c.deletedAt IS NULL")
+    Optional<Client> findByClientCodeAndNotDeleted(String clientCode);
+
+    @Query("SELECT c FROM Client c " +
+            "JOIN FETCH c.country " +
+            "WHERE c.deletedAt IS NULL " +
+            "ORDER BY c.createdAt DESC")
+    List<Client> findAllActiveWithCountry();
 
 }

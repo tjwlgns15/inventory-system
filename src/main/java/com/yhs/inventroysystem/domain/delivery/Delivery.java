@@ -74,6 +74,13 @@ public class Delivery extends BaseTimeEntity {
         this.deliveredAt = LocalDateTime.now();
     }
 
+    public void cancel() {
+        if (this.status != DeliveryStatus.PENDING) {
+            throw new InvalidDeliveryStateException(this.status, "완료");
+        }
+        this.status = DeliveryStatus.CANCELLED;
+    }
+
     private void calculateTotalAmount() {
         this.totalAmount = items.stream()
                 .map(DeliveryItem::getTotalPrice)

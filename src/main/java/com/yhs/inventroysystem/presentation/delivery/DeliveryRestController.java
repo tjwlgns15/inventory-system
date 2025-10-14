@@ -54,6 +54,12 @@ public class DeliveryRestController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/{deliveryId}/cancel")
+    public ResponseEntity<Void> cancelDelivery(@PathVariable Long deliveryId) {
+        deliveryService.cancelDelivery(deliveryId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{deliveryId}")
     public ResponseEntity<DeliveryResponse> getDelivery(@PathVariable Long deliveryId) {
         Delivery delivery = deliveryService.findDeliveryById(deliveryId);

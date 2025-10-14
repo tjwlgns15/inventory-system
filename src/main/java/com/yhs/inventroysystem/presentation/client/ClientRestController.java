@@ -63,5 +63,9 @@ public class ClientRestController {
         return ResponseEntity.ok(ClientResponse.from(client));
     }
 
-
+    @DeleteMapping("/{clientId}")
+    public ResponseEntity<ClientResponse> deleteClient(@PathVariable Long clientId) {
+        clientService.deleteClient(clientId);
+        return ResponseEntity.noContent().build();
+    }
 }

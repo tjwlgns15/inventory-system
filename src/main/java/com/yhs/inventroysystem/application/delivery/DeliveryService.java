@@ -108,6 +108,27 @@ public class DeliveryService {
         }
     }
 
+    @Transactional
+    public void cancelDelivery(Long deliveryId) {
+        Delivery delivery = deliveryRepository.findByIdWithItems(deliveryId)
+                .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
+
+        // 납품 완료 처리
+        delivery.cancel();
+
+        if (delivery.getRelatedTask() != null) {
+            Task task = delivery.getRelatedTask();
+
+            task.updateTaskInfo(
+                    "[거래 취소] " + delivery.getDeliveryNumber(),
+                    task.getDescription(),
+                    task.getPriority()
+            );
+            task.updatePeriod(task.getStartDate(), LocalDate.now());
+            task.updateStatus(TaskStatus.COMPLETED);
+        }
+    }
+
     public Delivery findDeliveryById(Long deliveryId) {
         return deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
