@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity @Getter
 @Table(name = "parts")
 @NoArgsConstructor
@@ -38,20 +40,28 @@ public class Part extends BaseTimeEntity {
     }
 
     public void decreaseStock(Integer quantity) {
+        ensureNotDeleted();
         if (this.stockQuantity < quantity) {
-            throw new InsufficientStockException(this.name, quantity, this.stockQuantity);
+            throw InsufficientStockException.insufficientStock(this.name, quantity, this.stockQuantity);
         }
         this.stockQuantity -= quantity;
     }
 
     public void increaseStock(Integer quantity) {
+        ensureNotDeleted();
         this.stockQuantity += quantity;
     }
 
-    public void updateInfo(String partCode, String name, String specification, String unit) {
-        this.partCode = partCode;
+    public void updateInfo(String name, String specification, String unit) {
+        ensureNotDeleted();
         this.name = name;
         this.specification = specification;
         this.unit = unit;
+    }
+
+    public void markAsDeleted() {
+        ensureNotDeleted();
+        this.partCode = this.partCode + "_DELETED_" + System.currentTimeMillis();
+        this.deletedAt = LocalDateTime.now();
     }
 }

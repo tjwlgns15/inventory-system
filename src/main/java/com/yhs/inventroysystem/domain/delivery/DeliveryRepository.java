@@ -32,7 +32,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     @Query("SELECT d FROM Delivery d " +
             "JOIN FETCH d.client " +
             "JOIN FETCH d.items di " +
-            "JOIN FETCH di.product")
+            "JOIN FETCH di.product " +
+            "ORDER BY d.createdAt DESC")
     List<Delivery> findAllWithClientAndItem();
 
     @Query("""

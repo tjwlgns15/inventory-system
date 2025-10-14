@@ -1,16 +1,15 @@
 package com.yhs.inventroysystem.domain.part;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity @Getter
-@AllArgsConstructor
+@Table(name = "part_stock_transactions")
 @NoArgsConstructor
-public class StockTransaction {
+public class PartStockTransaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,12 +37,21 @@ public class StockTransaction {
 
 
     // 팩토리 메서드
-    public static StockTransaction create(Part part, TransactionType type, int beforeStock, int changeQuantity, int afterStock) {
+    public static PartStockTransaction create(Part part, TransactionType type, int beforeStock, int changeQuantity, int afterStock) {
         validatePart(part);
         validateType(type);
         validateStockValues(beforeStock, changeQuantity, afterStock);
 
-        return new StockTransaction(null, part, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
+        return new PartStockTransaction(part, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
+    }
+
+    public PartStockTransaction(Part part, TransactionType type, int beforeStock, int changeQuantity, int afterStock, LocalDateTime createdAt) {
+        this.part = part;
+        this.type = type;
+        this.beforeStock = beforeStock;
+        this.changeQuantity = changeQuantity;
+        this.afterStock = afterStock;
+        this.createdAt = createdAt;
     }
 
     // 검증 메서드

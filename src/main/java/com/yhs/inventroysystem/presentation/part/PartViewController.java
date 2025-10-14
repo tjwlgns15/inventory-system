@@ -12,4 +12,9 @@ public class PartViewController {
     public String partsPage() {
         return "part/parts";
     }
+
+    @GetMapping("/transactions")
+    public String partTransactionPage() {
+        return "part/part-transactions";
+    }
 }

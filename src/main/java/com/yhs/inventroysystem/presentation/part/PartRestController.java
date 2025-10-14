@@ -2,7 +2,9 @@ package com.yhs.inventroysystem.presentation.part;
 
 import com.yhs.inventroysystem.domain.part.Part;
 import com.yhs.inventroysystem.application.part.PartService;
+import com.yhs.inventroysystem.domain.part.PartStockTransaction;
 import com.yhs.inventroysystem.presentation.part.PartDtos.*;
+import com.yhs.inventroysystem.presentation.part.PartTransactionDtos.PartTransactionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -57,7 +59,6 @@ public class PartRestController {
             @Valid @RequestBody PartUpdateRequest request) {
 
         PartUpdateCommand command = new PartUpdateCommand(
-                request.partCode(),
                 request.name(),
                 request.specification(),
                 request.unit()
@@ -82,5 +83,34 @@ public class PartRestController {
             @Valid @RequestBody StockUpdateRequest request) {
         partService.decreaseStock(partId, request.quantity());
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{partId}")
+    public ResponseEntity<Void> deletePart(@PathVariable Long partId) {
+        partService.deletePart(partId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ========= 트랜잭션 조회 ========= //
+    @GetMapping("/{partId}/transactions")
+    public ResponseEntity<List<PartTransactionResponse>> getPartStockTransactions(@PathVariable Long partId) {
+        List<PartStockTransaction> transactions = partService.getPartStockTransactions(partId);
+
+        List<PartTransactionResponse> responses = transactions.stream()
+                .map(PartTransactionResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<PartTransactionResponse>> getAllStockTransactions() {
+        List<PartStockTransaction> transactions = partService.getAllStockTransactions();
+
+        List<PartTransactionResponse> responses = transactions.stream()
+                .map(PartTransactionResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(responses);
     }
 }

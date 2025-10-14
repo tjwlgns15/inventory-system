@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -45,28 +46,39 @@ public class Product extends BaseTimeEntity {
     }
 
     public void addPartMapping(ProductPart mapping) {
+        ensureNotDeleted();
         this.partMappings.add(mapping);
     }
 
     public void decreaseStock(Integer quantity) {
+        ensureNotDeleted();
         if (this.stockQuantity < quantity) {
-            throw new InsufficientStockException(this.name, quantity, this.stockQuantity);
+            throw InsufficientStockException.insufficientStock(this.name, quantity, this.stockQuantity);
         }
         this.stockQuantity -= quantity;
     }
 
     public void increaseStock(Integer quantity) {
+        ensureNotDeleted();
         this.stockQuantity += quantity;
     }
 
     public void updateInfo(String name, BigDecimal defaultUnitPrice, String description) {
+        ensureNotDeleted();
         this.name = name;
         this.defaultUnitPrice = defaultUnitPrice;
         this.description = description;
     }
 
     public void clearPartMappings() {
+        ensureNotDeleted();
         this.partMappings.clear();
     }
 
+    public void markAsDeleted() {
+        ensureNotDeleted();
+        this.productCode = this.productCode + "_DELETED_" + System.currentTimeMillis();
+        this.deletedAt = LocalDateTime.now();
+        this.partMappings.clear();
+    }
 }

@@ -1,6 +1,8 @@
 package com.yhs.inventroysystem.domain.product;
 
+import com.yhs.inventroysystem.domain.part.PartStockTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -13,16 +15,20 @@ public interface ProductStockTransactionRepository extends JpaRepository<Product
 
     /**
      * 특정 제품 ID에 해당하는 재고 이력 조회 (최신순 정렬)
-     * @param productId 제품 ID
-     * @return 재고 이력 리스트
      */
+    @Query("SELECT pst FROM ProductStockTransaction pst " +
+            "JOIN FETCH pst.product " +
+            "WHERE pst.product.id = :productId " +
+            "ORDER BY pst.createdAt DESC")
     List<ProductStockTransaction> findByProductIdOrderByCreatedAtDesc(Long productId);
 
     /**
      * 전체 제품 재고 이력 조회 (최신순 정렬)
-     * @return 재고 이력 리스트
      */
+    @Query("SELECT pst FROM ProductStockTransaction pst " +
+            "JOIN FETCH pst.product " +
+            "ORDER BY pst.createdAt DESC")
     List<ProductStockTransaction> findAllByOrderByCreatedAtDesc();
 
-    void deleteByProduct(Product product);
+
 }

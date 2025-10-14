@@ -12,4 +12,14 @@ public class ProductViewController {
     public String productsPage() {
         return "product/products";
     }
+
+    @GetMapping("/transactions")
+    public String transactionsPage() {
+        return "product/product-transactions";
+    }
+
+    @GetMapping("/visualization")
+    public String summaryPage() {
+        return "product/product-visualization";
+    }
 }

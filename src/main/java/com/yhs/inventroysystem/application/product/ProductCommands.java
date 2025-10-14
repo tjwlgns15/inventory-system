@@ -35,7 +35,6 @@ public class ProductCommands {
     ) {}
 
     public record ProductUpdateCommand(
-            Long productId,
             String name,
             BigDecimal defaultUnitPrice,
             String description,

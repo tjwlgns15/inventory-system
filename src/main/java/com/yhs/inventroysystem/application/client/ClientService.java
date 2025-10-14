@@ -30,7 +30,7 @@ public class ClientService {
         validateClientCodeDuplication(command.clientCode());
 
         Country country = countryRepository.findById(command.countryId())
-                .orElseThrow(() -> new ResourceNotFoundException("국가를 찾을 수 없습니다. ID: " + command.countryId()));
+                .orElseThrow(() -> ResourceNotFoundException.country(command.countryId()));
 
 
         Client client = new Client(
@@ -67,7 +67,7 @@ public class ClientService {
                 .orElseThrow(() -> ResourceNotFoundException.client(clientId));
 
         Country country = countryRepository.findById(request.countryId())
-                .orElseThrow(() -> new ResourceNotFoundException("국가를 찾을 수 없습니다. ID: " + request.countryId()));
+                .orElseThrow(() -> ResourceNotFoundException.country(request.countryId()));
 
         client.updateInfo(
                 request.name(),

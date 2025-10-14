@@ -106,6 +106,17 @@
             z-index: 1;
         }
 
+        .btn-sales {
+            background-color: #64748b; /* slate gray tone */
+            color: #fff;
+            border: 1px solid #64748b;
+        }
+
+        .btn-sales:hover {
+            background-color: #475569;
+            border-color: #475569;
+        }
+
         .btn-info {
             background: white;
             color: #667eea;
@@ -175,6 +186,17 @@
         }
 
         .btn-remove:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-danger:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
         }
@@ -570,6 +592,16 @@
             margin-top: 28px;
         }
 
+        .confirm-text {
+            background: #fff3cd;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-weight: 500;
+            border-left: 4px solid #ffc107;
+        }
+
         .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -589,7 +621,18 @@
     <div class="products-section">
         <div class="products-header">
             <h2 class="products-title">제품 관리</h2>
-            <button class="btn btn-primary" onclick="openRegisterModal()"><span>+ 제품 등록</span></button>
+            <div>
+                <button class="btn btn-primary" onclick="openRegisterModal()">
+                    <span>+ 제품 등록</span>
+                </button>
+                <button class="btn btn-sales" onclick="location.href='/products/transactions'">
+                    <span>📋 생산 기록</span>
+                </button>
+                <button class="btn btn-sales" onclick="location.href='/products/visualization'">
+                    <span>📊 시각화</span>
+                </button>
+            </div>
+
         </div>
 
         <div class="content-card">
@@ -604,14 +647,16 @@
             <div class="table-container">
                 <table id="productsTable">
                     <thead>
-                    <tr>
-                        <th style="width: 15%;">제품 코드</th>
-                        <th style="width: 20%;">제품명</th>
-                        <th style="width: 12%;">기본 단가</th>
-                        <th style="width: 30%;">설명</th>
-                        <th style="width: 10%;">재고</th>
-                        <th style="width: 25%;">작업</th>
-                    </tr>
+                        <tr>
+                            <th style="width: 12%;">제품 코드</th>
+                            <th style="width: 12%;">제품명</th>
+                            <th style="width: 12%;">기본 단가</th>
+                            <th style="width: 20%;">설명</th>
+                            <th style="width: 10%;">사용 부품</th>
+                            <th style="width: 10%;">재고</th>
+                            <th style="width: 8%;">생산</th>
+                            <th style="width: 16%;">작업</th>
+                        </tr>
                     </thead>
                     <tbody id="productsTableBody">
                     </tbody>
@@ -699,7 +744,7 @@
     </div>
 </div>
 
-<!-- 제품 수정 모달 (productionModal 다음에 추가) -->
+<!-- 제품 수정 모달 -->
 <div id="updateModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeUpdateModal()">&times;</span>
@@ -736,6 +781,23 @@
     </div>
 </div>
 
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+        <h2 class="modal-header">제품 삭제</h2>
+        <div class="confirm-text">
+            정말로 이 제품을 삭제하시겠습니까?<br>
+            삭제된 제품은 복구할 수 없습니다.
+        </div>
+        <div id="deleteProductInfo" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 10px;">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">취소</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+        </div>
+    </div>
+</div>
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -749,11 +811,13 @@
             });
         });
 </script>
+
 <script>
     const API_BASE_URL = '/api/products';
     const PARTS_API_URL = '/api/parts';
     let allProducts = [];
     let allParts = [];
+    let deleteTargetId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         loadParts();
@@ -804,15 +868,25 @@
                 <td class="price-badge">${product.defaultUnitPrice ? formatPrice(product.defaultUnitPrice) : '-'}</td>
                 <td>${escapeHtml(product.description || '-')}</td>
                 <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="viewProductDetail(${product.id})">상세</button>
+                    </div>
+                </td>
+                <td>
                     <span class="stock-badge ${getStockClass(product.stockQuantity)}">
                         ${product.stockQuantity}
                     </span>
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-info" onclick="viewProductDetail(${product.id})">상세</button>
-                        <button class="btn btn-warning" onclick="openUpdateModal(${product.id})">수정</button>
                         <button class="btn btn-success" onclick="openProductionModal(${product.id})">생산</button>
+                    </div>
+                </td>
+                 <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="viewTransactions(${product.id})">기록</button>
+                        <button class="btn btn-warning" onclick="openUpdateModal(${product.id})">수정</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${product.id})">삭제</button>
                     </div>
                 </td>
             </tr>
@@ -1186,6 +1260,54 @@
         }
     }
 
+    function viewTransactions(productId) {
+        window.location.href = `/products/transactions?productId=${productId}`;
+    }
+
+    function openDeleteModal(productId) {
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) {
+            showNotification('제품을 찾을 수 없습니다', 'error');
+            return;
+        }
+
+        deleteTargetId = productId;
+        document.getElementById('deleteProductInfo').innerHTML = `
+            <strong>제품 코드:</strong> ${escapeHtml(product.productCode)}<br>
+            <strong>제품명:</strong> ${escapeHtml(product.name)}<br>
+            <strong>현재 재고:</strong> ${product.stockQuantity}
+        `;
+        document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        deleteTargetId = null;
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '제품 삭제에 실패했습니다');
+            }
+
+            showNotification('제품이 성공적으로 삭제되었습니다', 'success');
+            closeDeleteModal();
+            await loadProducts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -1217,12 +1339,36 @@
         const detailModal = document.getElementById('detailModal');
         const productionModal = document.getElementById('productionModal');
         const updateModal = document.getElementById('updateModal');
+        const deleteModal = document.getElementById('deleteModal');
 
         if (event.target === registerModal) closeRegisterModal();
         if (event.target === detailModal) closeDetailModal();
         if (event.target === productionModal) closeProductionModal();
         if (event.target === updateModal) closeUpdateModal();
+        if (event.target === deleteModal) closeDeleteModal();
     }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            const registerModal = document.getElementById('registerModal');
+            const detailModal = document.getElementById('detailModal');
+            const productionModal = document.getElementById('productionModal');
+            const updateModal = document.getElementById('updateModal');
+            const deleteModal = document.getElementById('deleteModal');
+
+            if (registerModal.style.display === 'block') {
+                closeRegisterModal();
+            } else if (detailModal.style.display === 'block') {
+                closeDetailModal();
+            } else if (productionModal.style.display === 'block') {
+                closeProductionModal();
+            } else if (updateModal.style.display === 'block') {
+                closeUpdateModal();
+            } else if (deleteModal.style.display === 'block') {
+                closeDeleteModal();
+            }
+        }
+    });
 </script>
 </body>
 </html>

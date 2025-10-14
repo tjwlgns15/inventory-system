@@ -106,6 +106,17 @@
             z-index: 1;
         }
 
+        .btn-sales {
+            background-color: #64748b; /* slate gray tone */
+            color: #fff;
+            border: 1px solid #64748b;
+        }
+
+        .btn-sales:hover {
+            background-color: #475569;
+            border-color: #475569;
+        }
+
         .btn-success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
@@ -137,6 +148,17 @@
         .btn-warning:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 8px 16px;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
         }
 
         .content-card {
@@ -432,6 +454,16 @@
             margin-top: 28px;
         }
 
+        .confirm-text {
+            background: #fff3cd;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-weight: 500;
+            border-left: 4px solid #ffc107;
+        }
+
         .btn-secondary {
             background: #f8f9fa;
             color: #6c757d;
@@ -449,7 +481,14 @@
     <div class="parts-section">
         <div class="parts-header">
             <h2 class="parts-title">부품 관리</h2>
-            <button class="btn btn-primary" onclick="openRegisterModal()"><span>+ 부품 등록</span></button>
+            <div>
+                <button class="btn btn-primary" onclick="openRegisterModal()">
+                    <span>+ 부품 등록</span>
+                </button>
+                <button class="btn btn-sales" onclick="location.href='/parts/transactions'">
+                    <span>📋 입/출고 기록</span>
+                </button>
+            </div>
         </div>
 
         <div class="content-card">
@@ -464,14 +503,15 @@
             <div class="table-container">
                 <table id="partsTable">
                     <thead>
-                    <tr>
-                        <th style="width: 15%;">부품 코드</th>
-                        <th style="width: 22%;">부품명</th>
-                        <th style="width: 23%;">규격</th>
-                        <th style="width: 12%;">재고 수량</th>
-                        <th style="width: 8%;">단위</th>
-                        <th style="width: 20%;">작업</th>
-                    </tr>
+                        <tr>
+                            <th style="width: 12%;">부품 코드</th>
+                            <th style="width: 18%;">부품명</th>
+                            <th style="width: 20%;">규격</th>
+                            <th style="width: 10%;">재고 수량</th>
+                            <th style="width: 8%;">단위</th>
+                            <th style="width: 16%;">입/출고</th>
+                            <th style="width: 16%;">작업</th>
+                        </tr>
                     </thead>
                     <tbody id="partsTableBody">
                     </tbody>
@@ -565,11 +605,6 @@
             <input type="hidden" id="updatePartId">
 
             <div class="form-group">
-                <label class="form-label" for="updatePartCode">부품 코드</label>
-                <input type="text" id="updatePartCode" class="form-input">
-            </div>
-
-            <div class="form-group">
                 <label class="form-label" for="updateName">부품명</label>
                 <input type="text" id="updateName" class="form-input">
             </div>
@@ -603,6 +638,23 @@
     </div>
 </div>
 
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+        <h2 class="modal-header">부품 삭제</h2>
+        <div class="confirm-text">
+            정말로 이 부품을 삭제하시겠습니까?<br>
+            삭제된 부품은 복구할 수 없습니다.
+        </div>
+        <div id="deletePartInfo" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 10px;">
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">취소</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+        </div>
+    </div>
+</div>
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -616,9 +668,11 @@
             });
         });
 </script>
+
 <script>
     const API_BASE_URL = '/api/parts';
     let allParts = [];
+    let deleteTargetId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         loadParts();
@@ -663,14 +717,21 @@
                 <td>${escapeHtml(part.unit)}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
                         <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
                         <button class="btn btn-danger" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
+                        <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${part.id})">삭제</button>
                     </div>
                 </td>
             </tr>
         `).join('');
     }
+
 
     function filterParts() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -741,6 +802,10 @@
             action === 'increase' ? '재고 입고' : '재고 출고';
         document.getElementById('stockForm').reset();
         document.getElementById('stockModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('stockQuantity').focus();
+        }, 100);
     }
 
     function closeStockModal() {
@@ -786,7 +851,6 @@
         }
 
         document.getElementById('updatePartId').value = part.id;
-        document.getElementById('updatePartCode').value = part.partCode;
         document.getElementById('updateName').value = part.name;
         document.getElementById('updateSpecification').value = part.specification || '';
         document.getElementById('updateUnit').value = part.unit;
@@ -805,7 +869,6 @@
 
         const partId = document.getElementById('updatePartId').value;
         const updateData = {
-            partCode: document.getElementById('updatePartCode').value,
             name: document.getElementById('updateName').value,
             specification: document.getElementById('updateSpecification').value,
             unit: document.getElementById('updateUnit').value
@@ -839,6 +902,54 @@
         }
     }
 
+    function openDeleteModal(partId) {
+        const part = allParts.find(p => p.id === partId);
+        if (!part) {
+            showNotification('부품을 찾을 수 없습니다', 'error');
+            return;
+        }
+
+        deleteTargetId = partId;
+        document.getElementById('deletePartInfo').innerHTML = `
+            <strong>부품 코드:</strong> ${escapeHtml(part.partCode)}<br>
+            <strong>부품명:</strong> ${escapeHtml(part.name)}<br>
+            <strong>현재 재고:</strong> ${part.stockQuantity} ${escapeHtml(part.unit)}
+        `;
+        document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        deleteTargetId = null;
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '부품 삭제에 실패했습니다');
+            }
+
+            showNotification('부품이 성공적으로 삭제되었습니다', 'success');
+            closeDeleteModal();
+            await loadParts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function viewTransactions(partId) {
+        window.location.href = `/parts/transactions?partId=${partId}`;
+    }
+
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -862,11 +973,34 @@
         const registerModal = document.getElementById('registerModal');
         const stockModal = document.getElementById('stockModal');
         const updateModal = document.getElementById('updateModal');
+        const deleteModal = document.getElementById('deleteModal');
 
         if (event.target === registerModal) closeRegisterModal();
         if (event.target === stockModal) closeStockModal();
         if (event.target === updateModal) closeUpdateModal();
+        if (event.target === deleteModal) closeDeleteModal();
     }
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            // 열려있는 모달 확인 및 닫기
+            const registerModal = document.getElementById('registerModal');
+            const stockModal = document.getElementById('stockModal');
+            const updateModal = document.getElementById('updateModal');
+            const deleteModal = document.getElementById('deleteModal');
+
+            if (registerModal.style.display === 'block') {
+                closeRegisterModal();
+            } else if (stockModal.style.display === 'block') {
+                closeStockModal();
+            } else if (updateModal.style.display === 'block') {
+                closeUpdateModal();
+            } else if (deleteModal.style.display === 'block') {
+                closeDeleteModal();
+            }
+        }
+    });
 </script>
 </body>
 </html>

@@ -4,10 +4,9 @@ import com.yhs.inventroysystem.application.auth.UserCommands.LoginCommand;
 import com.yhs.inventroysystem.application.auth.UserCommands.SignupCommand;
 import com.yhs.inventroysystem.domain.auth.User;
 import com.yhs.inventroysystem.domain.auth.UserRepository;
-import com.yhs.inventroysystem.domain.exception.DuplicateEmailException;
-import com.yhs.inventroysystem.domain.exception.DuplicateUsernameException;
+import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
 import com.yhs.inventroysystem.domain.exception.InvalidPasswordException;
-import com.yhs.inventroysystem.domain.exception.UserNotFoundException;
+import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
 import com.yhs.inventroysystem.infrastructure.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,12 +55,12 @@ public class UserService {
 
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(username));
+                .orElseThrow(() -> ResourceNotFoundException.user(username));
     }
 
     public User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+                .orElseThrow(() -> ResourceNotFoundException.user(userId));
     }
 
     @Transactional
@@ -90,13 +89,13 @@ public class UserService {
 
     private void validateDuplicateUsername(String username) {
         if (userRepository.existsByUsername(username)) {
-            throw new DuplicateUsernameException(username);
+            throw DuplicateResourceException.username(username);
         }
     }
 
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email)) {
-            throw new DuplicateEmailException(email);
+            throw DuplicateResourceException.email(email);
         }
     }
 

@@ -52,7 +52,6 @@ public class PartDtos {
     ) {}
 
     public record PartUpdateRequest(
-            String partCode,
             String name,
             String specification,
             String unit

@@ -8,15 +8,61 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 제품(Product) 엔티티를 위한 JPA 리포지토리
+ * - 기본 CRUD 기능 제공
+ * - 조회 시 삭제 되지 않은 것만 검색
+ */
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    Optional<Product> findByProductCode(String productCode);
-    boolean existsByProductCode(String productCode);
 
-    @Query("SELECT p FROM Product p JOIN FETCH p.partMappings pm JOIN FETCH pm.part WHERE p.id = :productId")
-    Optional<Product> findByIdWithParts(@Param("productId") Long productId);
+    /**
+     * 주어진 제품 코드가 이미 존재하는지 확인
+     */
+    @Query("SELECT COUNT(p) > 0 FROM Product p WHERE p.productCode = :productCode AND p.deletedAt IS NULL")
+    boolean existsByProductCodeAndNotDeleted(String productCode);
 
-    @Query("SELECT p FROM Product p JOIN FETCH p.partMappings pm JOIN FETCH pm.part")
-    List<Product> findAllWithPart();
+    /**
+     * 주어진 제품 이름이 이미 존재하는지 확인
+     */
+    @Query("SELECT COUNT(p) > 0 FROM Product p WHERE p.name = :name AND p.deletedAt IS NULL")
+    boolean existsByNameAndNotDeleted(String name);
+
+    /**
+     * 제품 코드로 제품 조회
+     */
+    @Query("SELECT p FROM Product p WHERE p.productCode = :productCode AND p.deletedAt IS NULL")
+    Optional<Product> findByProductCodeAndNotDeleted(String productCode);
+
+    /**
+     * 제품 이름으로 제품 조회
+     */
+    @Query("SELECT p FROM Product p WHERE p.name = :name AND p.deletedAt IS NULL")
+    Optional<Product> findByNameAndNotDeleted(String name);
+
+    /**
+     * ID로 제품과 부품 매핑 정보를 함께 조회
+     */
+    @Query("SELECT p FROM Product p " +
+            "JOIN FETCH p.partMappings pm " +
+            "JOIN FETCH pm.part " +
+            "WHERE p.id = :productId AND p.deletedAt IS NULL")
+    Optional<Product> findByIdWithPartsAndNotDeleted(@Param("productId") Long productId);
+
+    /**
+     * 모든 제품 조회
+     */
+    @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL ORDER BY p.createdAt DESC")
+    List<Product> findAllActive();
+
+    /**
+     * 모든 제품과 부품 매핑 정보를 함께 조회
+     */
+    @Query("SELECT DISTINCT p FROM Product p " +
+            "JOIN FETCH p.partMappings pm " +
+            "JOIN FETCH pm.part " +
+            "WHERE p.deletedAt IS NULL " +
+            "ORDER BY p.createdAt DESC")
+    List<Product> findAllActiveWithPart();
 }

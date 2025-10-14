@@ -1,14 +1,14 @@
 package com.yhs.inventroysystem.domain.product;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity @Getter
-@NoArgsConstructor @AllArgsConstructor
+@Table(name = "product_stock_transactions")
+@NoArgsConstructor
 public class ProductStockTransaction {
 
     @Id
@@ -27,7 +27,7 @@ public class ProductStockTransaction {
     private int beforeStock;
 
     @Column(nullable = false)
-    private int delta;
+    private int changeQuantity;
 
     @Column(nullable = false)
     private int afterStock;
@@ -35,19 +35,29 @@ public class ProductStockTransaction {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // 팩토리 메서드
-    public static ProductStockTransaction create(Product product, ProductTransactionType type, int beforeStock, int delta, int afterStock) {
-        validateProduct(product);
-        validateType(type);
-        validateStockValues(beforeStock, delta, afterStock);
 
-        return new ProductStockTransaction(null, product, type, beforeStock, delta, afterStock, LocalDateTime.now());
+    // 팩토리 메서드
+    public static ProductStockTransaction create(Product product, ProductTransactionType type, int beforeStock, int changeQuantity, int afterStock) {
+        validatePart(product);
+        validateType(type);
+        validateStockValues(beforeStock, changeQuantity, afterStock);
+
+        return new ProductStockTransaction(product, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
+    }
+
+    public ProductStockTransaction(Product product, ProductTransactionType type, int beforeStock, int changeQuantity, int afterStock, LocalDateTime createdAt) {
+        this.product = product;
+        this.type = type;
+        this.beforeStock = beforeStock;
+        this.changeQuantity = changeQuantity;
+        this.afterStock = afterStock;
+        this.createdAt = createdAt;
     }
 
     // 검증 메서드
-    private static void validateProduct(Product product) {
+    private static void validatePart(Product product) {
         if (product == null) {
-            throw new IllegalArgumentException("제품은 필수입니다");
+            throw new IllegalArgumentException("부품은 필수입니다");
         }
     }
 
@@ -57,15 +67,17 @@ public class ProductStockTransaction {
         }
     }
 
-    private static void validateStockValues(int beforeStock, int delta, int afterStock) {
+    private static void validateStockValues(int beforeStock, int changeQuantity, int afterStock) {
         if (beforeStock < 0) {
             throw new IllegalArgumentException("이전 재고는 0 이상이어야 합니다");
         }
         if (afterStock < 0) {
             throw new IllegalArgumentException("이후 재고는 0 이상이어야 합니다");
         }
-        if (beforeStock + delta != afterStock) {
+        if (beforeStock + changeQuantity != afterStock) {
             throw new IllegalArgumentException("재고 계산이 올바르지 않습니다");
         }
     }
 }
+
+

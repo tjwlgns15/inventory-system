@@ -16,7 +16,6 @@ public class PartCommands {
     ) {}
 
     public record PartUpdateCommand(
-            String partCode,
             String name,
             String specification,
             String unit

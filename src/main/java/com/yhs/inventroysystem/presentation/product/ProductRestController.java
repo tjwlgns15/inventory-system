@@ -1,8 +1,9 @@
 package com.yhs.inventroysystem.presentation.product;
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
-import com.yhs.inventroysystem.domain.product.Product;
 import com.yhs.inventroysystem.application.product.ProductService;
+import com.yhs.inventroysystem.domain.product.Product;
+import com.yhs.inventroysystem.domain.product.ProductStockTransaction;
 import com.yhs.inventroysystem.presentation.product.ProductDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.yhs.inventroysystem.application.product.ProductCommands.*;
+import static com.yhs.inventroysystem.presentation.product.ProductTransactionDtos.ProductTransactionResponse;
 
 @RestController
 @RequestMapping("/api/products")
@@ -25,8 +27,6 @@ public class ProductRestController {
 
     /**
      * 제품 등록
-     * @param request
-     * @return
      */
     @PostMapping
     public ResponseEntity<ProductResponse> registerProduct(@Valid @RequestBody ProductRegisterRequest request) {
@@ -48,7 +48,6 @@ public class ProductRestController {
 
     /**
      * 모든 제품 조회
-     * @return
      */
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
@@ -56,14 +55,20 @@ public class ProductRestController {
         List<ProductResponse> responses = products.stream()
                 .map(ProductResponse::from)
                 .toList();
+        return ResponseEntity.ok(responses);
+    }
 
+    @GetMapping("/with-parts")
+    public ResponseEntity<List<ProductDetailResponse>> getAllProductsWithParts() {
+        List<Product> products = productService.findAllProductWithParts();
+        List<ProductDetailResponse> responses = products.stream()
+                .map(ProductDetailResponse::from)
+                .toList();
         return ResponseEntity.ok(responses);
     }
 
     /**
      * 제품 조회
-     * @param productId
-     * @return
      */
     @GetMapping("/{productId}")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable Long productId) {
@@ -73,8 +78,6 @@ public class ProductRestController {
 
     /**
      * 제품 조회 - 부품 정보까지 포함
-     * @param productId
-     * @return
      */
     @GetMapping("/{productId}/with-parts")
     public ResponseEntity<ProductDetailResponse> getProductWithParts(@PathVariable Long productId) {
@@ -84,8 +87,6 @@ public class ProductRestController {
 
     /**
      * 제품 생산
-     * @param request
-     * @return
      */
     @PostMapping("/produce")
     public ResponseEntity<ProductResponse> produceProduct(
@@ -110,7 +111,6 @@ public class ProductRestController {
             @Valid @RequestBody ProductUpdateRequest request) {
 
         ProductUpdateCommand command = new ProductUpdateCommand(
-                productId,
                 request.name(),
                 request.defaultUnitPrice(),
                 request.description(),
@@ -119,7 +119,39 @@ public class ProductRestController {
                         .collect(Collectors.toList())
         );
 
-        Product product = productService.updateProduct(command);
+        Product product = productService.updateProduct(productId, command);
         return ResponseEntity.ok(ProductResponse.from(product));
+    }
+
+    /**
+     * 제품 삭제(소프트)
+     */
+    @DeleteMapping("/{productId}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long productId) {
+        productService.deleteProduct(productId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ========= 트랜잭션 조회 ========= //
+    @GetMapping("/{partId}/transactions")
+    public ResponseEntity<List<ProductTransactionResponse>> getPartStockTransactions(@PathVariable Long partId) {
+        List<ProductStockTransaction> transactions = productService.getProductStockTransactions(partId);
+
+        List<ProductTransactionResponse> responses = transactions.stream()
+                .map(ProductTransactionResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<ProductTransactionResponse>> getAllStockTransactions() {
+        List<ProductStockTransaction> transactions = productService.getAllStockTransactions();
+
+        List<ProductTransactionResponse> responses = transactions.stream()
+                .map(ProductTransactionResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(responses);
     }
 }

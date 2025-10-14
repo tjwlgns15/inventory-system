@@ -25,7 +25,7 @@ public abstract class BaseTimeEntity {
     private LocalDateTime lastModifiedAt;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
+    protected LocalDateTime deletedAt;
 
 
     public void markAsDeleted() {
