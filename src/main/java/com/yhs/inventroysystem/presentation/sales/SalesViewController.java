@@ -10,6 +10,6 @@ public class SalesViewController {
 
     @GetMapping
     public String salesPage() {
-        return "dashboard/sales";
+        return "delivery/sales";
     }
 }

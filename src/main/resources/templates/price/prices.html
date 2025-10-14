@@ -753,6 +753,11 @@
         }
 
         document.getElementById('updateModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('newPrice').focus();
+            document.getElementById('newPrice').select();  // 기존 텍스트 전체 선택
+        }, 100);
     }
 
     function closeUpdateModal() {
@@ -853,6 +858,23 @@
         if (event.target === registerModal) closeRegisterModal();
         if (event.target === updateModal) closeUpdateModal();
     }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            // 열려있는 모달 확인 및 닫기
+            const registerModal = document.getElementById('registerModal');
+            const updateModal = document.getElementById('updateModal');
+            const deleteModal = document.getElementById('deleteModal');
+
+            if (registerModal.style.display === 'block') {
+                closeRegisterModal();
+            } else if (updateModal.style.display === 'block') {
+                closeUpdateModal();
+            } else if (deleteModal.style.display === 'block') {
+                closeDeleteModal();
+            }
+        }
+    });
 </script>
 </body>
 </html>

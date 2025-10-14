@@ -1127,6 +1127,19 @@
             closeDetailModal();
         }
     }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            const createModal = document.getElementById('createModal');
+            const detailModal = document.getElementById('detailModal');
+
+            if (createModal.style.display === 'block') {
+                closeCreateModal();
+            } else if (detailModal.style.display === 'block') {
+                closeDetailModal();
+            }
+        }
+    });
 </script>
 </body>
 </html>

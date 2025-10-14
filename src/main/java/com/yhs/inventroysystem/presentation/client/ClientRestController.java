@@ -62,4 +62,6 @@ public class ClientRestController {
         Client client = clientService.updateClient(clientId, request);
         return ResponseEntity.ok(ClientResponse.from(client));
     }
+
+
 }

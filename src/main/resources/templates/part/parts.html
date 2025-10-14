@@ -751,6 +751,10 @@
     function openRegisterModal() {
         document.getElementById('registerModal').style.display = 'block';
         document.getElementById('registerForm').reset();
+
+        setTimeout(() => {
+            document.getElementById('partCode').focus();
+        }, 100);
     }
 
     function closeRegisterModal() {
@@ -854,8 +858,12 @@
         document.getElementById('updateName').value = part.name;
         document.getElementById('updateSpecification').value = part.specification || '';
         document.getElementById('updateUnit').value = part.unit;
-
         document.getElementById('updateModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('updateName').focus();
+            document.getElementById('updateName').select();  // 기존 텍스트 전체 선택
+        }, 100);
     }
 
     // 부품 수정 모달 닫기

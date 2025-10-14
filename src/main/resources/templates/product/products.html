@@ -913,6 +913,10 @@
         document.getElementById('registerForm').reset();
         document.getElementById('partMappingList').innerHTML = '';
         addPartMapping();
+
+        setTimeout(() => {
+            document.getElementById('productCode').focus();
+        }, 100);
     }
 
     function closeRegisterModal() {
@@ -1091,6 +1095,11 @@
             });
 
             document.getElementById('updateModal').style.display = 'block';
+
+            setTimeout(() => {
+                document.getElementById('updateName').focus();
+                document.getElementById('updateName').select();  // 기존 텍스트 전체 선택
+            }, 100);
         } catch (error) {
             console.error('Error:', error);
             showNotification('제품 정보를 불러오는데 실패했습니다', 'error');
@@ -1206,6 +1215,10 @@
         document.getElementById('productionProductId').value = productId;
         document.getElementById('productionForm').reset();
         document.getElementById('productionModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('productionQuantity').focus();
+        }, 100);
     }
 
     function closeProductionModal() {
