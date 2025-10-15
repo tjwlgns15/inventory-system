@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부품 재고 시각화</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(221, 221, 221, 0.3), transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(119, 119, 119, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .main-section {
+            margin-top: 7vh;
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .breadcrumb {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: #764ba2;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e6ea;
+            transform: translateY(-1px);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 450px;
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 1.25rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .period-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .period-btn {
+            padding: 8px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.813rem;
+            transition: all 0.3s;
+            color: #6b7280;
+        }
+
+        .period-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .period-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="main-section">
+        <div class="breadcrumb">
+            <a href="/parts">부품 관리</a> / 재고 시각화
+        </div>
+
+        <div class="page-header">
+            <h2 class="page-title">부품 재고 시각화</h2>
+            <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+        </div>
+
+        <div class="content-card">
+            <div class="filter-bar">
+                <span class="filter-label">부품 선택:</span>
+                <select id="partSelect" class="filter-select" onchange="loadPartData()">
+                    <option value="">부품을 선택하세요</option>
+                </select>
+
+                <div class="period-buttons">
+                    <button class="period-btn active" onclick="changePeriod('7days', this)">최근 7일</button>
+                    <button class="period-btn" onclick="changePeriod('30days', this)">최근 30일</button>
+                    <button class="period-btn" onclick="changePeriod('90days', this)">최근 90일</button>
+                    <button class="period-btn" onclick="changePeriod('all', this)">전체</button>
+                </div>
+            </div>
+
+            <div id="statsSection" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">현재 재고</div>
+                        <div class="stat-value" id="currentStock">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">최대 재고</div>
+                        <div class="stat-value" id="maxStock">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">최소 재고</div>
+                        <div class="stat-value" id="minStock">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">평균 재고</div>
+                        <div class="stat-value" id="avgStock">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">총 입고</div>
+                        <div class="stat-value" id="totalIn">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">총 출고</div>
+                        <div class="stat-value" id="totalOut">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="section-title" id="chartTitle" style="display: none;">재고 변화 추이</h3>
+            <div id="chartSection" style="display: none;">
+                <div class="chart-container">
+                    <canvas id="stockChart"></canvas>
+                </div>
+            </div>
+
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-icon">📊</div>
+                <h3 class="empty-state-title">부품을 선택해주세요</h3>
+                <p style="color: #9ca3af;">위의 드롭다운에서 부품을 선택하면 재고 변화 추이를 확인할 수 있습니다</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="sidebar-container"></div>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+            const sidebar = document.getElementById("sidebar");
+            const toggleBtn = document.getElementById("menuToggle");
+            toggleBtn.addEventListener("click", () => {
+                sidebar.classList.toggle("open");
+            });
+        });
+</script>
+<script>
+    const API_BASE_URL = '/api/parts';
+    let allParts = [];
+    let allTransactions = [];
+    let stockChart = null;
+    let currentPeriod = '7days';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadParts();
+    });
+
+    async function loadParts() {
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error('부품 목록을 불러오는데 실패했습니다');
+
+            allParts = await response.json();
+            populatePartSelect();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('부품 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    function populatePartSelect() {
+        const select = document.getElementById('partSelect');
+        select.innerHTML = '<option value="">부품을 선택하세요</option>';
+
+        allParts.forEach(part => {
+            const option = document.createElement('option');
+            option.value = part.id;
+            option.textContent = `${part.partCode} - ${part.name}`;
+            select.appendChild(option);
+        });
+    }
+
+    async function loadPartData() {
+        const partId = document.getElementById('partSelect').value;
+
+        if (!partId) {
+            showEmptyState();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}/transactions`);
+            if (!response.ok) throw new Error('거래 기록을 불러오는데 실패했습니다');
+
+            allTransactions = await response.json();
+
+            if (allTransactions.length === 0) {
+                showNoDataState();
+                return;
+            }
+
+            hideEmptyState();
+            calculateStats();
+            renderChart();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('거래 기록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    function changePeriod(period, button) {
+        currentPeriod = period;
+
+        // 버튼 활성화 상태 변경
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        button.classList.add('active');
+
+        // 차트 다시 렌더링
+        if (allTransactions.length > 0) {
+            renderChart();
+        }
+    }
+
+    function filterTransactionsByPeriod(transactions) {
+        if (currentPeriod === 'all') {
+            return transactions;
+        }
+
+        const now = new Date();
+        let cutoffDate;
+
+        switch(currentPeriod) {
+            case '7days':
+                cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                break;
+            case '30days':
+                cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                break;
+            case '90days':
+                cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                break;
+            default:
+                return transactions;
+        }
+
+        return transactions.filter(t => new Date(t.createdAt) >= cutoffDate);
+    }
+
+    function calculateStats() {
+        const filteredTransactions = filterTransactionsByPeriod(allTransactions);
+
+        if (filteredTransactions.length === 0) {
+            return;
+        }
+
+        const stocks = filteredTransactions.map(t => t.afterStock);
+        // 가장 최근 트랜잭션의 재고 (첫 번째 요소)
+        const currentStock = stocks[0];
+        const maxStock = Math.max(...stocks);
+        const minStock = Math.min(...stocks);
+        const avgStock = Math.round(stocks.reduce((a, b) => a + b, 0) / stocks.length);
+
+        const totalIn = filteredTransactions
+            .filter(t => t.type === 'INBOUND')
+            .reduce((sum, t) => sum + t.changeQuantity, 0);
+
+        const totalOut = Math.abs(filteredTransactions
+            .filter(t => t.type === 'OUTBOUND')
+            .reduce((sum, t) => sum + t.changeQuantity, 0));
+
+        document.getElementById('currentStock').textContent = currentStock;
+        document.getElementById('maxStock').textContent = maxStock;
+        document.getElementById('minStock').textContent = minStock;
+        document.getElementById('avgStock').textContent = avgStock;
+        document.getElementById('totalIn').textContent = `+${totalIn}`;
+        document.getElementById('totalOut').textContent = `-${totalOut}`;
+    }
+
+    function renderChart() {
+        const filteredTransactions = filterTransactionsByPeriod(allTransactions);
+
+        if (filteredTransactions.length === 0) {
+            showNoDataState();
+            return;
+        }
+
+        const ctx = document.getElementById('stockChart').getContext('2d');
+
+        if (stockChart) {
+            stockChart.destroy();
+        }
+
+        // 시간 순서대로 정렬 (오래된 것 → 최신)
+        const sortedTransactions = [...filteredTransactions].reverse();
+
+        // 데이터 준비
+        const labels = sortedTransactions.map(t => new Date(t.createdAt));
+        const data = sortedTransactions.map(t => t.afterStock);
+
+        // 색상 배열 생성 (입고/출고에 따라)
+        const pointBackgroundColors = sortedTransactions.map(t => {
+            if (t.type === 'INBOUND') return 'rgba(16, 185, 129, 1)';
+            if (t.type === 'OUTBOUND') return 'rgba(239, 68, 68, 1)';
+            return 'rgba(59, 130, 246, 1)';
+        });
+
+        stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '재고 수량',
+                    data: data,
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: pointBackgroundColors,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        callbacks: {
+                            title: function(context) {
+                                const date = new Date(context[0].parsed.x);
+                                return formatDateTime(date);
+                            },
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                const transaction = sortedTransactions[index];
+                                return [
+                                    `재고: ${context.parsed.y}`,
+                                    `유형: ${transaction.typeDisplayName}`,
+                                    `변화: ${transaction.changeQuantity > 0 ? '+' : ''}${transaction.changeQuantity}`
+                                ];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: getTimeUnit(),
+                            displayFormats: {
+                                hour: 'MM/dd HH:mm',
+                                day: 'MM/dd',
+                                week: 'MM/dd',
+                                month: 'yyyy/MM'
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            color: '#6b7280'
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            color: '#6b7280',
+                            callback: function(value) {
+                                return Math.floor(value);
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function getTimeUnit() {
+        switch(currentPeriod) {
+            case '7days':
+                return 'day';
+            case '30days':
+                return 'day';
+            case '90days':
+                return 'week';
+            case 'all':
+                return 'month';
+            default:
+                return 'day';
+        }
+    }
+
+    function showEmptyState() {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('statsSection').style.display = 'none';
+        document.getElementById('chartTitle').style.display = 'none';
+        document.getElementById('chartSection').style.display = 'none';
+    }
+
+    function showNoDataState() {
+        document.getElementById('emptyState').innerHTML = `
+            <div class="empty-state-icon">📭</div>
+            <h3 class="empty-state-title">거래 기록이 없습니다</h3>
+            <p style="color: #9ca3af;">선택한 기간에 거래 기록이 없습니다</p>
+        `;
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('statsSection').style.display = 'none';
+        document.getElementById('chartTitle').style.display = 'none';
+        document.getElementById('chartSection').style.display = 'none';
+    }
+
+    function hideEmptyState() {
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('statsSection').style.display = 'block';
+        document.getElementById('chartTitle').style.display = 'block';
+        document.getElementById('chartSection').style.display = 'block';
+    }
+
+    function formatDateTime(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    function showNotification(message, type = 'error') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    function goBack() {
+        window.location.href = '/parts';
+    }
+</script>
+</body>
+</html>

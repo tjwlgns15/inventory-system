@@ -17,4 +17,8 @@ public class PartViewController {
     public String partTransactionPage() {
         return "part/part-transactions";
     }
+    @GetMapping("/visualization")
+    public String partVisualizationPage() {
+        return "part/part-visualization";
+    }
 }

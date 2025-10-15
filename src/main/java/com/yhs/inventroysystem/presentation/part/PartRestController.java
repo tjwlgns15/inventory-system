@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.MalformedURLException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -105,10 +107,14 @@ public class PartRestController {
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
+                // 한글 파일명을 URL 인코딩
+                String encodedFileName = URLEncoder.encode(part.getOriginalImageName(), StandardCharsets.UTF_8)
+                        .replaceAll("\\+", "%20"); // 공백을 %20으로 변환
+
                 return ResponseEntity.ok()
                         .contentType(MediaType.IMAGE_JPEG)
                         .header(HttpHeaders.CONTENT_DISPOSITION,
-                                "inline; filename=\"" + part.getOriginalImageName() + "\"")
+                                "inline; filename*=UTF-8''" + encodedFileName)
                         .body(resource);
             } else {
                 return ResponseEntity.notFound().build();
