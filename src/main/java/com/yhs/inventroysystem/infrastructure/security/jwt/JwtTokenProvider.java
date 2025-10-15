@@ -1,6 +1,7 @@
 package com.yhs.inventroysystem.infrastructure.security.jwt;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -58,7 +59,7 @@ public class JwtTokenProvider {
     }
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
