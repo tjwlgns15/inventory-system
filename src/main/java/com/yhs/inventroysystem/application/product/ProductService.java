@@ -48,18 +48,20 @@ public class ProductService {
         );
 
         // 부품 매핑 추가
-        for (PartMappingInfo mappingInfo : command.partMappings()) {
-            Part part = partRepository.findByIdAndNotDeleted(mappingInfo.partId())
-                    .orElseThrow(() -> ResourceNotFoundException.part(mappingInfo.partId()));
+        if (command.partMappings() != null && !command.partMappings().isEmpty()) {
+            for (PartMappingInfo mappingInfo : command.partMappings()) {
+                Part part = partRepository.findByIdAndNotDeleted(mappingInfo.partId())
+                        .orElseThrow(() -> ResourceNotFoundException.part(mappingInfo.partId()));
 
-            ProductPart mapping = new ProductPart(
-                    product,
-                    part,
-                    mappingInfo.requiredQuantity()
-            );
-            product.addPartMapping(mapping);
+                ProductPart mapping = new ProductPart(
+                        product,
+                        part,
+                        mappingInfo.requiredQuantity()
+                );
+
+                product.addPartMapping(mapping);
+            }
         }
-
         Product savedProduct = productRepository.save(product);
 
         productStockTransactionService.recordTransaction(savedProduct, ProductTransactionType.INITIAL, 0, command.initialStock());
@@ -90,31 +92,39 @@ public class ProductService {
         Product product = productRepository.findByIdWithPartsAndNotDeleted(command.productId())
                 .orElseThrow(() -> ResourceNotFoundException.product(command.productId()));
 
-        // 2. 필요한 부품 재고 검증
-        for (ProductPart mapping : product.getPartMappings()) {
-            Part part = mapping.getPart();
-            Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
+        // 2. 부품이 있는 경우에만 부품 재고 검증 및 차감
+        if (!product.getPartMappings().isEmpty()) {
+            // 필요한 부품 재고 검증
+            for (ProductPart mapping : product.getPartMappings()) {
+                Part part = mapping.getPart();
+                Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
 
-            if (part.getStockQuantity() < requiredQuantity) {
-                throw InsufficientStockException.insufficientStock(
-                        part.getName(),
-                        requiredQuantity,
-                        part.getStockQuantity()
+                if (part.getStockQuantity() < requiredQuantity) {
+                    throw InsufficientStockException.insufficientStock(
+                            part.getName(),
+                            requiredQuantity,
+                            part.getStockQuantity()
+                    );
+                }
+            }
+
+            // 부품 재고 차감
+            for (ProductPart mapping : product.getPartMappings()) {
+                Part part = mapping.getPart();
+                Integer beforeStock = part.getStockQuantity();
+                Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
+                part.decreaseStock(requiredQuantity);
+
+                partStockTransactionService.recordTransaction(
+                        part,
+                        TransactionType.OUTBOUND,
+                        beforeStock,
+                        -requiredQuantity
                 );
             }
         }
 
-        // 3. 부품 재고 차감
-        for (ProductPart mapping : product.getPartMappings()) {
-            Part part = mapping.getPart();
-            Integer beforeStock = part.getStockQuantity();
-            Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
-            part.decreaseStock(requiredQuantity);
-
-            partStockTransactionService.recordTransaction(part, TransactionType.OUTBOUND, beforeStock, -requiredQuantity);
-        }
-
-        // 4. 제품 재고 증가
+        // 3. 제품 재고 증가 (부품 유무와 관계없이 항상 실행)
         Integer beforeStock = product.getStockQuantity();
         product.increaseStock(command.quantity());
 
@@ -141,16 +151,18 @@ public class ProductService {
         product.clearPartMappings();
 
         // 새로운 부품 매핑 추가
-        for (PartMappingInfo mappingInfo : command.partMappings()) {
-            Part part = partRepository.findByIdAndNotDeleted(mappingInfo.partId())
-                    .orElseThrow(() -> ResourceNotFoundException.part(mappingInfo.partId()));
+        if (command.partMappings() != null && !command.partMappings().isEmpty()) {
+            for (PartMappingInfo mappingInfo : command.partMappings()) {
+                Part part = partRepository.findByIdAndNotDeleted(mappingInfo.partId())
+                        .orElseThrow(() -> ResourceNotFoundException.part(mappingInfo.partId()));
 
-            ProductPart mapping = new ProductPart(
-                    product,
-                    part,
-                    mappingInfo.requiredQuantity()
-            );
-            product.addPartMapping(mapping);
+                ProductPart mapping = new ProductPart(
+                        product,
+                        part,
+                        mappingInfo.requiredQuantity()
+                );
+                product.addPartMapping(mapping);
+            }
         }
 
         return product;

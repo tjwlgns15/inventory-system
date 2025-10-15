@@ -703,7 +703,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">구성 부품 *</label>
+                <label class="form-label">구성 부품</label>
                 <div class="part-mapping-list" id="partMappingList"></div>
                 <button type="button" class="btn-add" onclick="addPartMapping()">+ 부품 추가</button>
             </div>
@@ -768,7 +768,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">구성 부품 *</label>
+                <label class="form-label">구성 부품</label>
                 <div class="part-mapping-list" id="updatePartMappingList"></div>
                 <button type="button" class="btn-add" onclick="addUpdatePartMapping()">+ 부품 추가</button>
             </div>
@@ -912,7 +912,7 @@
         document.getElementById('registerModal').style.display = 'block';
         document.getElementById('registerForm').reset();
         document.getElementById('partMappingList').innerHTML = '';
-        addPartMapping();
+        // addPartMapping();
 
         setTimeout(() => {
             document.getElementById('productCode').focus();
@@ -941,12 +941,7 @@
     }
 
     function removePartMapping(button) {
-        const list = document.getElementById('partMappingList');
-        if (list.children.length > 1) {
-            button.parentElement.remove();
-        } else {
-            showNotification('최소 1개의 부품이 필요합니다', 'error');
-        }
+        button.parentElement.remove();
     }
 
     async function registerProduct(event) {
@@ -965,15 +960,16 @@
             }
         });
 
-        if (partMappings.length === 0) {
-            showNotification('최소 1개의 부품을 추가해주세요', 'error');
-            return;
-        }
+        // if (partMappings.length === 0) {
+        //     showNotification('최소 1개의 부품을 추가해주세요', 'error');
+        //     return;
+        // }
 
         const productData = {
             productCode: document.getElementById('productCode').value,
             name: document.getElementById('name').value,
-            defaultUnitPrice: document.getElementById('defaultUnitPrice').value ? parseFloat(document.getElementById('defaultUnitPrice').value) : null,
+            defaultUnitPrice: document.getElementById('defaultUnitPrice').value ?
+                parseFloat(document.getElementById('defaultUnitPrice').value) : null,
             description: document.getElementById('description').value,
             initialStock: parseInt(document.getElementById('initialStock').value),
             partMappings: partMappings
@@ -1008,22 +1004,15 @@
             const product = await response.json();
             const detailContent = document.getElementById('detailContent');
 
-            // 조립 가능 수량 계산 (가장 부족한 부품 기준)
-            const possibleCount = Math.min(...product.partMappings.map(pm =>
-                Math.floor(pm.partStockQuantity / pm.requiredQuantity)
-            ));
+            // 부품이 없는 경우 처리
+            const possibleCount = product.partMappings.length > 0
+                ? Math.min(...product.partMappings.map(pm =>
+                    Math.floor(pm.partStockQuantity / pm.requiredQuantity)
+                ))
+                : '-';
 
-            detailContent.innerHTML = `
-            <div class="detail-info">
-                <p><strong>제품 코드:</strong> ${escapeHtml(product.productCode)}</p>
-                <p><strong>제품명:</strong> ${escapeHtml(product.name)}</p>
-                <p><strong>기본 단가:</strong> ${product.defaultUnitPrice ? formatPrice(product.defaultUnitPrice) : '-'}</p>
-                <p><strong>설명:</strong> ${escapeHtml(product.description || '-')}</p>
-                <p><strong>현재 재고:</strong> ${product.stockQuantity}</p>
-                <p><strong>조립 가능 수량:</strong> ${possibleCount}
-                </p>
-            </div>
-
+            const partMappingSection = product.partMappings.length > 0
+                ? `
             <div>
                 <h3 class="detail-section-title">부품별 현황</h3>
                 <table class="detail-table">
@@ -1037,14 +1026,14 @@
                     </thead>
                     <tbody>
                         ${product.partMappings.map(pm => {
-                const stockClass =
-                    pm.partStockQuantity < pm.requiredQuantity
-                        ? 'stock-low'
-                        : pm.partStockQuantity < pm.requiredQuantity * 2
-                            ? 'stock-medium'
-                            : 'stock-high';
+                    const stockClass =
+                        pm.partStockQuantity < pm.requiredQuantity
+                            ? 'stock-low'
+                            : pm.partStockQuantity < pm.requiredQuantity * 2
+                                ? 'stock-medium'
+                                : 'stock-high';
 
-                return `
+                    return `
                                 <tr>
                                     <td>${escapeHtml(pm.partCode)}</td>
                                     <td>${escapeHtml(pm.partName)}</td>
@@ -1056,10 +1045,28 @@
                                     </td>
                                 </tr>
                             `;
-            }).join('')}
+                }).join('')}
                     </tbody>
                 </table>
             </div>
+            `
+                : `
+            <div style="padding: 20px; text-align: center; color: #6b7280; background: #f9fafb; border-radius: 12px;">
+                <p>구성 부품이 없는 완제품입니다.</p>
+            </div>
+            `;
+
+            detailContent.innerHTML = `
+            <div class="detail-info">
+                <p><strong>제품 코드:</strong> ${escapeHtml(product.productCode)}</p>
+                <p><strong>제품명:</strong> ${escapeHtml(product.name)}</p>
+                <p><strong>기본 단가:</strong> ${product.defaultUnitPrice ? formatPrice(product.defaultUnitPrice) : '-'}</p>
+                <p><strong>설명:</strong> ${escapeHtml(product.description || '-')}</p>
+                <p><strong>현재 재고:</strong> ${product.stockQuantity}</p>
+                <p><strong>조립 가능 수량:</strong> ${possibleCount}</p>
+            </div>
+
+            ${partMappingSection}
         `;
 
             document.getElementById('detailModal').style.display = 'block';
@@ -1069,13 +1076,13 @@
         }
     }
 
+
     function closeDetailModal() {
         document.getElementById('detailModal').style.display = 'none';
     }
 
     async function openUpdateModal(productId) {
         try {
-            // 부품 정보를 포함한 상세 정보 조회
             const response = await fetch(`${API_BASE_URL}/${productId}/with-parts`);
             if (!response.ok) throw new Error('제품 정보를 불러오는데 실패했습니다');
 
@@ -1086,19 +1093,21 @@
             document.getElementById('updateDefaultUnitPrice').value = product.defaultUnitPrice || '';
             document.getElementById('updateDescription').value = product.description || '';
 
-            // 기존 부품 매핑 표시
             const updatePartMappingList = document.getElementById('updatePartMappingList');
             updatePartMappingList.innerHTML = '';
 
-            product.partMappings.forEach(mapping => {
-                addUpdatePartMapping(mapping.partId, mapping.requiredQuantity);
-            });
+            // 기존 부품이 있는 경우에만 표시
+            if (product.partMappings && product.partMappings.length > 0) {
+                product.partMappings.forEach(mapping => {
+                    addUpdatePartMapping(mapping.partId, mapping.requiredQuantity);
+                });
+            }
 
             document.getElementById('updateModal').style.display = 'block';
 
             setTimeout(() => {
                 document.getElementById('updateName').focus();
-                document.getElementById('updateName').select();  // 기존 텍스트 전체 선택
+                document.getElementById('updateName').select();
             }, 100);
         } catch (error) {
             console.error('Error:', error);
@@ -1130,12 +1139,7 @@
     }
 
     function removeUpdatePartMapping(button) {
-        const list = document.getElementById('updatePartMappingList');
-        if (list.children.length > 1) {
-            button.parentElement.remove();
-        } else {
-            showNotification('최소 1개의 부품이 필요합니다', 'error');
-        }
+        button.parentElement.remove();
     }
 
     function checkDuplicateUpdatePart(selectElement) {
@@ -1177,10 +1181,10 @@
             }
         });
 
-        if (partMappings.length === 0) {
-            showNotification('최소 1개의 부품을 추가해주세요', 'error');
-            return;
-        }
+        // if (partMappings.length === 0) {
+        //     showNotification('최소 1개의 부품을 추가해주세요', 'error');
+        //     return;
+        // }
 
         const productData = {
             name: document.getElementById('updateName').value,

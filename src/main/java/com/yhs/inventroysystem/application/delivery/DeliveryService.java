@@ -147,7 +147,7 @@ public class DeliveryService {
                 description,
                 currentUser.getName(),
                 LocalDate.now(),
-                LocalDate.now().plusDays(14),
+                LocalDate.now(),
                 TaskStatus.TODO,
                 Priority.MEDIUM
         );

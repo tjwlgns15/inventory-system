@@ -16,7 +16,6 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-
     /**
      * 주어진 제품 코드가 이미 존재하는지 확인
      */
@@ -43,10 +42,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /**
      * ID로 제품과 부품 매핑 정보를 함께 조회
+     * LEFT JOIN FETCH를 사용하여 부품이 없는 제품도 조회 가능
      */
     @Query("SELECT p FROM Product p " +
-            "JOIN FETCH p.partMappings pm " +
-            "JOIN FETCH pm.part " +
+            "LEFT JOIN FETCH p.partMappings pm " +
+            "LEFT JOIN FETCH pm.part " +
             "WHERE p.id = :productId AND p.deletedAt IS NULL")
     Optional<Product> findByIdWithPartsAndNotDeleted(@Param("productId") Long productId);
 
@@ -58,10 +58,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /**
      * 모든 제품과 부품 매핑 정보를 함께 조회
+     * LEFT JOIN FETCH를 사용하여 부품이 없는 제품도 조회 가능
      */
     @Query("SELECT DISTINCT p FROM Product p " +
-            "JOIN FETCH p.partMappings pm " +
-            "JOIN FETCH pm.part " +
+            "LEFT JOIN FETCH p.partMappings pm " +
+            "LEFT JOIN FETCH pm.part " +
             "WHERE p.deletedAt IS NULL " +
             "ORDER BY p.createdAt DESC")
     List<Product> findAllActiveWithPart();

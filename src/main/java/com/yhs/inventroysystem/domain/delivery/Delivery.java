@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,15 +89,20 @@ public class Delivery extends BaseTimeEntity {
 
         // 환율이 설정되어 있으면 원화 환산 금액 계산
         if (this.exchangeRate != null) {
-            this.totalAmountKRW = this.totalAmount.multiply(this.exchangeRate);
+            this.totalAmountKRW = this.totalAmount
+                    .multiply(this.exchangeRate)
+                    .setScale(0, RoundingMode.HALF_UP);  // 소수점 0자리 = 정수
         }
     }
 
     public void setExchangeRate(BigDecimal exchangeRate) {
         this.exchangeRate = exchangeRate;
+
         // 환율 설정 시 원화 환산 금액 재계산
         if (this.totalAmount != null) {
-            this.totalAmountKRW = this.totalAmount.multiply(exchangeRate);
+            this.totalAmountKRW = this.totalAmount
+                    .multiply(exchangeRate)
+                    .setScale(0, RoundingMode.HALF_UP);  // 소수점 0자리 = 정수
         }
     }
 

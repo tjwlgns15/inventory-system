@@ -29,8 +29,6 @@ public class ProductDtos {
             @Positive(message = "초기 재고는 0보다 커야 합니다")
             Integer initialStock,
 
-            @NotEmpty(message = "부품 매핑 정보는 필수입니다")
-            @Valid
             List<PartMappingRequest> partMappings
     ) {}
 
@@ -124,8 +122,6 @@ public class ProductDtos {
 
             String description,
 
-            @NotEmpty(message = "부품 매핑 정보는 필수입니다")
-            @Valid
             List<PartMappingRequest> partMappings
     ) {}
 }

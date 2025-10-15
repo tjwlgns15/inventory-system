@@ -30,15 +30,24 @@ public class ProductRestController {
      */
     @PostMapping
     public ResponseEntity<ProductResponse> registerProduct(@Valid @RequestBody ProductRegisterRequest request) {
+
+        // 부품 미등록 체크
+        List<PartMappingInfo> partMappings;
+        if (request.partMappings() != null) {
+            partMappings = request.partMappings().stream()
+                    .map(pm -> new PartMappingInfo(pm.partId(), pm.requiredQuantity()))
+                    .toList();
+        } else {
+            partMappings = List.of();
+        }
+
         ProductRegisterCommand command = new ProductRegisterCommand(
                 request.productCode(),
                 request.name(),
                 request.defaultUnitPrice(),
                 request.description(),
                 request.initialStock(),
-                request.partMappings().stream()
-                        .map(pm -> new PartMappingInfo(pm.partId(), pm.requiredQuantity()))
-                        .collect(Collectors.toList())
+                partMappings
         );
 
         Product product = productService.registerProduct(command);
