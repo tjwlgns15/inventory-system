@@ -394,6 +394,90 @@
             transform: translateY(-1px);
         }
 
+        .image-preview {
+            margin-top: 12px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .image-preview img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .current-image {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .current-image img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .current-image .remove-image-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .current-image .remove-image-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .part-image-cell {
+            width: 60px;
+            height: 60px;
+        }
+
+        .part-image-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .part-image-cell img:hover {
+            transform: scale(1.05);
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .no-image-placeholder {
+            width: 60px;
+            height: 60px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+
         .notification {
             position: fixed;
             top: 24px;
@@ -504,10 +588,11 @@
                 <table id="partsTable">
                     <thead>
                         <tr>
+                            <th style="width: 6%;">이미지</th>
                             <th style="width: 12%;">부품 코드</th>
-                            <th style="width: 18%;">부품명</th>
-                            <th style="width: 20%;">규격</th>
-                            <th style="width: 10%;">재고 수량</th>
+                            <th style="width: 14%;">부품명</th>
+                            <th style="width: 16%;">규격</th>
+                            <th style="width: 12%;">재고 수량</th>
                             <th style="width: 8%;">단위</th>
                             <th style="width: 16%;">입/출고</th>
                             <th style="width: 16%;">작업</th>
@@ -566,6 +651,16 @@
                         <option value="m">m</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="partImage">부품 이미지 (선택사항)</label>
+                <input type="file"
+                       id="partImage"
+                       class="form-input"
+                       accept="image/jpeg,image/jpg,image/png,image/webp"
+                       onchange="previewImage(event, 'imagePreview')">
+                <div id="imagePreview" class="image-preview"></div>
             </div>
 
             <div class="modal-footer">
@@ -628,6 +723,17 @@
                         <option value="m">m</option>
                     </select>
                 </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">부품 이미지</label>
+                <div id="currentImage" class="current-image"></div>
+                <input type="file"
+                       id="updatePartImage"
+                       class="form-input"
+                       accept="image/jpeg,image/jpg,image/png,image/webp"
+                       onchange="previewImage(event, 'updateImagePreview')">
+                <div id="updateImagePreview" class="image-preview"></div>
             </div>
 
             <div class="modal-footer">
@@ -705,33 +811,42 @@
         emptyState.style.display = 'none';
 
         tbody.innerHTML = parts.map(part => `
-            <tr>
-                <td><strong>${escapeHtml(part.partCode)}</strong></td>
-                <td>${escapeHtml(part.name)}</td>
-                <td>${escapeHtml(part.specification || '-')}</td>
-                <td>
-                    <span class="stock-badge ${getStockClass(part.stockQuantity)}">
-                        ${part.stockQuantity}
-                    </span>
-                </td>
-                <td>${escapeHtml(part.unit)}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
-                        <button class="btn btn-danger" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
-                    </div>
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
-                        <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
-                        <button class="btn btn-danger" onclick="openDeleteModal(${part.id})">삭제</button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+        <tr>
+            <td>
+                <div class="part-image-cell">
+                    ${part.imagePath
+            ? `<img src="${API_BASE_URL}/${part.id}/image"
+                                alt="${escapeHtml(part.name)}"
+                                onclick="viewPartImage(${part.id})">`
+            : '<div class="no-image-placeholder">이미지<br>없음</div>'
+        }
+                </div>
+            </td>
+            <td><strong>${escapeHtml(part.partCode)}</strong></td>
+            <td>${escapeHtml(part.name)}</td>
+            <td>${escapeHtml(part.specification || '-')}</td>
+            <td>
+                <span class="stock-badge ${getStockClass(part.stockQuantity)}">
+                    ${part.stockQuantity}
+                </span>
+            </td>
+            <td>${escapeHtml(part.unit)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
+                    <button class="btn btn-danger" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
+                </div>
+            </td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
+                    <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
+                    <button class="btn btn-danger" onclick="openDeleteModal(${part.id})">삭제</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
     }
-
 
     function filterParts() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -759,10 +874,12 @@
 
     function closeRegisterModal() {
         document.getElementById('registerModal').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
     }
 
     async function registerPart(event) {
         event.preventDefault();
+        const formData = new FormData();
 
         const partData = {
             partCode: document.getElementById('partCode').value,
@@ -772,11 +889,21 @@
             unit: document.getElementById('unit').value
         };
 
+        // JSON을 Blob으로 변환하여 추가
+        formData.append('data', new Blob([JSON.stringify(partData)], {
+            type: 'application/json'
+        }));
+
+        // 이미지 파일 추가 (있는 경우)
+        const imageFile = document.getElementById('partImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
         try {
             const response = await fetch(API_BASE_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(partData)
+                body: formData
             });
 
             if (!response.ok) {
@@ -858,22 +985,45 @@
         document.getElementById('updateName').value = part.name;
         document.getElementById('updateSpecification').value = part.specification || '';
         document.getElementById('updateUnit').value = part.unit;
+
+        // 기존 이미지 표시
+        const currentImageDiv = document.getElementById('currentImage');
+        if (part.imagePath) {
+            currentImageDiv.innerHTML = `
+            <img src="${API_BASE_URL}/${part.id}/image" alt="${escapeHtml(part.name)}">
+            <button type="button"
+                    class="remove-image-btn"
+                    onclick="deletePartImage(${part.id})">
+                이미지 삭제
+            </button>
+        `;
+        } else {
+            currentImageDiv.innerHTML = '<p style="color: #9ca3af; font-size: 0.875rem;">등록된 이미지가 없습니다</p>';
+        }
+
+        // 미리보기 초기화
+        document.getElementById('updateImagePreview').style.display = 'none';
+        document.getElementById('updatePartImage').value = '';
+
         document.getElementById('updateModal').style.display = 'block';
 
         setTimeout(() => {
             document.getElementById('updateName').focus();
-            document.getElementById('updateName').select();  // 기존 텍스트 전체 선택
+            document.getElementById('updateName').select();
         }, 100);
     }
+
 
     // 부품 수정 모달 닫기
     function closeUpdateModal() {
         document.getElementById('updateModal').style.display = 'none';
+        document.getElementById('updateImagePreview').style.display = 'none';
     }
 
     // 부품 정보 수정
     async function updatePart(event) {
         event.preventDefault();
+        const formData = new FormData();
 
         const partId = document.getElementById('updatePartId').value;
         const updateData = {
@@ -882,11 +1032,21 @@
             unit: document.getElementById('updateUnit').value
         };
 
+        // JSON을 Blob으로 변환하여 추가
+        formData.append('data', new Blob([JSON.stringify(updateData)], {
+            type: 'application/json'
+        }));
+
+        // 이미지 파일 추가 (있는 경우)
+        const imageFile = document.getElementById('updatePartImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
         try {
             const response = await fetch(`${API_BASE_URL}/${partId}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateData)
+                body: formData
             });
 
             if (!response.ok) {
@@ -953,10 +1113,96 @@
         }
     }
 
+    // 이미지 미리보기 함수
+    function previewImage(event, previewId) {
+        const file = event.target.files[0];
+        const preview = document.getElementById(previewId);
+
+        if (file) {
+            // 파일 크기 검증 (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('이미지 크기는 5MB를 초과할 수 없습니다', 'error');
+                event.target.value = '';
+                preview.style.display = 'none';
+                return;
+            }
+
+            // 파일 타입 검증
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('JPG, PNG, WEBP 형식의 이미지만 업로드 가능합니다', 'error');
+                event.target.value = '';
+                preview.style.display = 'none';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="미리보기">`;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    // 이미지 삭제 함수
+    async function deletePartImage(partId) {
+        if (!confirm('이미지를 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}/image`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('이미지 삭제에 실패했습니다');
+            }
+
+            showNotification('이미지가 삭제되었습니다', 'success');
+
+            // 현재 이미지 표시 영역 초기화
+            document.getElementById('currentImage').innerHTML = '';
+
+            // 부품 목록 새로고침
+            await loadParts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function viewPartImage(partId) {
+        const part = allParts.find(p => p.id === partId);
+        if (!part || !part.imagePath) return;
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+            <h2 class="modal-header">${escapeHtml(part.name)}</h2>
+            <img src="${API_BASE_URL}/${partId}/image"
+                 alt="${escapeHtml(part.name)}"
+                 style="width: 100%; border-radius: 12px;">
+        </div>
+    `;
+        document.body.appendChild(modal);
+
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                modal.remove();
+            }
+        };
+    }
+
     function viewTransactions(partId) {
         window.location.href = `/parts/transactions?partId=${partId}`;
     }
-
 
     function escapeHtml(text) {
         if (!text) return '';

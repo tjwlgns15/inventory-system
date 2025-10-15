@@ -6,9 +6,11 @@ import com.yhs.inventroysystem.domain.exception.PartInUseException;
 import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
 import com.yhs.inventroysystem.domain.part.*;
 import com.yhs.inventroysystem.domain.product.ProductPartRepository;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,6 +26,8 @@ public class PartService {
 
     private final PartStockTransactionService partStockTransactionService;
 
+    private final FileStorageService fileStorageService;
+
     @Transactional
     public Part registerPart(PartRegisterCommand command) {
         validatePartCodeDuplication(command.partCode());
@@ -36,6 +40,13 @@ public class PartService {
                 command.initialStock(),
                 command.unit()
         );
+
+        // 이미지 파일이 있으면 저장
+        MultipartFile imageFile = command.imageFile();
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String storedFileName = fileStorageService.storeFile(imageFile);
+            part.updateImage(storedFileName, imageFile.getOriginalFilename());
+        }
 
         Part savedPart = partRepository.save(part);
 
@@ -60,7 +71,30 @@ public class PartService {
                 command.unit()
         );
 
+        // 새 이미지가 있으면 기존 이미지 삭제 후 저장
+        MultipartFile imageFile = command.imageFile();
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // 기존 이미지 삭제
+            if (part.getImagePath() != null) {
+                fileStorageService.deleteFile(part.getImagePath());
+            }
+
+            // 새 이미지 저장
+            String storedFileName = fileStorageService.storeFile(imageFile);
+            part.updateImage(storedFileName, imageFile.getOriginalFilename());
+        }
+
         return partRepository.save(part);
+    }
+
+    @Transactional
+    public void deletePartImage(Long partId) {
+        Part part = findPartById(partId);
+
+        if (part.getImagePath() != null) {
+            fileStorageService.deleteFile(part.getImagePath());
+            part.removeImage();
+        }
     }
 
     @Transactional
@@ -94,6 +128,11 @@ public class PartService {
             throw PartInUseException.usedInProducts(part.getPartCode(), (int) usingProductCount);
         }
 
+        // 이미지 파일 삭제
+        if (part.getImagePath() != null) {
+            fileStorageService.deleteFile(part.getImagePath());
+        }
+
         part.markAsDeleted();
     }
 
@@ -120,15 +159,6 @@ public class PartService {
         if (partRepository.existsByNameAndNotDeleted(name)) {
             throw DuplicateResourceException.partName(name);
         }
-    }
-
-    private void validatePartCodeDuplicationForUpdate(Long partId, String partCode) {
-        partRepository.findByPartCodeAndNotDeleted(partCode)
-                .ifPresent(existingPart -> {
-                    if (!existingPart.getId().equals(partId)) {
-                        throw DuplicateResourceException.partCode(partCode);
-                    }
-                });
     }
 
     private void validatePartNameDuplicationForUpdate(Long partId, String name) {

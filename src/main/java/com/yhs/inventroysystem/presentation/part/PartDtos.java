@@ -31,7 +31,9 @@ public class PartDtos {
             String name,
             String specification,
             Integer stockQuantity,
-            String unit
+            String unit,
+            String imagePath,
+            String originalImageName
     ) {
         public static PartResponse from(Part part) {
             return new PartResponse(
@@ -40,7 +42,9 @@ public class PartDtos {
                     part.getName(),
                     part.getSpecification(),
                     part.getStockQuantity(),
-                    part.getUnit()
+                    part.getUnit(),
+                    part.getImagePath(),
+                    part.getOriginalImageName()
             );
         }
     }

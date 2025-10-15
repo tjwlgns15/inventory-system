@@ -31,6 +31,10 @@ public class Part extends BaseTimeEntity {
     @Column(nullable = false)
     private String unit; // 단위 (개, kg, m 등)
 
+    private String imagePath;
+
+    private String originalImageName;
+
     public Part(String partCode, String name, String specification, Integer initialStock, String unit) {
         this.partCode = partCode;
         this.name = name;
@@ -57,6 +61,18 @@ public class Part extends BaseTimeEntity {
         this.name = name;
         this.specification = specification;
         this.unit = unit;
+    }
+
+    public void updateImage(String imagePath, String originalImageName) {
+        ensureNotDeleted();
+        this.imagePath = imagePath;
+        this.originalImageName = originalImageName;
+    }
+
+    public void removeImage() {
+        ensureNotDeleted();
+        this.imagePath = null;
+        this.originalImageName = null;
     }
 
     public void markAsDeleted() {

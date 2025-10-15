@@ -94,7 +94,9 @@ public class ProductDtos {
             String partCode,
             String partName,
             Integer requiredQuantity,
-            Integer partStockQuantity
+            Integer partStockQuantity,
+            String imagePath,
+            String originalImageName
     ) {
         public static PartMappingResponse from(ProductPart mapping) {
             return new PartMappingResponse(
@@ -102,7 +104,9 @@ public class ProductDtos {
                     mapping.getPart().getPartCode(),
                     mapping.getPart().getName(),
                     mapping.getRequiredQuantity(),
-                    mapping.getPart().getStockQuantity()
+                    mapping.getPart().getStockQuantity(),
+                    mapping.getPart().getImagePath(),
+                    mapping.getPart().getOriginalImageName()
             );
         }
     }
