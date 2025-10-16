@@ -328,7 +328,7 @@
         <!-- 주간 판매 비교 -->
         <div class="weekly-comparison">
             <div class="comparison-header">
-                <h3 class="comparison-title">주간 판매 비교</h3>
+                <h3 class="comparison-title">주간 판매 비교 (납품 완료일 기준)</h3>
                 <div class="period-info" id="periodInfo"></div>
             </div>
             <div class="table-container">
@@ -351,7 +351,7 @@
                 <canvas id="weeklyComparisonChart"></canvas>
             </div>
             <div class="chart-container">
-                <h3 class="chart-title">제품별 증감률</h3>
+                <h3 class="chart-title">제품별 증가율</h3>
                 <canvas id="weeklyChangeChart"></canvas>
             </div>
         </div>
@@ -374,7 +374,7 @@
                         <th>제품코드</th>
                         <th>제품명</th>
                         <th>누적 판매량</th>
-                        <th>누적 판매액</th>
+                        <th>누적 판매액 (원화)</th>
                     </tr>
                     </thead>
                     <tbody></tbody>
@@ -389,7 +389,7 @@
                 <canvas id="yearlyPieChart"></canvas>
             </div>
             <div class="chart-container">
-                <h3 class="chart-title">제품별 판매액</h3>
+                <h3 class="chart-title">제품별 판매액 (원화)</h3>
                 <canvas id="yearlyBarChart"></canvas>
             </div>
         </div>
@@ -490,7 +490,7 @@
             };
         });
 
-        // 각 행의 총합 계산
+        // 각 행의 이합 계산
         const lastWeekTotal = products.reduce((sum, p) => sum + p.lastWeekQty, 0);
         const thisWeekTotal = products.reduce((sum, p) => sum + p.thisWeekQty, 0);
         const increaseTotal = thisWeekTotal - lastWeekTotal;
@@ -550,7 +550,7 @@
                         data: products.map(p => p.lastWeekQty),
                         backgroundColor: 'rgba(255, 99, 132, 0.8)',
                         borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 2  // 변경: 1 → 2
+                        borderWidth: 2
                     },
                     {
                         label: '이번주',
@@ -580,7 +580,7 @@
             }
         });
 
-        // 증감률 차트
+        // 증가율 차트
         const changeCtx = document.getElementById('weeklyChangeChart').getContext('2d');
         if (weeklyChangeChart) {
             weeklyChangeChart.destroy();
@@ -596,7 +596,7 @@
             data: {
                 labels: products.map(p => p.name),
                 datasets: [{
-                    label: '증감률 (%)',
+                    label: '증가율 (%)',
                     data: changeData,
                     backgroundColor: changeData.map(val =>
                         val > 0 ? 'rgba(16, 185, 129, 0.8)' :
@@ -658,19 +658,22 @@
         const tbody = document.getElementById('yearlyTotalTable').querySelector('tbody');
         const productMap = new Map();
 
-        // 모든 거래처의 제품 판매량 집계
+        // 모든 거래처의 제품 판매량 집계 (원화 기준)
         clientSales.forEach(client => {
             client.productSales.forEach(product => {
+                // 원화 환산 금액 사용 (totalAmountKRW가 없으면 totalAmount 사용)
+                const amountKRW = product.totalAmountKRW || product.totalAmount;
+
                 if (productMap.has(product.productCode)) {
                     const existing = productMap.get(product.productCode);
                     existing.quantity += product.quantity;
-                    existing.totalAmount += product.totalAmount;
+                    existing.totalAmountKRW += amountKRW;
                 } else {
                     productMap.set(product.productCode, {
                         productCode: product.productCode,
                         productName: product.productName,
                         quantity: product.quantity,
-                        totalAmount: product.totalAmount
+                        totalAmountKRW: amountKRW
                     });
                 }
             });
@@ -688,7 +691,7 @@
         products.sort((a, b) => b.quantity - a.quantity);
 
         const totalQty = products.reduce((sum, p) => sum + p.quantity, 0);
-        const totalAmount = products.reduce((sum, p) => sum + p.totalAmount, 0);
+        const totalAmountKRW = products.reduce((sum, p) => sum + p.totalAmountKRW, 0);
 
         document.getElementById('yearlyTotalPeriod').textContent =
             `${new Date().getFullYear()}년 1월 1일 ~ 현재`;
@@ -698,13 +701,13 @@
                 <td><strong>${product.productCode}</strong></td>
                 <td>${product.productName}</td>
                 <td>${product.quantity.toLocaleString()}</td>
-                <td class="price-text">${formatPrice(product.totalAmount)}</td>
+                <td class="price-text">${formatPrice(product.totalAmountKRW)}</td>
             </tr>
         `).join('') + `
             <tr style="background: #f3f4f6; font-weight: 700;">
                 <td colspan="2">총계</td>
                 <td>${totalQty.toLocaleString()}</td>
-                <td class="price-text">${formatPrice(totalAmount)}</td>
+                <td class="price-text">${formatPrice(totalAmountKRW)}</td>
             </tr>
         `;
 
@@ -720,18 +723,17 @@
         }
 
         const colors = [
-            'rgba(255, 99, 132, 0.9)',   // 빨강
-            'rgba(54, 162, 235, 0.9)',   // 파랑
-            'rgba(255, 206, 86, 0.9)',   // 노랑
-            'rgba(75, 192, 192, 0.9)',   // 청록
-            'rgba(153, 102, 255, 0.9)',  // 보라
-            'rgba(255, 159, 64, 0.9)',   // 주황
-            'rgba(16, 185, 129, 0.9)',   // 그린
-            'rgba(236, 72, 153, 0.9)',   // 핑크
-            'rgba(59, 130, 246, 0.9)',   // 하늘색
-            'rgba(245, 158, 11, 0.9)'    // 앰버
+            'rgba(255, 99, 132, 0.9)',
+            'rgba(54, 162, 235, 0.9)',
+            'rgba(255, 206, 86, 0.9)',
+            'rgba(75, 192, 192, 0.9)',
+            'rgba(153, 102, 255, 0.9)',
+            'rgba(255, 159, 64, 0.9)',
+            'rgba(16, 185, 129, 0.9)',
+            'rgba(236, 72, 153, 0.9)',
+            'rgba(59, 130, 246, 0.9)',
+            'rgba(245, 158, 11, 0.9)'
         ];
-
 
         yearlyPieChart = new Chart(pieCtx, {
             type: 'doughnut',
@@ -766,7 +768,7 @@
             }
         });
 
-        // 막대 차트 - 제품별 판매액
+        // 막대 차트 - 제품별 판매액 (원화)
         const barCtx = document.getElementById('yearlyBarChart').getContext('2d');
         if (yearlyBarChart) {
             yearlyBarChart.destroy();
@@ -778,7 +780,7 @@
                 labels: products.map(p => p.productName),
                 datasets: [{
                     label: '판매액 (원)',
-                    data: products.map(p => p.totalAmount),
+                    data: products.map(p => p.totalAmountKRW),
                     backgroundColor: products.map((_, i) => colors[i % colors.length]),
                     borderColor: products.map((_, i) => colors[i % colors.length].replace('0.9', '1')),
                     borderWidth: 2
@@ -879,7 +881,7 @@
 
     function formatPriceByCurrency(price, currency) {
         if (!currency || currency === 'KRW') {
-            return formatPrice(price); // 기존 원화 포맷팅
+            return formatPrice(price);
         }
 
         const localeMap = {

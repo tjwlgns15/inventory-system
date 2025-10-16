@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,7 +43,7 @@ public class DeliveryService {
     private final TaskRepository taskRepository;
     private final ExchangeRateService exchangeRateService;
 
-    private final String DELIVERY_PREFIX = "SOLM-PO-";
+    private static final String DELIVERY_PREFIX = "SOLM-PO-";
 
 
     @Transactional
@@ -58,15 +59,24 @@ public class DeliveryService {
             Product product = productRepository.findById(itemInfo.productId())
                     .orElseThrow(() -> ResourceNotFoundException.product(itemInfo.productId()));
 
-            ClientProductPrice price = priceRepository.findByClientIdAndProductId(
-                            command.clientId(), itemInfo.productId())
-                    .orElseThrow(() -> ResourceNotFoundException.price(command.clientId(), itemInfo.productId()));
+            // 기준 거래 단가 조회
+            BigDecimal baseUnitPrice = getBaseUnitPrice(command.clientId(), itemInfo.productId(), product);
+
+            // 실적용 단가
+            BigDecimal actualUnitPrice;
+            if (itemInfo.actualUnitPrice() != null) {
+                actualUnitPrice = itemInfo.actualUnitPrice();
+            } else {
+                actualUnitPrice = baseUnitPrice;
+            }
 
             DeliveryItem item = new DeliveryItem(
                     delivery,
                     product,
                     itemInfo.quantity(),
-                    price.getUnitPrice()
+                    baseUnitPrice,
+                    actualUnitPrice,
+                    itemInfo.priceNote()
             );
             delivery.addItem(item);
         }
@@ -92,6 +102,27 @@ public class DeliveryService {
         Delivery delivery = findDeliveryById(deliveryId);
 
         delivery.updateMemo(memo);
+        return delivery;
+    }
+
+    @Transactional
+    public Delivery applyDiscount(Long deliveryId, DeliveryDiscountCommand command) {
+        Delivery delivery = findDeliveryById(deliveryId);
+        delivery.applyDiscount(command.discountAmount(), command.note());
+        return delivery;
+    }
+
+    @Transactional
+    public Delivery applyDiscountRate(Long deliveryId, DeliveryDiscountRateCommand command) {
+        Delivery delivery = findDeliveryById(deliveryId);
+        delivery.applyDiscountRate(command.discountRate(), command.note());
+        return delivery;
+    }
+
+    @Transactional
+    public Delivery clearDiscount(Long deliveryId) {
+        Delivery delivery = findDeliveryById(deliveryId);
+        delivery.clearDiscount();
         return delivery;
     }
 
@@ -141,13 +172,13 @@ public class DeliveryService {
         }
     }
 
+
     public Delivery findDeliveryById(Long deliveryId) {
         return deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
     }
 
     private String generateDeliveryNumber(LocalDate orderedAt) {
-        LocalDate now = LocalDate.now();
         String yearMonth = orderedAt.format(DateTimeFormatter.ofPattern("yyMM"));
 
         String prefix = DELIVERY_PREFIX + yearMonth;
@@ -158,6 +189,14 @@ public class DeliveryService {
         } else {
             return String.format("%s-%03d", prefix, lastSequence + 1);
         }
+    }
+
+    private BigDecimal getBaseUnitPrice(Long clientId, Long productId, Product product) {
+        return priceRepository.findByClientIdAndProductId(clientId, productId)
+                .map(ClientProductPrice::getUnitPrice)
+                .orElseGet(() -> product.getDefaultUnitPrice() != null
+                        ? product.getDefaultUnitPrice()
+                        : BigDecimal.ZERO);
     }
 
     private Task createTaskForDelivery(Delivery delivery, Client client, CustomUserDetails currentUser, LocalDate orderedAt, LocalDate requestedAt) {
@@ -187,12 +226,31 @@ public class DeliveryService {
     private String generateTaskDescription(Delivery delivery) {
         StringBuilder description = new StringBuilder();
         description.append("납품 정보:\n");
+
         for (DeliveryItem item : delivery.getItems()) {
-            description.append(String.format("- %s: %d개\n",
+            description.append(String.format("- %s: %d개",
                     item.getProduct().getName(),
                     item.getQuantity()));
+
+            // 할인 정보 표시
+            if (item.isDiscounted()) {
+                description.append(String.format(" (%.1f%% 할인)", item.getDiscountRate()));
+            }
+            description.append("\n");
         }
-        description.append(String.format("\n이액: %s%s",
+
+        description.append(String.format("\n소계: %s%s",
+                delivery.getClient().getCurrency().getSymbol(),
+                delivery.getSubtotalAmount()));
+
+        // 전체 할인 정보
+        if (delivery.hasDiscount()) {
+            description.append(String.format("\n할인: -%s%s",
+                    delivery.getClient().getCurrency().getSymbol(),
+                    delivery.getTotalDiscountAmount()));
+        }
+
+        description.append(String.format("\n총액: %s%s",
                 delivery.getClient().getCurrency().getSymbol(),
                 delivery.getTotalAmount()));
 

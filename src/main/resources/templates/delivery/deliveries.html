@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>납품 관리</title>
+    <title>수주/납품 관리</title>
     <style>
         @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
 
@@ -87,6 +87,27 @@
             font-weight: 600;
         }
 
+        .item-badge.discounted {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #f59e0b;
+        }
+
+        .item-badge.free {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #3b82f6;
+        }
+
+        .discount-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
         .btn {
             padding: 11px 24px;
             border: none;
@@ -133,7 +154,7 @@
         }
 
         .btn-sales {
-            background-color: #64748b; /* slate gray tone */
+            background-color: #64748b;
             color: #fff;
             border: 1px solid #64748b;
         }
@@ -143,9 +164,6 @@
             border-color: #475569;
         }
 
-        /*
-        파츠별 재고,
-         */
         .btn-secondary {
             background: #f8f9fa;
             color: #6c757d;
@@ -474,7 +492,7 @@
             border: 2px dashed #e5e7eb;
             border-radius: 12px;
             padding: 20px;
-            max-height: 320px;
+            max-height: 400px;
             overflow-y: auto;
             background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
         }
@@ -483,7 +501,7 @@
             display: flex;
             gap: 12px;
             margin-bottom: 12px;
-            align-items: center;
+            align-items: flex-start;
             background: white;
             padding: 16px;
             border-radius: 12px;
@@ -501,12 +519,37 @@
             margin-bottom: 0;
         }
 
+        .item-mapping-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-mapping-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
         .item-select {
             flex: 2;
+            min-width: 0;
         }
 
         .quantity-input {
             flex: 1;
+            min-width: 80px;
+        }
+
+        .price-input {
+            flex: 1.5;
+            min-width: 120px;
+        }
+
+        .price-note-input {
+            flex: 2;
+            min-width: 150px;
         }
 
         .price-display {
@@ -518,6 +561,20 @@
             background-clip: text;
             text-align: right;
             font-size: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .price-display-main {
+            font-size: 1.1rem;
+        }
+
+        .price-display-sub {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
         }
 
         .notification {
@@ -617,7 +674,6 @@
             background: rgba(102, 126, 234, 0.03);
         }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -642,17 +698,16 @@
 <div class="container">
     <div class="deliveries-section">
         <div class="deliveries-header">
-            <h2 class="deliveries-title">납품 관리</h2>
+            <h2 class="deliveries-title">수주/납품 관리</h2>
             <div>
                 <button class="btn btn-primary" onclick="openCreateModal()">
-                    <span>+ 납품 등록</span>
+                    <span>+ 수주 등록</span>
                 </button>
                 <button class="btn btn-sales" onclick="location.href='/sales'">
                     <span>📈 판매량</span>
                 </button>
             </div>
         </div>
-
 
         <div class="content-card">
             <div class="search-bar">
@@ -666,21 +721,21 @@
             <div class="table-container">
                 <table id="deliveriesTable">
                     <thead>
-                        <tr>
-                            <th style="width: 6%;">접수일</th>
-                            <th style="width: 10%;">영업접수번호</th>
-                            <th style="width: 10%;">거래처</th>
-                            <th style="width: 12%;">품목</th>
-                            <th style="width: 5%;">수량</th>
-                            <th style="width: 6%;">단가</th>
-                            <th style="width: 8%;">금액</th>
-                            <th style="width: 8%;">원화환산금액</th>
-                            <th style="width: 6%;">출하요청일</th>
-                            <th style="width: 6%;">실출하일</th>
-                            <th style="width: 5%;">상태</th>
-                            <th style="width: 9%;">비고</th>
-                            <th style="width: 9%;">작업</th>
-                        </tr>
+                    <tr>
+                        <th style="width: 6%;">접수일</th>
+                        <th style="width: 10%;">영업접수번호</th>
+                        <th style="width: 10%;">거래처</th>
+                        <th style="width: 12%;">품목</th>
+                        <th style="width: 5%;">수량</th>
+                        <th style="width: 6%;">단가</th>
+                        <th style="width: 7%;">금액</th>
+                        <th style="width: 7%;">원화환산금액</th>
+                        <th style="width: 6%;">출하요청일</th>
+                        <th style="width: 6%;">실출하일</th>
+                        <th style="width: 7%;">상태</th>
+                        <th style="width: 9%;">비고</th>
+                        <th style="width: 9%;">작업</th>
+                    </tr>
                     </thead>
                     <tbody id="deliveriesTableBody">
                     </tbody>
@@ -906,14 +961,15 @@
 
         tbody.innerHTML = deliveries.map(delivery => `
         <tr>
-            <td><strong>${formatDate(delivery.orderedAt)}</strong></td>
+            <td>${formatDate(delivery.orderedAt)}</td>
             <td><strong>${escapeHtml(delivery.deliveryNumber)}</strong></td>
             <td>${escapeHtml(delivery.clientName)}</td>
             <td>
                 <div class="items-list">
                     ${delivery.items.map(item => `
-                        <span class="item-badge">
+                        <span class="item-badge ${item.isFreeItem ? 'free' : ''}">
                             ${escapeHtml(item.productName)}
+                            ${item.isFreeItem ? ' (무상)' : ''}
                         </span>
                     `).join('')}
                 </div>
@@ -931,12 +987,19 @@
                 <div class="items-list">
                     ${delivery.items.map(item => `
                         <span class="item-badge">
-                            ${formatPrice(item.unitPrice, delivery.currency)}
+                            ${item.actualUnitPrice !== item.baseUnitPrice ?
+            `<s style="color: #9ca3af;">${formatPrice(item.baseUnitPrice, delivery.currency)}</s><br>` : ''}
+                            ${formatPrice(item.actualUnitPrice, delivery.currency)}
                         </span>
                     `).join('')}
                 </div>
             </td>
-            <td class="font-weight-600">${formatPrice(delivery.totalAmount, delivery.currency)}</td>
+            <td class="font-weight-600">
+                ${delivery.subtotalAmount !== delivery.totalAmount ?
+            `<s style="color: #9ca3af; font-size: 0.8rem;">${formatPrice(delivery.subtotalAmount, delivery.currency)}</s><br>` : ''}
+                ${formatPrice(delivery.totalAmount, delivery.currency)}
+                ${delivery.totalDiscountAmount ? `<span class="discount-badge">-${formatPrice(delivery.totalDiscountAmount, delivery.currency)}</span>` : ''}
+            </td>
             <td class="font-weight-600">₩${formatNumber(delivery.totalAmountKRW || 0)}</td>
             <td>${formatDate(delivery.requestedAt)}</td>
             <td>${formatDate(delivery.deliveredAt)}</td>
@@ -957,7 +1020,7 @@
             <td>
                 <div class="action-buttons">
                     ${delivery.status === 'PENDING' ? `
-                        <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">완료</button>
+                        <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">납품</button>
                         <button class="btn btn-danger" onclick="openCancelModal(${delivery.id})">취소</button>
                     ` : ''}
                 </div>
@@ -965,7 +1028,6 @@
         </tr>
     `).join('');
     }
-
 
     function formatDate(date) {
         if (!date) return '-';
@@ -1009,8 +1071,6 @@
             year: '2-digit',
             month: '2-digit',
             day: '2-digit',
-            // hour: '2-digit',
-            // minute: '2-digit'
         });
     }
 
@@ -1018,7 +1078,6 @@
         document.getElementById('createModal').style.display = 'block';
         document.getElementById('createForm').reset();
 
-        // 오늘 날짜로 기본값 설정
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('orderedAt').value = today;
         document.getElementById('requestedAt').value = today;
@@ -1037,10 +1096,14 @@
         const item = document.createElement('div');
         item.className = 'item-mapping-item';
         item.innerHTML = `
-            <select class="form-select item-select" required disabled>
-                <option value="">거래처를 먼저 선택해주세요</option>
-            </select>
-            <input type="number" class="form-input quantity-input" placeholder="수량" min="1" required disabled>
+            <div class="item-mapping-left">
+                <div class="item-mapping-row">
+                    <select class="form-select item-select" required disabled>
+                        <option value="">거래처를 먼저 선택해주세요</option>
+                    </select>
+                    <input type="number" class="form-input quantity-input" placeholder="수량" min="1" required disabled>
+                </div>
+            </div>
             <button type="button" class="btn-remove" onclick="removeItemMapping(this)">삭제</button>
         `;
 
@@ -1053,16 +1116,30 @@
         const item = document.createElement('div');
         item.className = 'item-mapping-item';
         item.innerHTML = `
-            <select class="form-select item-select product-select" required onchange="updatePriceDisplay(this)">
-                <option value="">제품 선택</option>
-                ${prices.map(price => `
-                    <option value="${price.productId}" data-price="${price.unitPrice}" data-currency="${price.currency || 'KRW'}" data-currency-symbol="${price.currencySymbol || '₩'}">
-                        ${price.productName} - ${price.currencySymbol || '₩'}${formatNumber(price.unitPrice)}
-                    </option>
-                `).join('')}
-            </select>
-            <input type="number" class="form-input quantity-input" placeholder="수량" min="1" required oninput="updatePriceDisplay(this)">
-            <span class="price-display">₩0</span>
+            <div class="item-mapping-left">
+                <div class="item-mapping-row">
+                    <select class="form-select item-select product-select" required onchange="updatePriceDisplay(this)">
+                        <option value="">제품 선택</option>
+                        ${prices.map(price => `
+                            <option value="${price.productId}"
+                                    data-base-price="${price.unitPrice}"
+                                    data-currency="${price.currency || 'KRW'}"
+                                    data-currency-symbol="${price.currencySymbol || '₩'}">
+                                ${price.productName} - ${price.currencySymbol || '₩'}${formatNumber(price.unitPrice)}
+                            </option>
+                        `).join('')}
+                    </select>
+                    <input type="number" class="form-input quantity-input" placeholder="수량" min="1" required oninput="updatePriceDisplay(this)">
+                </div>
+                <div class="item-mapping-row">
+                    <input type="number" class="form-input price-input" placeholder="실제 단가 (선택)" min="0" step="0.01" oninput="updatePriceDisplay(this)">
+                    <input type="text" class="form-input price-note-input" placeholder="가격 조정 사유 (선택)" maxlength="200">
+                </div>
+            </div>
+            <div class="price-display">
+                <span class="price-display-main">₩0</span>
+                <span class="price-display-sub"></span>
+            </div>
             <button type="button" class="btn-remove" onclick="removeItemMapping(this)">삭제</button>
         `;
 
@@ -1073,23 +1150,35 @@
         const itemDiv = element.closest('.item-mapping-item');
         const select = itemDiv.querySelector('.product-select');
         const quantityInput = itemDiv.querySelector('.quantity-input');
-        const priceDisplay = itemDiv.querySelector('.price-display');
+        const priceInput = itemDiv.querySelector('.price-input');
+        const priceDisplay = itemDiv.querySelector('.price-display-main');
+        const priceDisplaySub = itemDiv.querySelector('.price-display-sub');
 
         if (select && quantityInput && priceDisplay) {
             const selectedOption = select.options[select.selectedIndex];
-            const unitPrice = parseFloat(selectedOption.dataset.price) || 0;
+            const baseUnitPrice = parseFloat(selectedOption.dataset.basePrice) || 0;
+            const actualUnitPrice = priceInput && priceInput.value ? parseFloat(priceInput.value) : baseUnitPrice;
             const quantity = parseInt(quantityInput.value) || 0;
-            const totalPrice = unitPrice * quantity;
+            const totalPrice = actualUnitPrice * quantity;
             const currencySymbol = selectedOption.dataset.currencySymbol || '₩';
 
             priceDisplay.textContent = `${currencySymbol}${formatNumber(totalPrice)}`;
+
+            // 할인 정보 표시
+            if (priceInput && priceInput.value && actualUnitPrice !== baseUnitPrice) {
+                const discount = (baseUnitPrice - actualUnitPrice) * quantity;
+                const discountText = discount > 0 ? `할인 ${currencySymbol}${formatNumber(discount)}` : `할증 ${currencySymbol}${formatNumber(Math.abs(discount))}`;
+                priceDisplaySub.textContent = discountText;
+            } else {
+                priceDisplaySub.textContent = '';
+            }
         }
     }
 
     function removeItemMapping(button) {
         const list = document.getElementById('itemMappingList');
         if (list.children.length > 1) {
-            button.parentElement.remove();
+            button.closest('.item-mapping-item').remove();
         } else {
             showNotification('최소 1개의 항목이 필요합니다', 'error');
         }
@@ -1102,13 +1191,28 @@
         const items = [];
 
         itemMappingItems.forEach(item => {
-            const select = item.querySelector('select');
-            const input = item.querySelector('input[type="number"]');
-            if (select.value && input.value) {
-                items.push({
+            const select = item.querySelector('.product-select');
+            const quantityInput = item.querySelector('.quantity-input');
+            const priceInput = item.querySelector('.price-input');
+            const priceNoteInput = item.querySelector('.price-note-input');
+
+            if (select && select.value && quantityInput && quantityInput.value) {
+                const itemData = {
                     productId: parseInt(select.value),
-                    quantity: parseInt(input.value)
-                });
+                    quantity: parseInt(quantityInput.value)
+                };
+
+                // 실제 단가가 입력된 경우에만 추가
+                if (priceInput && priceInput.value) {
+                    itemData.actualUnitPrice = parseFloat(priceInput.value);
+                }
+
+                // 가격 조정 사유가 입력된 경우에만 추가
+                if (priceNoteInput && priceNoteInput.value.trim()) {
+                    itemData.priceNote = priceNoteInput.value.trim();
+                }
+
+                items.push(itemData);
             }
         });
 
@@ -1185,7 +1289,12 @@
                 <p><strong>상태:</strong> <span class="status-badge ${getStatusClass(delivery.status)}">${getStatusText(delivery.status)}</span></p>
                 <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
                 ${delivery.exchangeRate ? `<p><strong>환율:</strong> ${formatNumber(delivery.exchangeRate)}</p>` : ''}
-                <p><strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
+                ${delivery.subtotalAmount !== delivery.totalAmount ?
+                `<p><strong>소계:</strong> ${formatPrice(delivery.subtotalAmount, delivery.currency)}</p>` : ''}
+                ${delivery.totalDiscountAmount ?
+                `<p><strong>전체 할인:</strong> -${formatPrice(delivery.totalDiscountAmount, delivery.currency)}
+                    ${delivery.discountNote ? ` (${escapeHtml(delivery.discountNote)})` : ''}</p>` : ''}
+                <p><strong>최종 금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
                 ${delivery.totalAmountKRW ? `<p><strong>원화 환산 금액:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
                 <p><strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}</p>
                 <p><strong>실출하일:</strong> ${formatDateTime(delivery.deliveredAt)}</p>
@@ -1198,17 +1307,23 @@
                         <tr>
                             <th>제품명</th>
                             <th>수량</th>
-                            <th>단가</th>
+                            <th>기준 단가</th>
+                            <th>실제 단가</th>
+                            <th>할인액</th>
                             <th>금액</th>
+                            <th>비고</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${delivery.items.map(item => `
                             <tr>
-                                <td>${escapeHtml(item.productName)}</td>
+                                <td>${escapeHtml(item.productName)}${item.isFreeItem ? ' <span class="discount-badge">무상</span>' : ''}</td>
                                 <td>${item.quantity}</td>
-                                <td>${formatPrice(item.unitPrice, delivery.currency)}</td>
+                                <td>${formatPrice(item.baseUnitPrice, delivery.currency)}</td>
+                                <td>${formatPrice(item.actualUnitPrice, delivery.currency)}</td>
+                                <td>${item.discountAmount && item.discountAmount !== 0 ? formatPrice(item.discountAmount, delivery.currency) : '-'}</td>
                                 <td>${formatPrice(item.totalPrice, delivery.currency)}</td>
+                                <td>${item.priceNote ? escapeHtml(item.priceNote) : '-'}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -1227,14 +1342,10 @@
         document.getElementById('detailModal').style.display = 'none';
     }
 
-    // 버튼에서 메모 모달 열기
     function openMemoModalFromButton(button) {
         const deliveryId = parseInt(button.dataset.deliveryId);
         let rawMemo = button.dataset.memo || '';
 
-        console.log('Raw memo from dataset:', rawMemo);
-
-        // JSON 문자열로 저장된 경우 파싱
         try {
             if (rawMemo.startsWith('"') && rawMemo.endsWith('"')) {
                 rawMemo = JSON.parse(rawMemo);
@@ -1243,17 +1354,13 @@
             console.log('Not a JSON string, using as is');
         }
 
-        // HTML 엔티티를 디코딩하여 원래 텍스트로 복원
         const textarea = document.createElement('textarea');
         textarea.innerHTML = rawMemo;
         const currentMemo = textarea.value;
 
-        console.log('Final memo:', currentMemo);
-
         openMemoModal(deliveryId, currentMemo);
     }
 
-    // 메모 모달 열기
     function openMemoModal(deliveryId, currentMemo) {
         memoTargetId = deliveryId;
         const memoText = document.getElementById('memoText');
@@ -1262,20 +1369,17 @@
         document.getElementById('memoModal').style.display = 'block';
     }
 
-    // 메모 모달 닫기
     function closeMemoModal() {
         document.getElementById('memoModal').style.display = 'none';
         memoTargetId = null;
     }
 
-    // 글자 수 카운트 업데이트
     function updateCharCount() {
         const memoText = document.getElementById('memoText');
         const charCount = document.getElementById('memoCharCount');
         charCount.textContent = memoText.value.length;
     }
 
-    // 메모 업데이트
     async function updateMemo(event) {
         event.preventDefault();
 
@@ -1289,7 +1393,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ memo: memo })  // 객체로 감싸서 전송
+                body: JSON.stringify({ memo: memo })
             });
 
             if (!response.ok) {
@@ -1304,12 +1408,6 @@
             console.error('Error:', error);
             showNotification(error.message, 'error');
         }
-    }
-
-    // JavaScript 이스케이프 함수
-    function escapeForJs(text) {
-        if (!text) return '';
-        return text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
     }
 
     async function completeDelivery(deliveryId) {
@@ -1335,7 +1433,6 @@
         }
     }
 
-    // 취소 모달 열기
     function openCancelModal(deliveryId) {
         const delivery = allDeliveries.find(d => d.id === deliveryId);
         if (!delivery) {
@@ -1353,13 +1450,11 @@
         document.getElementById('cancelModal').style.display = 'block';
     }
 
-    // 취소 모달 닫기
     function closeCancelModal() {
         document.getElementById('cancelModal').style.display = 'none';
         cancelTargetId = null;
     }
 
-    // 취소 확인
     async function confirmCancel() {
         if (!cancelTargetId) return;
 
@@ -1394,7 +1489,6 @@
             return '₩' + formatNumber(price);
         }
 
-        // 통화별 locale 매핑
         const localeMap = {
             'KRW': 'ko-KR',
             'USD': 'en-US',
@@ -1423,22 +1517,6 @@
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
-
-    // window.onclick = function(event) {
-    //     const createModal = document.getElementById('createModal');
-    //     const detailModal = document.getElementById('detailModal');
-    //     const cancelModal = document.getElementById('cancelModal');
-    //
-    //     if (event.target === createModal) {
-    //         closeCreateModal();
-    //     }
-    //     if (event.target === detailModal) {
-    //         closeDetailModal();
-    //     }
-    //     if (event.target === cancelModal) {
-    //         closeCancelModal();
-    //     }
-    // }
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {

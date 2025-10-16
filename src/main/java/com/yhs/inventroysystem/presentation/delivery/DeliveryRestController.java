@@ -31,7 +31,12 @@ public class DeliveryRestController {
         DeliveryCreateCommand command = new DeliveryCreateCommand(
                 request.clientId(),
                 request.items().stream()
-                        .map(item -> new DeliveryItemInfo(item.productId(), item.quantity()))
+                        .map(item -> new DeliveryItemInfo(
+                                item.productId(),
+                                item.quantity(),
+                                item.actualUnitPrice(),
+                                item.priceNote()
+                        ))
                         .collect(Collectors.toList()),
                 request.orderedAt(),
                 request.requestedAt()
@@ -45,6 +50,7 @@ public class DeliveryRestController {
     @GetMapping
     public ResponseEntity<List<DeliveryResponse>> findAllDeliveries() {
         List<Delivery> deliveries = deliveryService.findAllDelivery();
+
         List<DeliveryResponse> responses = deliveries.stream()
                 .map(DeliveryResponse::from)
                 .toList();
@@ -53,10 +59,44 @@ public class DeliveryRestController {
     }
 
     @PatchMapping("/{deliveryId}/memo")
-    public ResponseEntity<DeliveryResponse> updateDelivery(
+    public ResponseEntity<DeliveryResponse> updateMemo(
             @PathVariable Long deliveryId,
             @Valid @RequestBody DeliveryMemoUpdateRequest request) {
         Delivery delivery = deliveryService.updateMemo(deliveryId, request.memo());
+        return ResponseEntity.ok(DeliveryResponse.from(delivery));
+    }
+
+    @PostMapping("/{deliveryId}/discount")
+    public ResponseEntity<DeliveryResponse> applyDiscount(
+            @PathVariable Long deliveryId,
+            @Valid @RequestBody DeliveryDiscountRequest request) {
+
+        DeliveryDiscountCommand command = new DeliveryDiscountCommand(
+                request.discountAmount(),
+                request.note()
+        );
+
+        Delivery delivery = deliveryService.applyDiscount(deliveryId, command);
+        return ResponseEntity.ok(DeliveryResponse.from(delivery));
+    }
+
+    @PostMapping("/{deliveryId}/discount-rate")
+    public ResponseEntity<DeliveryResponse> applyDiscountRate(
+            @PathVariable Long deliveryId,
+            @Valid @RequestBody DeliveryDiscountRateRequest request) {
+
+        DeliveryDiscountRateCommand command = new DeliveryDiscountRateCommand(
+                request.discountRate(),
+                request.note()
+        );
+
+        Delivery delivery = deliveryService.applyDiscountRate(deliveryId, command);
+        return ResponseEntity.ok(DeliveryResponse.from(delivery));
+    }
+
+    @DeleteMapping("/{deliveryId}/discount")
+    public ResponseEntity<DeliveryResponse> clearDiscount(@PathVariable Long deliveryId) {
+        Delivery delivery = deliveryService.clearDiscount(deliveryId);
         return ResponseEntity.ok(DeliveryResponse.from(delivery));
     }
 

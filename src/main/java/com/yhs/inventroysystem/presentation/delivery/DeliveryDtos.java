@@ -5,9 +5,7 @@ import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
 import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
 import com.yhs.inventroysystem.domain.exchange.Currency;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,8 +25,8 @@ public class DeliveryDtos {
 
             LocalDate orderedAt,
             LocalDate requestedAt
-    ) {}
-
+    ) {
+    }
 
     public record DeliveryItemRequest(
             @NotNull(message = "제품 ID는 필수입니다")
@@ -36,15 +34,40 @@ public class DeliveryDtos {
 
             @NotNull(message = "수량은 필수입니다")
             @Positive(message = "수량은 0보다 커야 합니다")
-            Integer quantity
-    ) {}
+            Integer quantity,
 
+            @PositiveOrZero(message = "실제 단가는 0 이상이어야 합니다")
+            BigDecimal actualUnitPrice,  // null이면 기준가 사용
+
+            @Size(max = 200, message = "가격 메모는 200자 이내여야 합니다")
+            String priceNote             // 가격 조정 사유
+    ) {
+    }
 
     public record DeliveryMemoUpdateRequest(
             @NotNull(message = "메모는 필수입니다")
             String memo
+    ) {
+    }
+
+    public record DeliveryDiscountRequest(
+            @NotNull(message = "할인액은 필수입니다")
+            @PositiveOrZero(message = "할인액은 0 이상이어야 합니다")
+            BigDecimal discountAmount,
+
+            @Size(max = 200, message = "할인 사유는 200자 이내여야 합니다")
+            String note
     ) {}
 
+    public record DeliveryDiscountRateRequest(
+            @NotNull(message = "할인율은 필수입니다")
+            @DecimalMin(value = "0.0", message = "할인율은 0 이상이어야 합니다")
+            @DecimalMax(value = "100.0", message = "할인율은 100 이하여야 합니다")
+            BigDecimal discountRate,
+
+            @Size(max = 200, message = "할인 사유는 200자 이내여야 합니다")
+            String note
+    ) {}
 
     public record DeliveryResponse(
             Long id,
@@ -53,6 +76,9 @@ public class DeliveryDtos {
             String clientName,
             List<DeliveryItemResponse> items,
             DeliveryStatus status,
+            BigDecimal subtotalAmount,
+            BigDecimal totalDiscountAmount,
+            String discountNote,
             BigDecimal totalAmount,
             Currency currency,
             String currencySymbol,
@@ -76,6 +102,9 @@ public class DeliveryDtos {
                             .map(DeliveryItemResponse::from)
                             .collect(Collectors.toList()),
                     delivery.getStatus(),
+                    delivery.getSubtotalAmount(),
+                    delivery.getTotalDiscountAmount(),
+                    delivery.getDiscountNote(),
                     delivery.getTotalAmount(),
                     currency,
                     currency.getSymbol(),
@@ -91,19 +120,31 @@ public class DeliveryDtos {
     }
 
     public record DeliveryItemResponse(
+            Long itemId,
             Long productId,
             String productName,
             Integer quantity,
-            BigDecimal unitPrice,
-            BigDecimal totalPrice
+            BigDecimal baseUnitPrice,
+            BigDecimal actualUnitPrice,
+            BigDecimal discountAmount,
+            String priceNote,
+            BigDecimal totalPrice,
+            Boolean isFreeItem,
+            Boolean isDiscounted
     ) {
         public static DeliveryItemResponse from(DeliveryItem item) {
             return new DeliveryItemResponse(
+                    item.getId(),
                     item.getProduct().getId(),
                     item.getProduct().getName(),
                     item.getQuantity(),
-                    item.getUnitPrice(),
-                    item.getTotalPrice()
+                    item.getBaseUnitPrice(),
+                    item.getActualUnitPrice(),
+                    item.getDiscountAmount(),
+                    item.getPriceNote(),
+                    item.getTotalPrice(),
+                    item.getIsFreeItem(),
+                    item.isDiscounted()
             );
         }
     }

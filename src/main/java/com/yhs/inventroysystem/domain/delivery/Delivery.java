@@ -41,7 +41,16 @@ public class Delivery extends BaseTimeEntity {
     private DeliveryStatus status;
 
     @Column(precision = 15, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal subtotalAmount; // 할인 전 금액 (DeliveryItem 합계)
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal totalDiscountAmount; // 전체 할인액
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal totalAmount; // 최종 금액
+
+    @Column(length = 200)
+    private String discountNote; // 전체 할인 사유
 
     // 거래 시점의 환율
     @Column(precision = 15, scale = 6)
@@ -74,6 +83,7 @@ public class Delivery extends BaseTimeEntity {
         this.orderedAt = orderedAt;
         this.requestedAt = requestedAt;
         this.status = DeliveryStatus.PENDING;
+        this.subtotalAmount = BigDecimal.ZERO;
         this.totalAmount = BigDecimal.ZERO;
         this.totalAmountKRW = BigDecimal.ZERO;
     }
@@ -102,31 +112,82 @@ public class Delivery extends BaseTimeEntity {
         this.status = DeliveryStatus.CANCELLED;
     }
 
-    private void calculateTotalAmount() {
-        this.totalAmount = items.stream()
-                .map(DeliveryItem::getTotalPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    // 전체 할인 적용 (금액)
+    public void applyDiscount(BigDecimal discountAmount, String note) {
+        validatePendingStatus("할인 적용");
+        this.totalDiscountAmount = discountAmount;
+        this.discountNote = note;
+        calculateTotalAmount();
+    }
 
-        // 환율이 설정되어 있으면 원화 환산 금액 계산
-        if (this.exchangeRate != null) {
-            this.totalAmountKRW = this.totalAmount
-                    .multiply(this.exchangeRate)
-                    .setScale(0, RoundingMode.HALF_UP);  // 소수점 0자리 = 정수
-        }
+    // 전체 할인 적용 (비율)
+    public void applyDiscountRate(BigDecimal discountRate, String note) {
+        validatePendingStatus("할인 적용");
+        this.totalDiscountAmount = this.subtotalAmount
+                .multiply(discountRate)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        this.discountNote = note;
+        calculateTotalAmount();
+    }
+
+    // 할인 제거
+    public void clearDiscount() {
+        this.totalDiscountAmount = null;
+        this.discountNote = null;
+        calculateTotalAmount();
     }
 
     public void setExchangeRate(BigDecimal exchangeRate) {
         this.exchangeRate = exchangeRate;
-
-        // 환율 설정 시 원화 환산 금액 재계산
-        if (this.totalAmount != null) {
-            this.totalAmountKRW = this.totalAmount
-                    .multiply(exchangeRate)
-                    .setScale(0, RoundingMode.HALF_UP);  // 소수점 0자리 = 정수
-        }
+        calculateKRWAmount();
     }
 
     public void setRelatedTask(Task task) {
         this.relatedTask = task;
+    }
+
+    private void calculateTotalAmount() {
+        // 1. 각 항목의 금액 합계
+        this.subtotalAmount = items.stream()
+                .map(DeliveryItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 2. 전체 할인 적용
+        BigDecimal discount = this.totalDiscountAmount != null
+                ? this.totalDiscountAmount
+                : BigDecimal.ZERO;
+
+        this.totalAmount = this.subtotalAmount.subtract(discount); // 전체 할인액 차감
+
+        // 3. 원화 환산 금액 재계산
+        calculateKRWAmount();
+    }
+
+    private void calculateKRWAmount() {
+        if (this.exchangeRate != null && this.totalAmount != null) {
+            this.totalAmountKRW = this.totalAmount
+                    .multiply(this.exchangeRate)
+                    .setScale(0, RoundingMode.HALF_UP);
+        }
+    }
+
+    private void validatePendingStatus(String action) {
+        if (this.status != DeliveryStatus.PENDING) {
+            throw new InvalidDeliveryStateException(this.status, action);
+        }
+    }
+
+    public boolean hasDiscount() {
+        return this.totalDiscountAmount != null
+                && this.totalDiscountAmount.compareTo(BigDecimal.ZERO) > 0;
+    }
+
+    public BigDecimal getTotalDiscountRate() {
+        if (!hasDiscount() || subtotalAmount.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return totalDiscountAmount
+                .divide(subtotalAmount, 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
     }
 }

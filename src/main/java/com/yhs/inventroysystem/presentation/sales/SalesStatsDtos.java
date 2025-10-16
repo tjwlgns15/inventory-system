@@ -19,7 +19,8 @@ public class SalesStatsDtos {
             String productCode,
             String productName,
             Integer quantity,
-            BigDecimal totalAmount
+            BigDecimal totalAmount,
+            BigDecimal totalAmountKRW  // 추가: 원화 환산 금액
     ) {}
 
     public record YearlySalesByClientResponse(
