@@ -7,8 +7,11 @@ import com.yhs.inventroysystem.domain.client.Client;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.cglib.core.Local;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,15 +51,25 @@ public class Delivery extends BaseTimeEntity {
     @Column(precision = 15, scale = 2)
     private BigDecimal totalAmountKRW;
 
+    // 수주받은 날짜
+    @Column(nullable = false)
+    private LocalDate orderedAt;
+
+    // 출하 요청 날짜
+    private LocalDate requestedAt;
+
+    // 실제 출하된 날짜
     private LocalDateTime deliveredAt;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id")
     private Task relatedTask;
 
-    public Delivery(String deliveryNumber, Client client) {
+    public Delivery(String deliveryNumber, Client client, LocalDate orderedAt, LocalDate requestedAt) {
         this.deliveryNumber = deliveryNumber;
         this.client = client;
+        this.orderedAt = orderedAt;
+        this.requestedAt = requestedAt;
         this.status = DeliveryStatus.PENDING;
         this.totalAmount = BigDecimal.ZERO;
         this.totalAmountKRW = BigDecimal.ZERO;
@@ -77,7 +90,7 @@ public class Delivery extends BaseTimeEntity {
 
     public void cancel() {
         if (this.status != DeliveryStatus.PENDING) {
-            throw new InvalidDeliveryStateException(this.status, "완료");
+            throw new InvalidDeliveryStateException(this.status, "취소");
         }
         this.status = DeliveryStatus.CANCELLED;
     }

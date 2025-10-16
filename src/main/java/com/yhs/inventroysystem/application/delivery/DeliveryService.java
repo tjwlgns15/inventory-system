@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,7 +48,7 @@ public class DeliveryService {
                 .orElseThrow(() -> ResourceNotFoundException.client(command.clientId()));
 
         String deliveryNumber = generateDeliveryNumber();
-        Delivery delivery = new Delivery(deliveryNumber, client);
+        Delivery delivery = new Delivery(deliveryNumber, client, command.orderedAt(),  command.requestedAt());
 
         // 납품 항목 추가
         for (DeliveryItemInfo itemInfo : command.items()) {
@@ -73,7 +74,7 @@ public class DeliveryService {
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        Task task = createTaskForDelivery(savedDelivery, client, currentUser);
+        Task task = createTaskForDelivery(savedDelivery, client, currentUser, command.orderedAt(), command.requestedAt());
         savedDelivery.setRelatedTask(task);
 
         return savedDelivery;
@@ -138,16 +139,17 @@ public class DeliveryService {
         return "DLV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
-    private Task createTaskForDelivery(Delivery delivery, Client client, CustomUserDetails currentUser) {
+    private Task createTaskForDelivery(Delivery delivery, Client client, CustomUserDetails currentUser, LocalDate orderedAt, LocalDate requestedAt) {
         String title = generateTaskTitle(client, delivery);
         String description = generateTaskDescription(delivery);
+
 
         Task task = new Task(
                 title,
                 description,
                 currentUser.getName(),
-                LocalDate.now(),
-                LocalDate.now(),
+                orderedAt,
+                requestedAt,
                 TaskStatus.TODO,
                 Priority.MEDIUM
         );

@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +23,10 @@ public class DeliveryDtos {
 
             @NotEmpty(message = "납품 항목은 필수입니다")
             @Valid
-            List<DeliveryItemRequest> items
+            List<DeliveryItemRequest> items,
+
+            LocalDate orderedAt,
+            LocalDate requestedAt
     ) {}
 
 
@@ -49,6 +53,8 @@ public class DeliveryDtos {
             String currencyName,
             BigDecimal exchangeRate,
             BigDecimal totalAmountKRW,
+            LocalDate orderedAt,
+            LocalDate requestedAt,
             LocalDateTime deliveredAt
     ) {
         public static DeliveryResponse from(Delivery delivery) {
@@ -69,6 +75,8 @@ public class DeliveryDtos {
                     currency.getName(),
                     delivery.getExchangeRate(),
                     delivery.getTotalAmountKRW(),
+                    delivery.getOrderedAt(),
+                    delivery.getRequestedAt(),
                     delivery.getDeliveredAt()
             );
         }

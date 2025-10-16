@@ -659,7 +659,7 @@
                 <input type="text"
                        class="search-input"
                        id="searchInput"
-                       placeholder="납품번호 또는 거래처명으로 검색..."
+                       placeholder="영업접수번호 또는 거래처명으로 검색..."
                        oninput="filterDeliveries()">
             </div>
 
@@ -667,7 +667,7 @@
                 <table id="deliveriesTable">
                     <thead>
                         <tr>
-                            <th style="width: 10%;">납품번호</th>
+                            <th style="width: 10%;">영업접수번호</th>
                             <th style="width: 12%;">거래처</th>
                             <th style="width: 15%;">품목</th>
                             <th style="width: 10%;">금액</th>
@@ -702,6 +702,16 @@
                 <select id="clientId" class="form-select" required onchange="onClientChange()">
                     <option value="">거래처 선택</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="orderedAt">수주 날짜 *</label>
+                <input type="date" id="orderedAt" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="requestedAt">출하 요청 날짜 *</label>
+                <input type="date" id="requestedAt" class="form-input" required>
             </div>
 
             <div class="form-group">
@@ -933,6 +943,12 @@
     function openCreateModal() {
         document.getElementById('createModal').style.display = 'block';
         document.getElementById('createForm').reset();
+
+        // 오늘 날짜로 기본값 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('orderedAt').value = today;
+        document.getElementById('requestedAt').value = today;
+
         document.getElementById('itemMappingList').innerHTML = '';
         addItemMapping();
     }
@@ -1029,6 +1045,8 @@
 
         const deliveryData = {
             clientId: parseInt(document.getElementById('clientId').value),
+            orderedAt: document.getElementById('orderedAt').value,
+            requestedAt: document.getElementById('requestedAt').value,
             items: items
         };
 
@@ -1088,7 +1106,7 @@
 
             detailContent.innerHTML = `
             <div class="detail-info">
-                <p><strong>납품번호:</strong> ${escapeHtml(delivery.deliveryNumber)}</p>
+                <p><strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}</p>
                 <p><strong>거래처:</strong> ${escapeHtml(delivery.clientName)}</p>
                 <p><strong>상태:</strong> <span class="status-badge ${getStatusClass(delivery.status)}">${getStatusText(delivery.status)}</span></p>
                 <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
@@ -1166,7 +1184,7 @@
 
         cancelTargetId = deliveryId;
         document.getElementById('cancelDeliveryInfo').innerHTML = `
-        <strong>납품번호:</strong> ${escapeHtml(delivery.deliveryNumber)}<br>
+        <strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}<br>
         <strong>거래처:</strong> ${escapeHtml(delivery.clientName)}<br>
         <strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}<br>
         <strong>납품일시:</strong> ${formatDateTime(delivery.deliveredAt)}
@@ -1245,21 +1263,21 @@
         }, 3000);
     }
 
-    window.onclick = function(event) {
-        const createModal = document.getElementById('createModal');
-        const detailModal = document.getElementById('detailModal');
-        const cancelModal = document.getElementById('cancelModal');
-
-        if (event.target === createModal) {
-            closeCreateModal();
-        }
-        if (event.target === detailModal) {
-            closeDetailModal();
-        }
-        if (event.target === cancelModal) {
-            closeCancelModal();
-        }
-    }
+    // window.onclick = function(event) {
+    //     const createModal = document.getElementById('createModal');
+    //     const detailModal = document.getElementById('detailModal');
+    //     const cancelModal = document.getElementById('cancelModal');
+    //
+    //     if (event.target === createModal) {
+    //         closeCreateModal();
+    //     }
+    //     if (event.target === detailModal) {
+    //         closeDetailModal();
+    //     }
+    //     if (event.target === cancelModal) {
+    //         closeCancelModal();
+    //     }
+    // }
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {

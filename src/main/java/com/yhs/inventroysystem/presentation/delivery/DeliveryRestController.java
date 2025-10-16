@@ -26,11 +26,14 @@ public class DeliveryRestController {
     public ResponseEntity<DeliveryResponse> createDelivery(
             @Valid @RequestBody DeliveryCreateRequest request,
             @AuthenticationPrincipal CustomUserDetails currentUser) {
+
         DeliveryCreateCommand command = new DeliveryCreateCommand(
                 request.clientId(),
                 request.items().stream()
                         .map(item -> new DeliveryItemInfo(item.productId(), item.quantity()))
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                request.orderedAt(),
+                request.requestedAt()
         );
 
         Delivery delivery = deliveryService.createDelivery(command, currentUser);

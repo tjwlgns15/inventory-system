@@ -1226,17 +1226,17 @@
         }, 3000);
     }
 
-    window.onclick = function(event) {
-        const registerModal = document.getElementById('registerModal');
-        const stockModal = document.getElementById('stockModal');
-        const updateModal = document.getElementById('updateModal');
-        const deleteModal = document.getElementById('deleteModal');
-
-        if (event.target === registerModal) closeRegisterModal();
-        if (event.target === stockModal) closeStockModal();
-        if (event.target === updateModal) closeUpdateModal();
-        if (event.target === deleteModal) closeDeleteModal();
-    }
+    // window.onclick = function(event) {
+    //     const registerModal = document.getElementById('registerModal');
+    //     const stockModal = document.getElementById('stockModal');
+    //     const updateModal = document.getElementById('updateModal');
+    //     const deleteModal = document.getElementById('deleteModal');
+    //
+    //     if (event.target === registerModal) closeRegisterModal();
+    //     if (event.target === stockModal) closeStockModal();
+    //     if (event.target === updateModal) closeUpdateModal();
+    //     if (event.target === deleteModal) closeDeleteModal();
+    // }
 
     // ESC 키로 모달 닫기
     document.addEventListener('keydown', function(event) {

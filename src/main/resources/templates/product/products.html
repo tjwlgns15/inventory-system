@@ -1530,19 +1530,19 @@
         }, 3000);
     }
 
-    window.onclick = function(event) {
-        const registerModal = document.getElementById('registerModal');
-        const detailModal = document.getElementById('detailModal');
-        const productionModal = document.getElementById('productionModal');
-        const updateModal = document.getElementById('updateModal');
-        const deleteModal = document.getElementById('deleteModal');
-
-        if (event.target === registerModal) closeRegisterModal();
-        if (event.target === detailModal) closeDetailModal();
-        if (event.target === productionModal) closeProductionModal();
-        if (event.target === updateModal) closeUpdateModal();
-        if (event.target === deleteModal) closeDeleteModal();
-    }
+    // window.onclick = function(event) {
+    //     const registerModal = document.getElementById('registerModal');
+    //     const detailModal = document.getElementById('detailModal');
+    //     const productionModal = document.getElementById('productionModal');
+    //     const updateModal = document.getElementById('updateModal');
+    //     const deleteModal = document.getElementById('deleteModal');
+    //
+    //     if (event.target === registerModal) closeRegisterModal();
+    //     if (event.target === detailModal) closeDetailModal();
+    //     if (event.target === productionModal) closeProductionModal();
+    //     if (event.target === updateModal) closeUpdateModal();
+    //     if (event.target === deleteModal) closeDeleteModal();
+    // }
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
