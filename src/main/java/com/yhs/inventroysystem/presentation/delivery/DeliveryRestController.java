@@ -2,17 +2,20 @@ package com.yhs.inventroysystem.presentation.delivery;
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.delivery.DeliveryCommands.*;
+import com.yhs.inventroysystem.application.delivery.DeliveryCsvService;
+import com.yhs.inventroysystem.application.delivery.DeliveryExcelService;
 import com.yhs.inventroysystem.domain.delivery.Delivery;
 import com.yhs.inventroysystem.application.delivery.DeliveryService;
 import com.yhs.inventroysystem.presentation.delivery.DeliveryDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
 public class DeliveryRestController {
 
     private final DeliveryService deliveryService;
+    private final DeliveryCsvService deliveryCsvService;
+    private final DeliveryExcelService deliveryExcelService;
 
     @PostMapping
     public ResponseEntity<DeliveryResponse> createDelivery(
@@ -116,5 +121,77 @@ public class DeliveryRestController {
     public ResponseEntity<DeliveryResponse> getDelivery(@PathVariable Long deliveryId) {
         Delivery delivery = deliveryService.findDeliveryById(deliveryId);
         return ResponseEntity.ok(DeliveryResponse.from(delivery));
+    }
+
+    @GetMapping("/export/csv")
+    public ResponseEntity<byte[]> exportAllDeliveriesToCsv() {
+        byte[] csvData = deliveryCsvService.exportAllDeliveriesToCsv();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment()
+                        .filename("deliveries_" + LocalDate.now() + ".csv", StandardCharsets.UTF_8)
+                        .build()
+        );
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
+    }
+
+    @GetMapping("/{deliveryId}/export/csv")
+    public ResponseEntity<byte[]> exportDeliveryByIdToCsv(@PathVariable Long deliveryId) {
+        byte[] csvData = deliveryCsvService.exportDeliveryByIdToCsv(deliveryId);
+
+        Delivery delivery = deliveryService.findDeliveryById(deliveryId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment()
+                        .filename("delivery_" + delivery.getDeliveryNumber() + ".csv", StandardCharsets.UTF_8)
+                        .build()
+        );
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvData);
+    }
+
+    @GetMapping("/export/excel")
+    public ResponseEntity<byte[]> exportAllDeliveriesToExcel() {
+        byte[] excelData = deliveryExcelService.exportAllDeliveriesToExcel();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment()
+                        .filename("deliveries_" + LocalDate.now() + ".xlsx", StandardCharsets.UTF_8)
+                        .build()
+        );
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelData);
+    }
+
+    @GetMapping("/{deliveryId}/export/excel")
+    public ResponseEntity<byte[]> exportDeliveryByIdToExcel(@PathVariable Long deliveryId) {
+        byte[] excelData = deliveryExcelService.exportDeliveryByIdToExcel(deliveryId);
+
+        Delivery delivery = deliveryService.findDeliveryById(deliveryId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment()
+                        .filename("delivery_" + delivery.getDeliveryNumber() + ".xlsx", StandardCharsets.UTF_8)
+                        .build()
+        );
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelData);
     }
 }

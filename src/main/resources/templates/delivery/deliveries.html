@@ -77,7 +77,6 @@
             padding: 4px 10px;
             background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
             border-radius: 6px;
-            font-size: 0.75rem;
             border: 1px solid rgba(0, 0, 0, 0.05);
             white-space: nowrap;
         }
@@ -699,12 +698,18 @@
     <div class="deliveries-section">
         <div class="deliveries-header">
             <h2 class="deliveries-title">수주/납품 관리</h2>
-            <div>
+            <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" onclick="openCreateModal()">
                     <span>+ 수주 등록</span>
                 </button>
                 <button class="btn btn-sales" onclick="location.href='/sales'">
                     <span>📈 판매량</span>
+                </button>
+<!--                <button class="btn btn-secondary" onclick="exportAllToCSV()">-->
+<!--                    <span>📥 CSV 다운로드</span>-->
+<!--                </button>-->
+                <button class="btn btn-secondary" onclick="exportAllToEXCEL()">
+                    <span>📥 Excel 다운로드</span>
                 </button>
             </div>
         </div>
@@ -1056,7 +1061,7 @@
 
     function getStatusText(status) {
         if (status === 'COMPLETED') return '완료';
-        if (status === 'CANCELLED') return '취소됨';
+        if (status === 'CANCELLED') return '취소';
         return '대기';
     }
 
@@ -1536,6 +1541,52 @@
             }
         }
     });
+
+    // 전체 납품 데이터 CSV 다운로드
+    async function exportAllToCSV() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/export/csv`);
+            if (!response.ok) throw new Error('CSV 다운로드에 실패했습니다');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `deliveries_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showNotification('CSV 파일이 다운로드되었습니다', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('CSV 다운로드에 실패했습니다', 'error');
+        }
+    }
+
+    // 전체 납품 데이터 Excel 다운로드
+    async function exportAllToEXCEL() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/export/excel`);
+            if (!response.ok) throw new Error('EXCEL 다운로드에 실패했습니다');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `deliveries_${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showNotification('EXCEL 파일이 다운로드되었습니다', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('EXCEL 다운로드에 실패했습니다', 'error');
+        }
+    }
 </script>
 </body>
 </html>
