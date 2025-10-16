@@ -40,6 +40,12 @@ public class DeliveryDtos {
     ) {}
 
 
+    public record DeliveryMemoUpdateRequest(
+            @NotNull(message = "메모는 필수입니다")
+            String memo
+    ) {}
+
+
     public record DeliveryResponse(
             Long id,
             String deliveryNumber,
@@ -55,7 +61,8 @@ public class DeliveryDtos {
             BigDecimal totalAmountKRW,
             LocalDate orderedAt,
             LocalDate requestedAt,
-            LocalDateTime deliveredAt
+            LocalDateTime deliveredAt,
+            String memo
     ) {
         public static DeliveryResponse from(Delivery delivery) {
             Currency currency = delivery.getClient().getCurrency();
@@ -77,11 +84,11 @@ public class DeliveryDtos {
                     delivery.getTotalAmountKRW(),
                     delivery.getOrderedAt(),
                     delivery.getRequestedAt(),
-                    delivery.getDeliveredAt()
+                    delivery.getDeliveredAt(),
+                    delivery.getMemo()
             );
         }
     }
-
 
     public record DeliveryItemResponse(
             Long productId,

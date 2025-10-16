@@ -61,6 +61,9 @@ public class Delivery extends BaseTimeEntity {
     // 실제 출하된 날짜
     private LocalDateTime deliveredAt;
 
+    @Column(length = 500)
+    private String memo;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id")
     private Task relatedTask;
@@ -78,6 +81,10 @@ public class Delivery extends BaseTimeEntity {
     public void addItem(DeliveryItem item) {
         this.items.add(item);
         calculateTotalAmount();
+    }
+
+    public void updateMemo(String memo) {
+        this.memo = memo;
     }
 
     public void complete() {

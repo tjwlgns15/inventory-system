@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,13 +42,15 @@ public class DeliveryService {
     private final TaskRepository taskRepository;
     private final ExchangeRateService exchangeRateService;
 
+    private final String DELIVERY_PREFIX = "SOLM-PO-";
+
 
     @Transactional
     public Delivery createDelivery(DeliveryCreateCommand command, CustomUserDetails currentUser) {
         Client client = clientRepository.findById(command.clientId())
                 .orElseThrow(() -> ResourceNotFoundException.client(command.clientId()));
 
-        String deliveryNumber = generateDeliveryNumber();
+        String deliveryNumber = generateDeliveryNumber(command.orderedAt());
         Delivery delivery = new Delivery(deliveryNumber, client, command.orderedAt(),  command.requestedAt());
 
         // 납품 항목 추가
@@ -85,6 +88,14 @@ public class DeliveryService {
     }
 
     @Transactional
+    public Delivery updateMemo(Long deliveryId, String memo) {
+        Delivery delivery = findDeliveryById(deliveryId);
+
+        delivery.updateMemo(memo);
+        return delivery;
+    }
+
+    @Transactional
     public void completeDelivery(Long deliveryId) {
         Delivery delivery = deliveryRepository.findByIdWithItems(deliveryId)
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
@@ -114,7 +125,7 @@ public class DeliveryService {
         Delivery delivery = deliveryRepository.findByIdWithItems(deliveryId)
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
 
-        // 납품 완료 처리
+        // 취소 처리
         delivery.cancel();
 
         if (delivery.getRelatedTask() != null) {
@@ -135,8 +146,18 @@ public class DeliveryService {
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
     }
 
-    private String generateDeliveryNumber() {
-        return "DLV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    private String generateDeliveryNumber(LocalDate orderedAt) {
+        LocalDate now = LocalDate.now();
+        String yearMonth = orderedAt.format(DateTimeFormatter.ofPattern("yyMM"));
+
+        String prefix = DELIVERY_PREFIX + yearMonth;
+        Integer lastSequence = deliveryRepository.findLastSequenceByYearMonth(yearMonth);
+
+        if (lastSequence == null) {
+            return String.format("%s-%03d", prefix, 1);
+        } else {
+            return String.format("%s-%03d", prefix, lastSequence + 1);
+        }
     }
 
     private Task createTaskForDelivery(Delivery delivery, Client client, CustomUserDetails currentUser, LocalDate orderedAt, LocalDate requestedAt) {

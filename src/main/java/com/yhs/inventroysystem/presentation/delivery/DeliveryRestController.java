@@ -7,6 +7,7 @@ import com.yhs.inventroysystem.application.delivery.DeliveryService;
 import com.yhs.inventroysystem.presentation.delivery.DeliveryDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -49,6 +50,14 @@ public class DeliveryRestController {
                 .toList();
 
         return ResponseEntity.ok(responses);
+    }
+
+    @PatchMapping("/{deliveryId}/memo")
+    public ResponseEntity<DeliveryResponse> updateDelivery(
+            @PathVariable Long deliveryId,
+            @Valid @RequestBody DeliveryMemoUpdateRequest request) {
+        Delivery delivery = deliveryService.updateMemo(deliveryId, request.memo());
+        return ResponseEntity.ok(DeliveryResponse.from(delivery));
     }
 
     @PostMapping("/{deliveryId}/complete")

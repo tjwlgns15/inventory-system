@@ -84,4 +84,13 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
             @Param("clientId") Long clientId,
             @Param("year") int year
     );
+
+    @Query("""
+        SELECT CAST(SUBSTRING(d.deliveryNumber, 15, 3) AS integer)
+        FROM Delivery d
+        WHERE d.deliveryNumber LIKE CONCAT('SOLM-PO-', :yearMonth, '%')
+        ORDER BY d.deliveryNumber DESC
+        LIMIT 1
+    """)
+    Integer findLastSequenceByYearMonth(@Param("yearMonth") String yearMonth);
 }

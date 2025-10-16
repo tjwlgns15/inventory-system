@@ -667,15 +667,19 @@
                 <table id="deliveriesTable">
                     <thead>
                         <tr>
+                            <th style="width: 6%;">접수일</th>
                             <th style="width: 10%;">영업접수번호</th>
-                            <th style="width: 12%;">거래처</th>
-                            <th style="width: 15%;">품목</th>
-                            <th style="width: 10%;">금액</th>
-                            <th style="width: 10%;">원화환산</th>
-                            <th style="width: 8%;">통화</th>
-                            <th style="width: 7%;">상태</th>
-                            <th style="width: 12%;">납품일시</th>
-                            <th style="width: 16%;">작업</th>
+                            <th style="width: 10%;">거래처</th>
+                            <th style="width: 12%;">품목</th>
+                            <th style="width: 5%;">수량</th>
+                            <th style="width: 6%;">단가</th>
+                            <th style="width: 8%;">금액</th>
+                            <th style="width: 8%;">원화환산금액</th>
+                            <th style="width: 6%;">출하요청일</th>
+                            <th style="width: 6%;">실출하일</th>
+                            <th style="width: 5%;">상태</th>
+                            <th style="width: 9%;">비고</th>
+                            <th style="width: 9%;">작업</th>
                         </tr>
                     </thead>
                     <tbody id="deliveriesTableBody">
@@ -736,6 +740,33 @@
     </div>
 </div>
 
+<div id="memoModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeMemoModal()">&times;</span>
+        <h2 class="modal-header">메모 수정</h2>
+        <form id="memoForm" onsubmit="updateMemo(event)">
+            <div class="form-group">
+                <label class="form-label" for="memoText">메모</label>
+                <textarea
+                        id="memoText"
+                        class="form-input"
+                        rows="5"
+                        maxlength="500"
+                        placeholder="메모를 입력하세요 (최대 500자)"
+                        style="resize: vertical; min-height: 100px;"
+                ></textarea>
+                <small style="color: #6b7280; font-size: 0.75rem;">
+                    <span id="memoCharCount">0</span>/500자
+                </small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeMemoModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>저장</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div id="cancelModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeCancelModal()">&times;</span>
@@ -775,11 +806,17 @@
     let allClients = [];
     let allProducts = [];
     let cancelTargetId = null;
+    let memoTargetId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
         loadClients();
         loadProducts();
         loadDeliveries();
+
+        const memoText = document.getElementById('memoText');
+        if (memoText) {
+            memoText.addEventListener('input', updateCharCount);
+        }
     });
 
     async function loadClients() {
@@ -869,29 +906,56 @@
 
         tbody.innerHTML = deliveries.map(delivery => `
         <tr>
+            <td><strong>${formatDate(delivery.orderedAt)}</strong></td>
             <td><strong>${escapeHtml(delivery.deliveryNumber)}</strong></td>
             <td>${escapeHtml(delivery.clientName)}</td>
             <td>
                 <div class="items-list">
                     ${delivery.items.map(item => `
                         <span class="item-badge">
-                            ${escapeHtml(item.productName)} <strong>x${item.quantity}</strong>
+                            ${escapeHtml(item.productName)}
+                        </span>
+                    `).join('')}
+                </div>
+            </td>
+            <td>
+                <div class="items-list">
+                    ${delivery.items.map(item => `
+                        <span class="item-badge">
+                            <strong>${item.quantity}</strong>
+                        </span>
+                    `).join('')}
+                </div>
+            </td>
+            <td>
+                <div class="items-list">
+                    ${delivery.items.map(item => `
+                        <span class="item-badge">
+                            ${formatPrice(item.unitPrice, delivery.currency)}
                         </span>
                     `).join('')}
                 </div>
             </td>
             <td class="font-weight-600">${formatPrice(delivery.totalAmount, delivery.currency)}</td>
             <td class="font-weight-600">₩${formatNumber(delivery.totalAmountKRW || 0)}</td>
-            <td><strong>${delivery.currencySymbol || ''} ${delivery.currency || '-'}</strong></td>
+            <td>${formatDate(delivery.requestedAt)}</td>
+            <td>${formatDate(delivery.deliveredAt)}</td>
             <td>
                 <span class="status-badge ${getStatusClass(delivery.status)}">
                     ${getStatusText(delivery.status)}
                 </span>
             </td>
-            <td>${formatDateTime(delivery.deliveredAt)}</td>
             <td>
                 <div class="action-buttons">
                     <button class="btn btn-info" onclick="viewDeliveryDetail(${delivery.id})">상세</button>
+                    <button class="btn btn-info"
+                            data-delivery-id="${delivery.id}"
+                            data-memo="${escapeHtml(delivery.memo || '')}"
+                            onclick="openMemoModalFromButton(this)">메모</button>
+                </div>
+            </td>
+            <td>
+                <div class="action-buttons">
                     ${delivery.status === 'PENDING' ? `
                         <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">완료</button>
                         <button class="btn btn-danger" onclick="openCancelModal(${delivery.id})">취소</button>
@@ -902,6 +966,16 @@
     `).join('');
     }
 
+
+    function formatDate(date) {
+        if (!date) return '-';
+        const d = new Date(date);
+        return d.toLocaleDateString('ko-KR', {
+            year: '2-digit',
+            month: '2-digit',
+            day: '2-digit'
+        });
+    }
 
     function filterDeliveries() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -932,11 +1006,11 @@
         if (!dateTime) return '-';
         const date = new Date(dateTime);
         return date.toLocaleString('ko-KR', {
-            year: 'numeric',
+            year: '2-digit',
             month: '2-digit',
             day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
+            // hour: '2-digit',
+            // minute: '2-digit'
         });
     }
 
@@ -1110,10 +1184,12 @@
                 <p><strong>거래처:</strong> ${escapeHtml(delivery.clientName)}</p>
                 <p><strong>상태:</strong> <span class="status-badge ${getStatusClass(delivery.status)}">${getStatusText(delivery.status)}</span></p>
                 <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
-                <p><strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
                 ${delivery.exchangeRate ? `<p><strong>환율:</strong> ${formatNumber(delivery.exchangeRate)}</p>` : ''}
-                ${delivery.totalAmountKRW ? `<p><strong>원화 환산:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
-                <p><strong>납품일시:</strong> ${formatDateTime(delivery.deliveredAt)}</p>
+                <p><strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
+                ${delivery.totalAmountKRW ? `<p><strong>원화 환산 금액:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
+                <p><strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}</p>
+                <p><strong>실출하일:</strong> ${formatDateTime(delivery.deliveredAt)}</p>
+                ${delivery.memo ? `<p><strong>메모:</strong> ${escapeHtml(delivery.memo)}</p>` : ''}
             </div>
             <div>
                 <h3 class="detail-section-title">납품 항목</h3>
@@ -1149,6 +1225,91 @@
 
     function closeDetailModal() {
         document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // 버튼에서 메모 모달 열기
+    function openMemoModalFromButton(button) {
+        const deliveryId = parseInt(button.dataset.deliveryId);
+        let rawMemo = button.dataset.memo || '';
+
+        console.log('Raw memo from dataset:', rawMemo);
+
+        // JSON 문자열로 저장된 경우 파싱
+        try {
+            if (rawMemo.startsWith('"') && rawMemo.endsWith('"')) {
+                rawMemo = JSON.parse(rawMemo);
+            }
+        } catch (e) {
+            console.log('Not a JSON string, using as is');
+        }
+
+        // HTML 엔티티를 디코딩하여 원래 텍스트로 복원
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = rawMemo;
+        const currentMemo = textarea.value;
+
+        console.log('Final memo:', currentMemo);
+
+        openMemoModal(deliveryId, currentMemo);
+    }
+
+    // 메모 모달 열기
+    function openMemoModal(deliveryId, currentMemo) {
+        memoTargetId = deliveryId;
+        const memoText = document.getElementById('memoText');
+        memoText.value = currentMemo || '';
+        updateCharCount();
+        document.getElementById('memoModal').style.display = 'block';
+    }
+
+    // 메모 모달 닫기
+    function closeMemoModal() {
+        document.getElementById('memoModal').style.display = 'none';
+        memoTargetId = null;
+    }
+
+    // 글자 수 카운트 업데이트
+    function updateCharCount() {
+        const memoText = document.getElementById('memoText');
+        const charCount = document.getElementById('memoCharCount');
+        charCount.textContent = memoText.value.length;
+    }
+
+    // 메모 업데이트
+    async function updateMemo(event) {
+        event.preventDefault();
+
+        if (!memoTargetId) return;
+
+        const memo = document.getElementById('memoText').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${memoTargetId}/memo`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ memo: memo })  // 객체로 감싸서 전송
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '메모 업데이트에 실패했습니다');
+            }
+
+            showNotification('메모가 저장되었습니다', 'success');
+            closeMemoModal();
+            await loadDeliveries();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    // JavaScript 이스케이프 함수
+    function escapeForJs(text) {
+        if (!text) return '';
+        return text.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
     }
 
     async function completeDelivery(deliveryId) {
@@ -1284,6 +1445,7 @@
             const createModal = document.getElementById('createModal');
             const detailModal = document.getElementById('detailModal');
             const cancelModal = document.getElementById('cancelModal');
+            const memoModal = document.getElementById('memoModal');
 
             if (createModal.style.display === 'block') {
                 closeCreateModal();
@@ -1291,6 +1453,8 @@
                 closeDetailModal();
             } else if (cancelModal.style.display === 'block') {
                 closeCancelModal();
+            } else if (memoModal.style.display === 'block') {
+                closeMemoModal();
             }
         }
     });
