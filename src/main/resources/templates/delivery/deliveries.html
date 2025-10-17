@@ -216,26 +216,6 @@
             box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
         }
 
-        .btn-add {
-            background: rgba(255, 255, 255, 0.95);
-            color: #667eea;
-            border: 2px dashed #667eea;
-            padding: 12px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.875rem;
-            margin-top: 12px;
-            width: 100%;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .btn-add:hover {
-            background: #f8f9ff;
-            border-color: #764ba2;
-            transform: translateY(-1px);
-        }
-
         .btn-danger {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
@@ -402,15 +382,23 @@
 
         .modal-content {
             background: white;
-            margin: 5% auto;
+            margin: 2.5% auto;
             padding: 36px;
             border-radius: 24px;
             width: 90%;
-            max-width: 650px;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow: hidden;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #createForm {
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0; /* overflow가 작동하도록 */
         }
 
         @keyframes modalSlideIn {
@@ -491,9 +479,10 @@
             border: 2px dashed #e5e7eb;
             border-radius: 12px;
             padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
             background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            flex: 1; /* 부모의 남은 공간 차지 */
+            overflow-y: auto; /* 스크롤 활성화 */
+            min-height: 0; /* 중요: flex 컨테이너에서 overflow 작동 */
         }
 
         .item-mapping-item {
@@ -610,8 +599,41 @@
             }
         }
 
+        .detail-form-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            max-height: calc(85vh - 200px);
+        }
+
+        /* 좌측 컬럼 - 기본 정보 */
+        .detail-left-column {
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* 우측 컬럼 - 납품 항목 테이블 */
+        .detail-right-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* 납품 항목 테이블 래퍼 - 스크롤 적용 */
+        .detail-table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            min-height: 0;
+        }
+
+        /* 상세 정보 스타일 조정 */
         .detail-info {
-            margin-bottom: 24px;
+            margin-bottom: 0;
             padding: 20px;
             background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
             border-radius: 12px;
@@ -619,7 +641,7 @@
         }
 
         .detail-info p {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 0.875rem;
             line-height: 1.6;
         }
@@ -632,9 +654,10 @@
             color: #374151;
             font-weight: 600;
             display: inline-block;
-            min-width: 100px;
+            min-width: 120px;
         }
 
+        /* 납품 항목 섹션 타이틀 */
         .detail-section-title {
             margin-bottom: 16px;
             font-weight: 700;
@@ -643,15 +666,21 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            flex-shrink: 0;
         }
 
+        /* 테이블 스타일 조정 */
         .detail-table {
             width: 100%;
             font-size: 0.875rem;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .detail-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .detail-table thead tr {
@@ -662,15 +691,22 @@
         .detail-table th {
             padding: 12px;
             font-weight: 600;
+            text-align: left;
+            font-size: 0.75rem;
         }
 
         .detail-table td {
             padding: 12px;
             background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .detail-table tbody tr:hover {
             background: rgba(102, 126, 234, 0.03);
+        }
+
+        .detail-table tbody tr:last-child td {
+            border-bottom: none;
         }
 
         ::-webkit-scrollbar {
@@ -690,6 +726,226 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .delivery-form-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
+            flex: 1; /* 남은 공간 차지 */
+            min-height: 0; /* overflow가 작동하도록 */
+        }
+
+        .delivery-left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .delivery-right-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* flex 아이템이 축소될 수 있도록 */
+        }
+
+        .form-group.full-height-items {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            min-height: 0; /* 중요: overflow가 작동하도록 */
+        }
+
+
+        .form-group.full-height-items .item-mapping-list {
+            flex: 1;
+            min-height: 400px;
+            max-height: none;
+        }
+
+        .delivery-modal-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb; /* 구분선 추가 */
+            flex-shrink: 0;
+        }
+
+        /* 체크박스 방식 아이템 스타일 */
+        .item-checkbox-item {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 2px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .item-checkbox-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .item-checkbox-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-checkbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .item-checkbox-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .item-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .item-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .item-checkbox-label strong {
+            color: #374151;
+            font-weight: 600;
+        }
+
+        .item-base-price-inline {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .item-total-price {
+            min-width: 140px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .item-total-price .price-display-main {
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.1rem;
+        }
+
+        .item-total-price .price-display-sub {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .item-inputs {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-inputs-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .item-inputs .item-mapping-row {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-inputs .quantity-input {
+            flex: 0 0 100px;
+        }
+
+        .item-inputs .price-input {
+            flex: 0 0 140px;
+        }
+
+        .item-inputs .price-note-input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        /* 총액 표시 영역 */
+        .total-amount-section {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+            margin-top: 0;
+            flex-shrink: 0; /* 축소 방지 */
+        }
+
+        .total-amount-label {
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: -0.3px;
+        }
+
+        .total-amount-value {
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        #productSearch:disabled {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        #productSearch:enabled {
+            background-color: white;
+        }
+
+        /* 반응형 - 작은 화면에서는 1열로 */
+        @media (max-width: 768px) {
+            .delivery-form-container {
+                grid-template-columns: 1fr;
+            }
+
+            .delivery-right-column {
+                min-height: 300px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .detail-form-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .detail-right-column {
+                min-height: 300px;
+            }
         }
     </style>
 </head>
@@ -749,53 +1005,78 @@
 
             <div class="empty-state" id="emptyState" style="display: none;">
                 <div class="empty-state-icon">📦</div>
-                <h3 class="empty-state-title">등록된 납품이 없습니다</h3>
-                <p class="empty-state-description">납품 등록 버튼을 클릭하여 새 납품을 등록해보세요</p>
+                <h3 class="empty-state-title">등록된 수주가 없습니다</h3>
+                <p class="empty-state-description">수주 등록 버튼을 클릭하여 새 수주을 등록해보세요</p>
             </div>
         </div>
     </div>
 </div>
 
+<!-- 수주 등록 모달 -->
 <div id="createModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeCreateModal()">&times;</span>
-        <h2 class="modal-header">납품 등록</h2>
+        <h2 class="modal-header">수주 등록</h2>
         <form id="createForm" onsubmit="createDelivery(event)">
-            <div class="form-group">
-                <label class="form-label" for="clientId">거래처 *</label>
-                <select id="clientId" class="form-select" required onchange="onClientChange()">
-                    <option value="">거래처 선택</option>
-                </select>
-            </div>
+            <div class="delivery-form-container">
+                <div class="delivery-left-column">
+                    <div class="form-group">
+                        <label class="form-label" for="clientId">거래처 *</label>
+                        <select id="clientId" class="form-select" required onchange="onClientChange()">
+                            <option value="">거래처 선택</option>
+                        </select>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="orderedAt">수주 날짜 *</label>
-                <input type="date" id="orderedAt" class="form-input" required>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="orderedAt">수주 날짜 *</label>
+                        <input type="date" id="orderedAt" class="form-input" required>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="requestedAt">출하 요청 날짜 *</label>
-                <input type="date" id="requestedAt" class="form-input" required>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="requestedAt">출하 요청 날짜 *</label>
+                        <input type="date" id="requestedAt" class="form-input" required>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label">납품 항목 *</label>
-                <div class="item-mapping-list" id="itemMappingList"></div>
-                <button type="button" class="btn-add" onclick="addItemMappingRow()">+ 항목 추가</button>
-            </div>
+                    <!-- 품목 검색 입력 필드 추가 -->
+                    <div class="form-group">
+                        <label class="form-label" for="productSearch">품목 검색</label>
+                        <input type="text"
+                               id="productSearch"
+                               class="form-input"
+                               placeholder="품목명으로 검색..."
+                               oninput="filterProducts()"
+                               disabled>
+                    </div>
 
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">취소</button>
-                <button type="submit" class="btn btn-primary"><span>등록</span></button>
+                    <!-- 총액 표시 영역 -->
+                    <div class="total-amount-section" id="totalAmountSection" style="display: none;">
+                        <span class="total-amount-label">총액</span>
+                        <span class="total-amount-value" id="totalAmountValue">₩0</span>
+                    </div>
+                </div>
+
+                <div class="delivery-right-column">
+                    <div class="form-group full-height-items">
+                        <label class="form-label">납품 항목 *</label>
+                        <div class="item-mapping-list" id="itemMappingList">
+                            <p style="text-align: center; color: #6b7280; padding: 20px;">거래처를 선택해주세요</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="delivery-modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">취소</button>
+                    <button type="submit" class="btn btn-primary"><span>등록</span></button>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
 <div id="detailModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content modal-content-large">
         <span class="close" onclick="closeDetailModal()">&times;</span>
-        <h2 class="modal-header">납품 상세 정보</h2>
+        <h2 class="modal-header">수주 상세 정보</h2>
         <div id="detailContent"></div>
     </div>
 </div>
@@ -830,10 +1111,9 @@
 <div id="cancelModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeCancelModal()">&times;</span>
-        <h2 class="modal-header">납품 취소</h2>
+        <h2 class="modal-header">수주 취소</h2>
         <div class="confirm-text">
-            정말로 이 납품을 취소하시겠습니까?<br>
-            취소된 납품의 제품 재고가 복구됩니다.
+            정말로 이 수주을 취소하시겠습니까?
         </div>
         <div id="cancelDeliveryInfo" style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 10px;">
         </div>
@@ -867,6 +1147,9 @@
     let allProducts = [];
     let cancelTargetId = null;
     let memoTargetId = null;
+    let originalProducts = [];
+    let checkedStates = new Map();
+
 
     document.addEventListener('DOMContentLoaded', function() {
         loadClients();
@@ -910,10 +1193,18 @@
     async function onClientChange() {
         const clientId = document.getElementById('clientId').value;
         const itemList = document.getElementById('itemMappingList');
+        const totalSection = document.getElementById('totalAmountSection');
+        const searchInput = document.getElementById('productSearch');
+
+        // 거래처 변경 시 체크 상태 초기화
+        checkedStates.clear();
 
         if (!clientId) {
-            itemList.innerHTML = '';
-            addItemMapping();
+            itemList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">거래처를 선택해주세요</p>';
+            if (totalSection) totalSection.style.display = 'none';
+            searchInput.disabled = true;
+            searchInput.value = '';
+            originalProducts = [];
             return;
         }
 
@@ -925,28 +1216,296 @@
 
             if (prices.length === 0) {
                 showNotification('해당 거래처에 등록된 제품이 없습니다', 'error');
-                itemList.innerHTML = '';
+                itemList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">등록된 제품이 없습니다</p>';
+                if (totalSection) totalSection.style.display = 'none';
+                searchInput.disabled = true;
+                searchInput.value = '';
+                originalProducts = [];
                 return;
             }
 
-            itemList.innerHTML = '';
-            addItemMappingWithPrices(prices);
+            // 원본 제품 목록 저장
+            originalProducts = prices;
+
+            // 검색 필드 활성화
+            searchInput.disabled = false;
+            searchInput.value = '';
+
+            // 통화 정보 저장
+            const currency = prices[0].currency || 'KRW';
+            const currencySymbol = prices[0].currencySymbol || '₩';
+            itemList.dataset.currency = currency;
+            itemList.dataset.currencySymbol = currencySymbol;
+
+            // 제품 목록 렌더링
+            renderProductList(prices);
+
+            // 총액 표시 영역 보이기
+            if (totalSection) {
+                totalSection.style.display = 'flex';
+                updateTotalAmount();
+            }
         } catch (error) {
             console.error('Error:', error);
             showNotification('거래처 제품 정보를 불러오는데 실패했습니다', 'error');
         }
     }
 
+
+    // 제품 목록 렌더링 함수 (분리)
+    function renderProductList(prices) {
+        const itemList = document.getElementById('itemMappingList');
+
+        if (prices.length === 0) {
+            itemList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">검색 결과가 없습니다</p>';
+            return;
+        }
+
+        itemList.innerHTML = prices.map(price => `
+            <div class="item-checkbox-item" data-product-id="${price.productId}" data-product-name="${escapeHtml(price.productName).toLowerCase()}">
+                <div class="item-checkbox-header">
+                    <div class="item-checkbox-left">
+                        <input type="checkbox"
+                               class="item-checkbox"
+                               id="product_${price.productId}"
+                               onchange="toggleItemInputs(this)">
+                        <label for="product_${price.productId}" class="item-checkbox-label">
+                            <strong>${escapeHtml(price.productName)}</strong>
+                            <span class="item-base-price-inline">${price.currencySymbol || '₩'}${formatNumber(price.unitPrice)}</span>
+                        </label>
+                    </div>
+                    <div class="item-total-price" id="totalPrice_${price.productId}">
+                        <span class="price-display-main">${price.currencySymbol || '₩'}0</span>
+                        <span class="price-display-sub"></span>
+                    </div>
+                </div>
+                <div class="item-inputs" style="display: none;">
+                    <div class="item-inputs-row">
+                        <input type="number"
+                               class="form-input quantity-input"
+                               placeholder="수량"
+                               min="1"
+                               data-product-id="${price.productId}"
+                               data-base-price="${price.unitPrice}"
+                               data-currency="${price.currency || 'KRW'}"
+                               data-currency-symbol="${price.currencySymbol || '₩'}"
+                               oninput="updatePriceDisplayCheckbox(this)"
+                               disabled>
+                        <input type="number"
+                               class="form-input price-input"
+                               placeholder="실제 단가 (선택)"
+                               min="0"
+                               step="0.01"
+                               oninput="updatePriceDisplayCheckbox(this)"
+                               disabled>
+                        <input type="text"
+                               class="form-input price-note-input"
+                               placeholder="가격 조정 사유 (선택)"
+                               maxlength="200"
+                               disabled>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 품목 검색 필터링 함수
+    function filterProducts() {
+        const searchInput = document.getElementById('productSearch');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+
+        if (!originalProducts || originalProducts.length === 0) {
+            return;
+        }
+
+        // 현재 체크 상태 저장
+        saveCheckedStates();
+
+        // 검색어가 없으면 전체 표시
+        if (!searchTerm) {
+            renderProductList(originalProducts);
+            restoreCheckedStates();
+            return;
+        }
+
+        // 검색어로 필터링
+        const filteredProducts = originalProducts.filter(product =>
+            product.productName.toLowerCase().includes(searchTerm)
+        );
+
+        renderProductList(filteredProducts);
+        restoreCheckedStates();
+    }
+
+    function saveCheckedStates() {
+        document.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+            const itemDiv = checkbox.closest('.item-checkbox-item');
+            const productId = itemDiv.dataset.productId;
+            const quantityInput = itemDiv.querySelector('.quantity-input');
+            const priceInput = itemDiv.querySelector('.price-input');
+            const priceNoteInput = itemDiv.querySelector('.price-note-input');
+
+            checkedStates.set(productId, {
+                productId: productId,
+                quantity: quantityInput ? quantityInput.value : '',
+                actualPrice: priceInput ? priceInput.value : '',
+                priceNote: priceNoteInput ? priceNoteInput.value : ''
+            });
+        });
+
+        // 체크 해제된 항목은 Map에서 제거
+        document.querySelectorAll('.item-checkbox:not(:checked)').forEach(checkbox => {
+            const itemDiv = checkbox.closest('.item-checkbox-item');
+            const productId = itemDiv.dataset.productId;
+            checkedStates.delete(productId);
+        });
+    }
+
+    // 체크 상태 복원 함수 (검색 후에도 체크 유지)
+    function restoreCheckedStates() {
+        checkedStates.forEach((item, productId) => {
+            const itemDiv = document.querySelector(`.item-checkbox-item[data-product-id="${productId}"]`);
+            if (itemDiv) {
+                const checkbox = itemDiv.querySelector('.item-checkbox');
+                if (checkbox && !checkbox.checked) {
+                    checkbox.checked = true;
+
+                    // 입력 필드 표시 및 값 복원
+                    const inputs = itemDiv.querySelector('.item-inputs');
+                    const inputFields = itemDiv.querySelectorAll('input[type="number"], input[type="text"]');
+
+                    inputs.style.display = 'flex';
+                    inputFields.forEach(input => {
+                        input.disabled = false;
+                    });
+
+                    const quantityInput = itemDiv.querySelector('.quantity-input');
+                    const priceInput = itemDiv.querySelector('.price-input');
+                    const priceNoteInput = itemDiv.querySelector('.price-note-input');
+
+                    if (quantityInput && item.quantity) quantityInput.value = item.quantity;
+                    if (priceInput && item.actualPrice) priceInput.value = item.actualPrice;
+                    if (priceNoteInput && item.priceNote) priceNoteInput.value = item.priceNote;
+
+                    // 가격 표시 업데이트
+                    if (quantityInput) {
+                        updatePriceDisplayCheckbox(quantityInput);
+                    }
+                }
+            }
+        });
+    }
+
+
+    // 총액 계산 및 표시 함수
+    function updateTotalAmount() {
+        const itemList = document.getElementById('itemMappingList');
+        const totalAmountElement = document.getElementById('totalAmountValue');
+
+        if (!totalAmountElement) return;
+
+        const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+        let total = 0;
+        let currencySymbol = itemList.dataset.currencySymbol || '₩';
+
+        checkedItems.forEach(checkbox => {
+            const itemDiv = checkbox.closest('.item-checkbox-item');
+            const quantityInput = itemDiv.querySelector('.quantity-input');
+            const priceInput = itemDiv.querySelector('.price-input');
+
+            if (quantityInput && quantityInput.value) {
+                const baseUnitPrice = parseFloat(quantityInput.dataset.basePrice) || 0;
+                const actualUnitPrice = priceInput && priceInput.value ? parseFloat(priceInput.value) : baseUnitPrice;
+                const quantity = parseInt(quantityInput.value) || 0;
+                total += actualUnitPrice * quantity;
+            }
+        });
+
+        totalAmountElement.textContent = `${currencySymbol}${formatNumber(total)}`;
+    }
+
+    // 체크박스 토글 시 입력 필드 활성화/비활성화
+    function toggleItemInputs(checkbox) {
+        const itemDiv = checkbox.closest('.item-checkbox-item');
+        const inputs = itemDiv.querySelector('.item-inputs');
+        const inputFields = itemDiv.querySelectorAll('input[type="number"], input[type="text"]');
+        const productId = itemDiv.dataset.productId;
+        const totalPriceDiv = itemDiv.querySelector(`#totalPrice_${productId}`);
+        const priceDisplay = totalPriceDiv.querySelector('.price-display-main');
+        const priceDisplaySub = totalPriceDiv.querySelector('.price-display-sub');
+
+        if (checkbox.checked) {
+            inputs.style.display = 'flex';
+            inputFields.forEach(input => {
+                input.disabled = false;
+                if (input.classList.contains('quantity-input')) {
+                    updatePriceDisplayCheckbox(input);
+                }
+            });
+
+            // 체크된 상태 저장
+            saveCheckedStates();
+        } else {
+            inputs.style.display = 'none';
+            inputFields.forEach(input => {
+                input.disabled = true;
+                input.value = '';
+            });
+
+            // 가격 표시 초기화
+            const quantityInput = itemDiv.querySelector('.quantity-input');
+            const currencySymbol = quantityInput.dataset.currencySymbol || '₩';
+            priceDisplay.textContent = `${currencySymbol}0`;
+            priceDisplaySub.textContent = '';
+
+            // 체크 해제된 상태 저장 (Map에서 제거)
+            checkedStates.delete(productId);
+        }
+
+        // 총액 업데이트
+        updateTotalAmount();
+    }
+
+    // 체크박스 방식의 가격 표시 업데이트
+    function updatePriceDisplayCheckbox(element) {
+        const itemDiv = element.closest('.item-checkbox-item');
+        const quantityInput = itemDiv.querySelector('.quantity-input');
+        const priceInput = itemDiv.querySelector('.price-input');
+        const productId = itemDiv.dataset.productId;
+        const totalPriceDiv = itemDiv.querySelector(`#totalPrice_${productId}`);
+        const priceDisplay = totalPriceDiv.querySelector('.price-display-main');
+        const priceDisplaySub = totalPriceDiv.querySelector('.price-display-sub');
+
+        const baseUnitPrice = parseFloat(quantityInput.dataset.basePrice) || 0;
+        const actualUnitPrice = priceInput && priceInput.value ? parseFloat(priceInput.value) : baseUnitPrice;
+        const quantity = parseInt(quantityInput.value) || 0;
+        const totalPrice = actualUnitPrice * quantity;
+        const currencySymbol = quantityInput.dataset.currencySymbol || '₩';
+
+        priceDisplay.textContent = `${currencySymbol}${formatNumber(totalPrice)}`;
+
+        if (priceInput && priceInput.value && actualUnitPrice !== baseUnitPrice) {
+            const discount = (baseUnitPrice - actualUnitPrice) * quantity;
+            const discountText = discount > 0 ? `할인 ${currencySymbol}${formatNumber(discount)}` : `할증 ${currencySymbol}${formatNumber(Math.abs(discount))}`;
+            priceDisplaySub.textContent = discountText;
+        } else {
+            priceDisplaySub.textContent = '';
+        }
+
+        // 총액 업데이트
+        updateTotalAmount();
+    }
+
     async function loadDeliveries() {
         try {
             const response = await fetch(API_BASE_URL);
-            if (!response.ok) throw new Error('납품 목록을 불러오는데 실패했습니다');
+            if (!response.ok) throw new Error('수주 목록을 불러오는데 실패했습니다');
 
             allDeliveries = await response.json();
             renderDeliveries(allDeliveries);
         } catch (error) {
             console.error('Error:', error);
-            showNotification('납품 목록을 불러오는데 실패했습니다', 'error');
+            showNotification('수주 목록을 불러오는데 실패했습니다', 'error');
         }
     }
 
@@ -1087,9 +1646,13 @@
         document.getElementById('orderedAt').value = today;
         document.getElementById('requestedAt').value = today;
 
-        document.getElementById('itemMappingList').innerHTML = '';
-        addItemMapping();
+        document.getElementById('itemMappingList').innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">거래처를 선택해주세요</p>';
+        document.getElementById('productSearch').value = '';
+        document.getElementById('productSearch').disabled = true;
+        originalProducts = [];
+        checkedStates.clear(); // 체크 상태 초기화
     }
+
 
     function closeCreateModal() {
         document.getElementById('createModal').style.display = 'none';
@@ -1192,18 +1755,18 @@
     async function createDelivery(event) {
         event.preventDefault();
 
-        const itemMappingItems = document.querySelectorAll('.item-mapping-item');
+        const checkedItems = document.querySelectorAll('.item-checkbox:checked');
         const items = [];
 
-        itemMappingItems.forEach(item => {
-            const select = item.querySelector('.product-select');
-            const quantityInput = item.querySelector('.quantity-input');
-            const priceInput = item.querySelector('.price-input');
-            const priceNoteInput = item.querySelector('.price-note-input');
+        checkedItems.forEach(checkbox => {
+            const itemDiv = checkbox.closest('.item-checkbox-item');
+            const quantityInput = itemDiv.querySelector('.quantity-input');
+            const priceInput = itemDiv.querySelector('.price-input');
+            const priceNoteInput = itemDiv.querySelector('.price-note-input');
 
-            if (select && select.value && quantityInput && quantityInput.value) {
+            if (quantityInput && quantityInput.value) {
                 const itemData = {
-                    productId: parseInt(select.value),
+                    productId: parseInt(quantityInput.dataset.productId),
                     quantity: parseInt(quantityInput.value)
                 };
 
@@ -1222,7 +1785,7 @@
         });
 
         if (items.length === 0) {
-            showNotification('최소 1개의 항목을 추가해주세요', 'error');
+            showNotification('최소 1개의 항목을 선택해주세요', 'error');
             return;
         }
 
@@ -1244,10 +1807,10 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || '납품 등록에 실패했습니다');
+                throw new Error(errorData.message || '수주 등록에 실패했습니다');
             }
 
-            showNotification('납품이 성공적으로 등록되었습니다', 'success');
+            showNotification('수주이 성공적으로 등록되었습니다', 'success');
             closeCreateModal();
             await loadDeliveries();
         } catch (error) {
@@ -1279,67 +1842,76 @@
             });
     }
 
+    // viewDeliveryDetail 함수 수정 - 2열 레이아웃으로 변경
     async function viewDeliveryDetail(deliveryId) {
         try {
             const response = await fetch(`${API_BASE_URL}/${deliveryId}`);
-            if (!response.ok) throw new Error('납품 상세 정보를 불러오는데 실패했습니다');
+            if (!response.ok) throw new Error('수주 상세 정보를 불러오는데 실패했습니다');
 
             const delivery = await response.json();
             const detailContent = document.getElementById('detailContent');
 
             detailContent.innerHTML = `
-            <div class="detail-info">
-                <p><strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}</p>
-                <p><strong>거래처:</strong> ${escapeHtml(delivery.clientName)}</p>
-                <p><strong>상태:</strong> <span class="status-badge ${getStatusClass(delivery.status)}">${getStatusText(delivery.status)}</span></p>
-                <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
-                ${delivery.exchangeRate ? `<p><strong>환율:</strong> ${formatNumber(delivery.exchangeRate)}</p>` : ''}
-                ${delivery.subtotalAmount !== delivery.totalAmount ?
-                `<p><strong>소계:</strong> ${formatPrice(delivery.subtotalAmount, delivery.currency)}</p>` : ''}
-                ${delivery.totalDiscountAmount ?
-                `<p><strong>전체 할인:</strong> -${formatPrice(delivery.totalDiscountAmount, delivery.currency)}
-                    ${delivery.discountNote ? ` (${escapeHtml(delivery.discountNote)})` : ''}</p>` : ''}
-                <p><strong>최종 금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
-                ${delivery.totalAmountKRW ? `<p><strong>원화 환산 금액:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
-                <p><strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}</p>
-                <p><strong>실출하일:</strong> ${formatDateTime(delivery.deliveredAt)}</p>
-                ${delivery.memo ? `<p><strong>메모:</strong> ${escapeHtml(delivery.memo)}</p>` : ''}
-            </div>
-            <div>
-                <h3 class="detail-section-title">납품 항목</h3>
-                <table class="detail-table">
-                    <thead>
-                        <tr>
-                            <th>제품명</th>
-                            <th>수량</th>
-                            <th>기준 단가</th>
-                            <th>실제 단가</th>
-                            <th>할인액</th>
-                            <th>금액</th>
-                            <th>비고</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${delivery.items.map(item => `
-                            <tr>
-                                <td>${escapeHtml(item.productName)}${item.isFreeItem ? ' <span class="discount-badge">무상</span>' : ''}</td>
-                                <td>${item.quantity}</td>
-                                <td>${formatPrice(item.baseUnitPrice, delivery.currency)}</td>
-                                <td>${formatPrice(item.actualUnitPrice, delivery.currency)}</td>
-                                <td>${item.discountAmount && item.discountAmount !== 0 ? formatPrice(item.discountAmount, delivery.currency) : '-'}</td>
-                                <td>${formatPrice(item.totalPrice, delivery.currency)}</td>
-                                <td>${item.priceNote ? escapeHtml(item.priceNote) : '-'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
+                <div class="detail-form-container">
+                    <div class="detail-left-column">
+                        <div class="detail-info">
+                            <p><strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}</p>
+                            <p><strong>거래처:</strong> ${escapeHtml(delivery.clientName)}</p>
+                            <p><strong>상태:</strong> <span class="status-badge ${getStatusClass(delivery.status)}">${getStatusText(delivery.status)}</span></p>
+                            <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
+                            ${delivery.exchangeRate ? `<p><strong>환율:</strong> ${formatNumber(delivery.exchangeRate)}</p>` : ''}
+                            ${delivery.subtotalAmount !== delivery.totalAmount ?
+                    `<p><strong>소계:</strong> ${formatPrice(delivery.subtotalAmount, delivery.currency)}</p>` : ''}
+                            ${delivery.totalDiscountAmount ?
+                    `<p><strong>전체 할인:</strong> -${formatPrice(delivery.totalDiscountAmount, delivery.currency)}
+                                ${delivery.discountNote ? ` (${escapeHtml(delivery.discountNote)})` : ''}</p>` : ''}
+                            <p><strong>최종 금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
+                            ${delivery.totalAmountKRW ? `<p><strong>원화 환산 금액:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
+                            <p><strong>수주일:</strong> ${formatDateTime(delivery.orderedAt)}</p>
+                            <p><strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}</p>
+                            <p><strong>실출하일:</strong> ${formatDateTime(delivery.deliveredAt)}</p>
+                            ${delivery.memo ? `<p><strong>메모:</strong> ${escapeHtml(delivery.memo)}</p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="detail-right-column">
+                        <h3 class="detail-section-title">수주 항목</h3>
+                        <div class="detail-table-wrapper">
+                            <table class="detail-table">
+                                <thead>
+                                    <tr>
+                                        <th>제품명</th>
+                                        <th>수량</th>
+                                        <th>기준 단가</th>
+                                        <th>실제 단가</th>
+                                        <th>할인액</th>
+                                        <th>금액</th>
+                                        <th>비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${delivery.items.map(item => `
+                                        <tr>
+                                            <td>${escapeHtml(item.productName)}${item.isFreeItem ? ' <span class="discount-badge">무상</span>' : ''}</td>
+                                            <td>${item.quantity}</td>
+                                            <td>${formatPrice(item.baseUnitPrice, delivery.currency)}</td>
+                                            <td>${formatPrice(item.actualUnitPrice, delivery.currency)}</td>
+                                            <td>${item.discountAmount && item.discountAmount !== 0 ? formatPrice(item.discountAmount, delivery.currency) : '-'}</td>
+                                            <td>${formatPrice(item.totalPrice, delivery.currency)}</td>
+                                            <td>${item.priceNote ? escapeHtml(item.priceNote) : '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
 
             document.getElementById('detailModal').style.display = 'block';
         } catch (error) {
             console.error('Error:', error);
-            showNotification('납품 상세 정보를 불러오는데 실패했습니다', 'error');
+            showNotification('수주 상세 정보를 불러오는데 실패했습니다', 'error');
         }
     }
 
@@ -1416,7 +1988,7 @@
     }
 
     async function completeDelivery(deliveryId) {
-        if (!confirm('이 납품을 완료 처리하시겠습니까?')) {
+        if (!confirm('이 수주를 납품 완료 처리하시겠습니까?')) {
             return;
         }
 
@@ -1450,7 +2022,8 @@
         <strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}<br>
         <strong>거래처:</strong> ${escapeHtml(delivery.clientName)}<br>
         <strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}<br>
-        <strong>납품일시:</strong> ${formatDateTime(delivery.deliveredAt)}
+        <strong>수주일:</strong> ${formatDateTime(delivery.orderedAt)}<br>
+        <strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}
     `;
         document.getElementById('cancelModal').style.display = 'block';
     }
@@ -1470,10 +2043,10 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || '납품 취소에 실패했습니다');
+                throw new Error(errorData.message || '수주 취소에 실패했습니다');
             }
 
-            showNotification('납품이 성공적으로 취소되었습니다', 'success');
+            showNotification('수주가 성공적으로 취소되었습니다', 'success');
             closeCancelModal();
             await loadDeliveries();
         } catch (error) {
@@ -1542,7 +2115,7 @@
         }
     });
 
-    // 전체 납품 데이터 CSV 다운로드
+    // 전체 수주 데이터 CSV 다운로드
     async function exportAllToCSV() {
         try {
             const response = await fetch(`${API_BASE_URL}/export/csv`);
@@ -1565,7 +2138,7 @@
         }
     }
 
-    // 전체 납품 데이터 Excel 다운로드
+    // 전체 수주 데이터 Excel 다운로드
     async function exportAllToEXCEL() {
         try {
             const response = await fetch(`${API_BASE_URL}/export/excel`);

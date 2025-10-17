@@ -63,12 +63,9 @@ public class DeliveryService {
             BigDecimal baseUnitPrice = getBaseUnitPrice(command.clientId(), itemInfo.productId(), product);
 
             // 실적용 단가
-            BigDecimal actualUnitPrice;
-            if (itemInfo.actualUnitPrice() != null) {
-                actualUnitPrice = itemInfo.actualUnitPrice();
-            } else {
-                actualUnitPrice = baseUnitPrice;
-            }
+            BigDecimal actualUnitPrice = itemInfo.actualUnitPrice() != null
+                    ? itemInfo.actualUnitPrice()
+                    : baseUnitPrice;
 
             DeliveryItem item = new DeliveryItem(
                     delivery,
@@ -87,8 +84,13 @@ public class DeliveryService {
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        Task task = createTaskForDelivery(savedDelivery, client, currentUser, command.orderedAt(), command.requestedAt());
-        savedDelivery.setRelatedTask(task);
+        // 주문일 Task
+        Task orderTask = createOrderTask(savedDelivery, client, currentUser, command.orderedAt());
+        savedDelivery.setOrderTask(orderTask);
+
+        // 출하 요청일 Task
+        Task shipmentTask = createShipmentTask(savedDelivery, client, currentUser, command.requestedAt());
+        savedDelivery.setShipmentTask(shipmentTask);
 
         return savedDelivery;
     }
@@ -137,17 +139,24 @@ public class DeliveryService {
         // 납품 완료 처리
         delivery.complete();
 
-        // 연관된 작업 완료 처리
-        if (delivery.getRelatedTask() != null) {
-            Task task = delivery.getRelatedTask();
+        LocalDate actualDeliveredDate = delivery.getDeliveredAt().toLocalDate();
 
-            task.updateTaskInfo(
-                    "[납품 완료] " + delivery.getDeliveryNumber(),
-                    task.getDescription(),
-                    task.getPriority()
+        // 주문 Task 완료 처리
+        if (delivery.getOrderTask() != null) {
+            Task orderTask = delivery.getOrderTask();
+            orderTask.updateStatus(TaskStatus.COMPLETED);
+        }
+
+        // 출하 요청 Task 완료 처리 및 날짜 업데이트
+        if (delivery.getShipmentTask() != null) {
+            Task shipmentTask = delivery.getShipmentTask();
+            shipmentTask.updatePeriod(actualDeliveredDate, actualDeliveredDate);
+            shipmentTask.updateTaskInfo(
+                    "[출하 완료] " + delivery.getDeliveryNumber(),
+                    shipmentTask.getDescription(),
+                    shipmentTask.getPriority()
             );
-            task.updatePeriod(task.getStartDate(), LocalDate.now());
-            task.updateStatus(TaskStatus.COMPLETED);
+            shipmentTask.updateStatus(TaskStatus.COMPLETED);
         }
     }
 
@@ -159,16 +168,25 @@ public class DeliveryService {
         // 취소 처리
         delivery.cancel();
 
-        if (delivery.getRelatedTask() != null) {
-            Task task = delivery.getRelatedTask();
+        LocalDate cancelDate = LocalDate.now();
 
-            task.updateTaskInfo(
-                    "[거래 취소] " + delivery.getDeliveryNumber(),
-                    task.getDescription(),
-                    task.getPriority()
+        // 주문 Task 취소 처리
+        if (delivery.getOrderTask() != null) {
+            Task orderTask = delivery.getOrderTask();
+            orderTask.updateTaskInfo(
+                    "[주문 취소] " + delivery.getDeliveryNumber(),
+                    orderTask.getDescription(),
+                    orderTask.getPriority()
             );
-            task.updatePeriod(task.getStartDate(), LocalDate.now());
-            task.updateStatus(TaskStatus.COMPLETED);
+            orderTask.updatePeriod(orderTask.getStartDate(), orderTask.getStartDate());
+            orderTask.updateStatus(TaskStatus.COMPLETED);
+        }
+
+        // 출하 요청 Task 삭제
+        if (delivery.getShipmentTask() != null) {
+            Task shipmentTask = delivery.getShipmentTask();
+            delivery.clearShipmentTask(); // 연관관계 제거
+            taskRepository.delete(shipmentTask);
         }
     }
 
@@ -199,16 +217,32 @@ public class DeliveryService {
                         : BigDecimal.ZERO);
     }
 
-    private Task createTaskForDelivery(Delivery delivery, Client client, CustomUserDetails currentUser, LocalDate orderedAt, LocalDate requestedAt) {
-        String title = generateTaskTitle(client, delivery);
-        String description = generateTaskDescription(delivery);
-
+    private Task createOrderTask(Delivery delivery, Client client, CustomUserDetails currentUser, LocalDate orderedAt) {
+        String title = String.format("[주문] %s - %s", client.getName(), delivery.getDeliveryNumber());
+        String description = generateOrderTaskDescription(delivery);
 
         Task task = new Task(
                 title,
                 description,
                 currentUser.getName(),
                 orderedAt,
+                orderedAt,
+                TaskStatus.TODO,
+                Priority.MEDIUM
+        );
+
+        return taskRepository.save(task);
+    }
+
+    private Task createShipmentTask(Delivery delivery, Client client, CustomUserDetails currentUser, LocalDate requestedAt) {
+        String title = String.format("[출하 요청] %s - %s", client.getName(), delivery.getDeliveryNumber());
+        String description = generateShipmentTaskDescription(delivery);
+
+        Task task = new Task(
+                title,
+                description,
+                currentUser.getName(),
+                requestedAt,
                 requestedAt,
                 TaskStatus.TODO,
                 Priority.MEDIUM
@@ -217,10 +251,33 @@ public class DeliveryService {
         return taskRepository.save(task);
     }
 
-    private String generateTaskTitle(Client client, Delivery delivery) {
-        return String.format("[주문] %s - %s",
-                client.getName(),
-                delivery.getDeliveryNumber());
+    private String generateOrderTaskDescription(Delivery delivery) {
+        StringBuilder description = new StringBuilder();
+
+        // 주문일, 출하요청일 정보
+        description.append(String.format("주문일: %s\n", delivery.getOrderedAt()));
+        description.append(String.format("출하 요청일: %s\n", delivery.getRequestedAt()));
+        if (delivery.getDeliveredAt() != null) {
+            description.append(String.format("출하 완료일: %s\n", delivery.getDeliveredAt().toLocalDate()));
+        }
+        description.append("\n");
+
+        // 납품 정보
+        description.append(generateTaskDescription(delivery));
+
+        return description.toString();
+    }
+
+    private String generateShipmentTaskDescription(Delivery delivery) {
+        StringBuilder description = new StringBuilder();
+
+        // 주문일 정보
+        description.append(String.format("주문일: %s\n\n", delivery.getOrderedAt()));
+
+        // 납품 정보
+        description.append(generateTaskDescription(delivery));
+
+        return description.toString();
     }
 
     private String generateTaskDescription(Delivery delivery) {
@@ -250,7 +307,7 @@ public class DeliveryService {
                     delivery.getTotalDiscountAmount()));
         }
 
-        description.append(String.format("\n총액: %s%s",
+        description.append(String.format("\n이액: %s%s",
                 delivery.getClient().getCurrency().getSymbol(),
                 delivery.getTotalAmount()));
 

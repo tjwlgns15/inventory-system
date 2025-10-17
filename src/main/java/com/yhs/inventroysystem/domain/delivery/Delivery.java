@@ -74,8 +74,12 @@ public class Delivery extends BaseTimeEntity {
     private String memo;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id")
-    private Task relatedTask;
+    @JoinColumn(name = "order_task_id")
+    private Task orderTask;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipment_task_id")
+    private Task shipmentTask;
 
     public Delivery(String deliveryNumber, Client client, LocalDate orderedAt, LocalDate requestedAt) {
         this.deliveryNumber = deliveryNumber;
@@ -142,9 +146,18 @@ public class Delivery extends BaseTimeEntity {
         calculateKRWAmount();
     }
 
-    public void setRelatedTask(Task task) {
-        this.relatedTask = task;
+    public void setOrderTask(Task task) {
+        this.orderTask = task;
     }
+
+    public void setShipmentTask(Task task) {
+        this.shipmentTask = task;
+    }
+
+    public void clearShipmentTask() {
+        this.shipmentTask = null;
+    }
+
 
     private void calculateTotalAmount() {
         // 1. 각 항목의 금액 합계

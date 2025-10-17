@@ -932,14 +932,66 @@
         .modal-content {
             background-color: white;
             margin: 5% auto;
-            padding: 30px;
+            padding: 30px 25px; /* 좌우 padding 약간 줄임 */
             border-radius: 20px;
             width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: visible;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: modalSlideIn 0.3s ease;
+        }
+
+        .modal-form-container {
+            display: grid;
+            grid-template-columns: 380px 1fr; /* 400px에서 380px로 줄임 */
+            gap: 25px; /* 30px에서 25px로 줄임 */
+        }
+
+        .modal-left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-right-column {
+            display: flex;
+            flex-direction: column;
+            padding-right: 0; /* 우측 여백 제거 */
+        }
+
+        .form-group.full-height {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 0; /* 기본 margin 제거 */
+        }
+
+        .form-group.full-height .form-textarea {
+            flex: 1;
+            min-height: 450px;
+            resize: none;
+            width: 100%; /* 명시적으로 100% 설정 */
+            box-sizing: border-box; /* padding 포함한 크기 계산 */
+        }
+
+        .modal-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        /* 반응형 - 작은 화면에서는 1열로 */
+        @media (max-width: 768px) {
+            .modal-form-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-right-column {
+                min-height: 200px;
+            }
         }
 
         @keyframes modalSlideIn {
@@ -1407,54 +1459,61 @@
         <form id="taskForm" onsubmit="saveTask(event)">
             <input type="hidden" id="taskId">
 
-            <div class="form-group">
-                <label class="form-label" for="title">작업 제목 *</label>
-                <input type="text" id="title" class="form-input" required maxlength="200">
-            </div>
+            <div class="modal-form-container">
+                <div class="modal-left-column">
+                    <div class="form-group">
+                        <label class="form-label" for="title">작업 제목 *</label>
+                        <input type="text" id="title" class="form-input" required maxlength="200">
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="description">작업 설명</label>
-                <textarea id="description" class="form-textarea" maxlength="1000"></textarea>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="startDate">시작일 *</label>
+                        <input type="date" id="startDate" class="form-input" required>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="startDate">시작일 *</label>
-                <input type="date" id="startDate" class="form-input" required>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="endDate">종료일 *</label>
+                        <input type="date" id="endDate" class="form-input" required>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="endDate">종료일 *</label>
-                <input type="date" id="endDate" class="form-input" required>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="priority">우선순위</label>
+                        <select id="priority" class="form-select">
+                            <option value="LOW">낮음</option>
+                            <option value="MEDIUM" selected>보통</option>
+                            <option value="HIGH">높음</option>
+                            <option value="URGENT">긴급</option>
+                        </select>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label" for="priority">우선순위</label>
-                <select id="priority" class="form-select">
-                    <option value="LOW">낮음</option>
-                    <option value="MEDIUM" selected>보통</option>
-                    <option value="HIGH">높음</option>
-                    <option value="URGENT">긴급</option>
-                </select>
-            </div>
+                    <div class="form-group">
+                        <label class="form-label" for="status">상태</label>
+                        <select id="status" class="form-select">
+                            <option value="TODO">할 일</option>
+                            <option value="IN_PROGRESS">진행 중</option>
+                            <option value="COMPLETED">완료</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="status">상태</label>
-                <select id="status" class="form-select">
-                    <option value="TODO">할 일</option>
-                    <option value="IN_PROGRESS">진행 중</option>
-                    <option value="COMPLETED">완료</option>
-                </select>
-            </div>
+                <div class="modal-right-column">
+                    <div class="form-group full-height">
+                        <label class="form-label" for="description">작업 설명</label>
+                        <textarea id="description" class="form-textarea" maxlength="1000"></textarea>
+                    </div>
+                </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
-                <button type="button" class="btn" onclick="closeTaskModal()"
-                        style="background: #f8f9fa; color: #6c757d;">취소
-                </button>
-                <button type="submit" class="btn btn-primary">저장</button>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closeTaskModal()"
+                            style="background: #f8f9fa; color: #6c757d;">취소
+                    </button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
             </div>
         </form>
     </div>
 </div>
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -2484,45 +2543,44 @@
         const isCompleted = task.status === 'COMPLETED';
 
         return `
-        <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''} ${isCompleted ? 'completed' : ''}"
-            onclick="selectTask(${task.id})">
-            <td class="task-title-cell">
-                <div class="task-title-content">
-                    <span class="task-title">${escapeHtml(task.title)}</span>
-                    ${task.description ? `<span class="task-description">${escapeHtml(task.description)}</span>` : ''}
-                </div>
-            </td>
-            <td class="task-author-cell">${escapeHtml(task.authorName)}</td>
-            <td class="task-date-cell">
-                <div class="task-dates">
-                    <span>${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}</span>
-                </div>
-            </td>
-            <td class="task-priority-cell">
-                <span class="priority-badge priority-${priorityClass}">
-                    ${getPriorityText(task.priority)}
-                </span>
-            </td>
-            <td class="task-status-cell">
-                <span class="status-badge status-${statusClass}">
-                    ${getStatusText(task.status)}
-                </span>
-            </td>
-            <td class="task-overdue-cell">
-                ${isOverdue ? '<span class="overdue-badge">지연</span>' : '<span class="on-time-badge">정상</span>'}
-            </td>
-            <td class="task-actions-cell" onclick="event.stopPropagation();">
-                <div class="task-actions">
-                    <button class="btn-small btn-edit" onclick="editTask(${task.id})" title="수정">✏️</button>
-                    <button class="btn-small btn-delete" onclick="deleteTask(${task.id})" title="삭제">🗑️</button>
-                    ${task.status !== 'COMPLETED' ?
-            `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
-            ''
-        }
-                </div>
-            </td>
-        </tr>
-    `;
+            <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''} ${isCompleted ? 'completed' : ''}"
+                onclick="editTask(${task.id})">
+                <td class="task-title-cell">
+                    <div class="task-title-content">
+                        <span class="task-title">${escapeHtml(task.title)}</span>
+                        ${task.description ? `<span class="task-description">${escapeHtml(task.description)}</span>` : ''}
+                    </div>
+                </td>
+                <td class="task-author-cell">${escapeHtml(task.authorName)}</td>
+                <td class="task-date-cell">
+                    <div class="task-dates">
+                        <span>${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}</span>
+                    </div>
+                </td>
+                <td class="task-priority-cell">
+                    <span class="priority-badge priority-${priorityClass}">
+                        ${getPriorityText(task.priority)}
+                    </span>
+                </td>
+                <td class="task-status-cell">
+                    <span class="status-badge status-${statusClass}">
+                        ${getStatusText(task.status)}
+                    </span>
+                </td>
+                <td class="task-overdue-cell">
+                    ${isOverdue ? '<span class="overdue-badge">지연</span>' : '<span class="on-time-badge">정상</span>'}
+                </td>
+                <td class="task-actions-cell" onclick="event.stopPropagation();">
+                    <div class="task-actions">
+                        <button class="btn-small btn-delete" onclick="deleteTask(${task.id})" title="삭제">🗑️</button>
+                        ${task.status !== 'COMPLETED' ?
+                `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
+                ''
+            }
+                    </div>
+                </td>
+            </tr>
+        `;
     }
 
     function editTask(taskId) {
