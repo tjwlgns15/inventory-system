@@ -435,6 +435,75 @@
             background: #e2e6ea;
             transform: translateY(-1px);
         }
+
+        .client-item.parent {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(102, 126, 234, 0.02) 100%);
+            font-weight: 600;
+            border-left: 4px solid #667eea;
+        }
+
+        .client-item.child {
+            padding-left: 28px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.5);
+            margin-left: 12px;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .client-item.child::before {
+            content: '└─';
+            position: absolute;
+            left: 8px;
+            color: #9ca3af;
+            font-weight: normal;
+        }
+
+        .client-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .badge-parent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .badge-child {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .client-item.active.parent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .client-item.active.child {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .client-item.active .client-type-badge {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        .parent-client-name {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .client-item.active .parent-client-name {
+            color: rgba(255, 255, 255, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -601,14 +670,59 @@
             return;
         }
 
-        clientList.innerHTML = allClients.map(client => `
-            <div class="client-item ${selectedClientId === client.id ? 'active' : ''}"
-                 onclick="selectClient(${client.id})">
-                <div class="client-code">${escapeHtml(client.clientCode)}</div>
-                <div class="client-name">${escapeHtml(client.name)}</div>
+        // 회사별로 그룹핑
+        const grouped = groupClientsByOrganization(allClients);
+
+        clientList.innerHTML = grouped.map(group =>
+            renderClientGroup(group)
+        ).join('');
+    }
+
+    // 회사별로 거래처 그룹핑하는 함수
+    function groupClientsByOrganization(clients) {
+        const parents = clients.filter(c => c.clientType === 'PARENT');
+        const children = clients.filter(c => c.clientType === 'CHILD');
+
+        return parents.map(p => ({
+            parent: p,
+            children: children.filter(t => t.parentClientId === p.id)
+        }));
+    }
+
+    // 회사와 팀을 함께 렌더링하는 함수
+    function renderClientGroup(group) {
+        const { parent, children } = group;
+
+        // 회사 아이템
+        const parentItem = `
+            <div class="client-item parent ${selectedClientId === parent.id ? 'active' : ''}"
+                 onclick="selectClient(${parent.id})">
+                <div class="client-code">
+                    <span class="client-type-badge badge-parent">🏢</span>
+                    ${escapeHtml(parent.clientCode)}
+                </div>
+                <div class="client-name">${escapeHtml(parent.name)}</div>
+            </div>
+        `;
+
+        // 팀 아이템들
+        const childItems = children.map(child => `
+            <div class="client-item child ${selectedClientId === child.id ? 'active' : ''}"
+                 onclick="selectClient(${child.id})">
+                <div class="client-code">
+                    <span class="client-type-badge badge-child">📁</span>
+                    ${escapeHtml(child.clientCode)}
+                </div>
+                <div class="client-name">${escapeHtml(child.name)}</div>
+                ${child.parentClientName ? `
+                    <div class="parent-client-name">↳ ${escapeHtml(child.parentClientName)}</div>
+                ` : ''}
             </div>
         `).join('');
+
+        return parentItem + childItems;
     }
+
 
     async function selectClient(clientId) {
         selectedClientId = clientId;

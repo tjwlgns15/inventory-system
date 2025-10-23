@@ -27,8 +27,7 @@ public class PriceService {
 
     @Transactional
     public ClientProductPrice registerPrice(PriceRegisterCommand command) {
-        Client client = clientRepository.findById(command.clientId())
-                .orElseThrow(() -> ResourceNotFoundException.client(command.clientId()));
+        Client client = findClientById(command.clientId());
 
         Product product = productRepository.findById(command.productId())
                 .orElseThrow(() -> ResourceNotFoundException.product(command.productId()));
@@ -64,5 +63,10 @@ public class PriceService {
     public ClientProductPrice findPrice(Long clientId, Long productId) {
         return priceRepository.findByClientIdAndProductId(clientId, productId)
                 .orElseThrow(() -> ResourceNotFoundException.price(clientId, productId));
+    }
+
+    public Client findClientById(Long clientId) {
+        return clientRepository.findByIdAndDeletedAt(clientId)
+                .orElseThrow(() -> ResourceNotFoundException.client(clientId));
     }
 }

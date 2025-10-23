@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "exchange_rates",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"currency", "rate_date}"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"currency", "rate_date"}))
 @Getter
 @NoArgsConstructor
 public class ExchangeRate extends BaseTimeEntity {
@@ -22,7 +22,6 @@ public class ExchangeRate extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Currency currency;
-
 
     @Column(nullable = false, precision = 15, scale = 6)
     private BigDecimal rate;

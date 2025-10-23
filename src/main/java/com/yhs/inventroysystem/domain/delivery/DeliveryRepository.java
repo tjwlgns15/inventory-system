@@ -52,10 +52,11 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
         SELECT d
         FROM Delivery d 
         JOIN FETCH d.client c
-        JOIN FETCH d.items di
-        JOIN FETCH di.product p
+        LEFT JOIN FETCH c.parentClient 
+        JOIN FETCH d.items di 
+        JOIN FETCH di.product p 
         WHERE d.status = 'COMPLETED' 
-        AND YEAR(d.deliveredAt) = :year
+        AND YEAR(d.deliveredAt) = :year 
         ORDER BY c.name, d.deliveredAt
     """)
     List<Delivery> findCompletedDeliveriesByYear(@Param("year") int year);

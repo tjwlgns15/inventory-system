@@ -12,18 +12,24 @@ import java.util.Optional;
 public interface ClientProductPriceRepository extends JpaRepository<ClientProductPrice, Long> {
 
     @Query("SELECT cpp FROM ClientProductPrice cpp " +
-            "JOIN FETCH cpp.client " +
+            "JOIN FETCH cpp.client c " +
+            "LEFT JOIN FETCH c.parentClient " +
+            "LEFT JOIN FETCH c.country " +
             "JOIN FETCH cpp.product " +
             "WHERE cpp.client.id = :clientId")
     List<ClientProductPrice> findByClientId(@Param("clientId") Long clientId);
 
     @Query("SELECT cpp FROM ClientProductPrice cpp " +
-            "JOIN FETCH cpp.client " +
+            "JOIN FETCH cpp.client c " +
+            "LEFT JOIN FETCH c.parentClient " +
+            "LEFT JOIN FETCH c.country " +
             "JOIN FETCH cpp.product")
     List<ClientProductPrice> findAllWithClientAndProduct();
 
     @Query("SELECT cpp FROM ClientProductPrice cpp " +
-            "JOIN FETCH cpp.client " +
+            "JOIN FETCH cpp.client c " +
+            "LEFT JOIN FETCH c.parentClient " +
+            "LEFT JOIN FETCH c.country " +
             "JOIN FETCH cpp.product " +
             "WHERE cpp.client.id = :clientId AND cpp.product.id = :productId")
     Optional<ClientProductPrice> findByClientIdAndProductId(@Param("clientId") Long clientId, @Param("productId") Long productId);

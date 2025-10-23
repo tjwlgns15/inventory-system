@@ -1,6 +1,7 @@
 package com.yhs.inventroysystem.presentation.client;
 
 import com.yhs.inventroysystem.domain.client.Client;
+import com.yhs.inventroysystem.domain.client.ClientType;
 import com.yhs.inventroysystem.domain.exchange.Currency;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class ClientDtos {
 
-    public record ClientRegisterRequest(
+    public record ParentClientRegisterRequest(
             @NotBlank(message = "거래처 코드는 필수입니다")
             String clientCode,
 
@@ -28,6 +29,28 @@ public class ClientDtos {
             Currency currency
     ) {}
 
+    public record ChildClientRegisterRequest(
+            @NotNull(message = "상위 거래처는 필수입니다")
+            Long parentClientId,
+
+            @NotBlank(message = "거래처 코드는 필수입니다")
+            String clientCode,
+
+            @NotNull(message = "국가는 필수입니다")
+            Long countryId,
+
+            @NotBlank(message = "거래처명은 필수입니다")
+            String name,
+
+            String address,
+            String contactNumber,
+
+            @Email(message = "올바른 이메일 형식이 아닙니다")
+            String email,
+
+            @NotNull(message = "통화는 필수입니다")
+            Currency currency
+    ) {}
 
     public record ClientResponse(
             Long id,
@@ -41,7 +64,10 @@ public class ClientDtos {
             String email,
             Currency currency,
             String currencyName,
-            String currencySymbol
+            String currencySymbol,
+            ClientType clientType,
+            Long parentClientId,
+            String parentClientName
     ) {
         public static ClientResponse from(Client client) {
             return new ClientResponse(
@@ -56,7 +82,10 @@ public class ClientDtos {
                     client.getEmail(),
                     client.getCurrency(),
                     client.getCurrency().getName(),
-                    client.getCurrency().getSymbol()
+                    client.getCurrency().getSymbol(),
+                    client.getClientType(),
+                    client.getParentClient() != null ? client.getParentClient().getId() : null,
+                    client.getParentClient() != null ? client.getParentClient().getName() : null
             );
         }
     }

@@ -30,6 +30,7 @@ public class SalesStatsDtos {
 
     public record ClientSalesData(
             Long clientId,
+            Long parentClientId,
             String clientCode,
             String clientName,
             String countryName,

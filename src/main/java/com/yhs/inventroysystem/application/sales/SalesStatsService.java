@@ -148,6 +148,9 @@ public class SalesStatsService {
 
             ClientSalesData clientData = new ClientSalesData(
                     clientId,
+                    firstDelivery.getClient().getParentClient() != null
+                            ? firstDelivery.getClient().getParentClient().getId()
+                            : null,
                     firstDelivery.getClient().getClientCode(),
                     firstDelivery.getClient().getName(),
                     firstDelivery.getClient().getCountry() != null

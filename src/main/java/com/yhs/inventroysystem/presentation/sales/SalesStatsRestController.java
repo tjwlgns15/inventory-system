@@ -24,8 +24,7 @@ public class SalesStatsRestController {
     }
 
     @GetMapping("/yearly/{year}")
-    public ResponseEntity<YearlySalesByClientResponse> getYearlySalesByClient(
-            @PathVariable int year) {
+    public ResponseEntity<YearlySalesByClientResponse> getYearlySalesByClient(@PathVariable int year) {
         return ResponseEntity.ok(salesStatsService.getYearlySalesByClient(year));
     }
 }

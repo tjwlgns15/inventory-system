@@ -1,5 +1,7 @@
 package com.yhs.inventroysystem.presentation.price;
 
+import com.yhs.inventroysystem.domain.client.Client;
+import com.yhs.inventroysystem.domain.client.ClientType;
 import com.yhs.inventroysystem.domain.price.ClientProductPrice;
 import com.yhs.inventroysystem.domain.exchange.Currency;
 import jakarta.validation.constraints.NotNull;
@@ -41,6 +43,10 @@ public class PriceDtos {
             Long id,
             Long clientId,
             String clientName,
+            String clientCode,
+            ClientType clientType,
+            Long parentClientId,
+            String parentClientName,
             Long productId,
             String productName,
             String productCode,
@@ -50,10 +56,15 @@ public class PriceDtos {
             String currencySymbol
     ) {
         public static PriceResponse from(ClientProductPrice price) {
+            Client client = price.getClient();
             return new PriceResponse(
                     price.getId(),
                     price.getClient().getId(),
                     price.getClient().getName(),
+                    client.getClientCode(),
+                    client.getClientType(),
+                    client.getParentClient() != null ? client.getParentClient().getId() : null,
+                    client.getParentClient() != null ? client.getParentClient().getName() : null,
                     price.getProduct().getId(),
                     price.getProduct().getName(),
                     price.getProduct().getProductCode(),

@@ -5,7 +5,6 @@ import com.yhs.inventroysystem.application.client.ClientService;
 import com.yhs.inventroysystem.presentation.client.ClientDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static com.yhs.inventroysystem.application.client.ClientCommands.*;
+import static com.yhs.inventroysystem.presentation.client.ClientDtos.*;
 
 @RestController
 @RequestMapping("/api/clients")
@@ -22,8 +22,8 @@ public class ClientRestController {
     private final ClientService clientService;
 
     @PostMapping
-    public ResponseEntity<ClientResponse> registerClient(@Valid @RequestBody ClientRegisterRequest request) {
-        ClientRegisterCommand command = new ClientRegisterCommand(
+    public ResponseEntity<ClientResponse> registerParentClient(@Valid @RequestBody ParentClientRegisterRequest request) {
+        ParentClientRegisterCommand command = new ParentClientRegisterCommand(
                 request.clientCode(),
                 request.countryId(),
                 request.name(),
@@ -33,7 +33,25 @@ public class ClientRestController {
                 request.currency()
         );
 
-        Client client = clientService.registerClient(command);
+        Client client = clientService.registerParentClient(command);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ClientResponse.from(client));
+    }
+
+    @PostMapping("/child")
+    public ResponseEntity<ClientResponse> registerChildClient(@Valid @RequestBody ChildClientRegisterRequest request) {
+        ChildClientRegisterCommand command = new ChildClientRegisterCommand(
+                request.parentClientId(),
+                request.clientCode(),
+                request.countryId(),
+                request.name(),
+                request.address(),
+                request.contactNumber(),
+                request.email(),
+                request.currency()
+        );
+
+        Client client = clientService.registerChildClient(command);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ClientResponse.from(client));
     }
@@ -58,8 +76,15 @@ public class ClientRestController {
             @PathVariable Long clientId,
             @Valid @RequestBody ClientUpdateRequest request) {
 
-        // Service 호출
-        Client client = clientService.updateClient(clientId, request);
+        ChildClientUpdateCommand command = new ChildClientUpdateCommand(
+                request.name(),
+                request.countryId(),
+                request.address(),
+                request.contactNumber(),
+                request.email(),
+                request.currency()
+        );
+        Client client = clientService.updateClient(clientId, command);
         return ResponseEntity.ok(ClientResponse.from(client));
     }
 

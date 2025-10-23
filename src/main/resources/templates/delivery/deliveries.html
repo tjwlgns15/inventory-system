@@ -947,6 +947,43 @@
                 min-height: 300px;
             }
         }
+
+        #clientId {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+            font-family: 'notosanskr', sans-serif;
+        }
+
+        #clientId:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #clientId optgroup {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #374151;
+            background: #f9fafb;
+            padding: 8px 0;
+        }
+
+        #clientId optgroup option {
+            font-weight: 500;
+            color: #6b7280;
+            padding-left: 8px;
+        }
+
+        #clientId option {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -1169,10 +1206,45 @@
             allClients = await response.json();
 
             const clientSelect = document.getElementById('clientId');
-            clientSelect.innerHTML = '<option value="">거래처 선택</option>' +
-                allClients.map(client => `
-                    <option value="${client.id}">${client.name}</option>
-                `).join('');
+
+            // 상위 거래처와 하위 거래처 분류
+            const parentClients = allClients.filter(client => !client.parentClientId);
+            const childClients = allClients.filter(client => client.parentClientId);
+
+            // 상위 거래처별로 하위 거래처 그룹화
+            const clientGroups = new Map();
+
+            parentClients.forEach(parent => {
+                const children = childClients.filter(child => child.parentClientId === parent.id);
+                clientGroups.set(parent.id, {
+                    parent: parent,
+                    children: children
+                });
+            });
+
+            // HTML 생성
+            let html = '<option value="">거래처 선택</option>';
+
+            // 상위 거래처별로 처리
+            clientGroups.forEach((group, parentId) => {
+                if (group.children.length > 0) {
+                    // 하위 거래처가 있는 경우 - optgroup으로 묶기
+                    html += `<optgroup label="▶ ${group.parent.name} (${group.parent.clientCode})">`;
+                    html += `<option value="${group.parent.id}">└─ ${group.parent.name} (본사)</option>`;
+
+                    group.children.forEach(child => {
+                        html += `<option value="${child.id}">　└─ ${child.name} (${child.clientCode})</option>`;
+                    });
+
+                    html += `</optgroup>`;
+                } else {
+                    // 하위 거래처가 없는 상위 거래처 - 일반 option으로 표시
+                    html += `<option value="${group.parent.id}">${group.parent.name} (${group.parent.clientCode})</option>`;
+                }
+            });
+
+            clientSelect.innerHTML = html;
+
         } catch (error) {
             console.error('Error:', error);
             showNotification('거래처 목록을 불러오는데 실패했습니다', 'error');

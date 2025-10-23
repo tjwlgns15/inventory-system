@@ -402,14 +402,68 @@
             background: #e2e6ea;
             transform: translateY(-1px);
         }
+
+        .parent-row {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.08) 0%, rgba(102, 126, 234, 0.02) 100%);
+            font-weight: 600;
+        }
+
+        .parent-row td {
+            padding: 18px 16px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2) !important;
+        }
+
+        .child-row {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .child-row td:first-child {
+            padding-left: 48px;
+            position: relative;
+        }
+
+        .child-row td:first-child::before {
+            content: '└─';
+            position: absolute;
+            left: 24px;
+            color: #9ca3af;
+            font-weight: normal;
+        }
+
+        .client-type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-parent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .badge-child {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="clients-section">
         <div class="clients-header">
-            <h2 class="clients-title">거래처 관리</h2>
-            <button class="btn btn-primary" onclick="openRegisterModal()"><span>+ 거래처 등록</span></button>
+            <h1 class="clients-title">거래처 관리</h1>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="openRegisterModal('parent')">
+                    <span>+ 거래처 등록</span>
+                </button>
+                <button class="btn btn-primary" onclick="openRegisterModal('child')"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <span>+ 하위 거래처 등록</span>
+                </button>
+            </div>
         </div>
 
         <div class="content-card">
@@ -449,58 +503,121 @@
     </div>
 </div>
 
-<div id="registerModal" class="modal">
+<div id="registerParentModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeRegisterModal()">&times;</span>
+        <span class="close" onclick="closeRegisterModal('parent')">&times;</span>
         <h2 class="modal-header">거래처 등록</h2>
-        <form id="registerForm" onsubmit="registerClient(event)">
+        <form id="registerParentForm" onsubmit="registerClient(event, 'parent')">
             <div class="form-group">
-                <label class="form-label" for="clientCode">거래처 코드 *</label>
-                <input type="text" id="clientCode" class="form-input" required>
+                <label class="form-label" for="parentClientCode">거래처 코드 *</label>
+                <input type="text" id="parentClientCode" class="form-input" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="name">거래처명 *</label>
-                <input type="text" id="name" class="form-input" required>
+                <label class="form-label" for="parentName">고객명 *</label>
+                <input type="text" id="parentName" class="form-input" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="contactNumber">연락처</label>
-                <input type="tel" id="contactNumber" class="form-input" placeholder="예: 010-1234-5678">
+                <label class="form-label" for="parentContactNumber">연락처</label>
+                <input type="tel" id="parentContactNumber" class="form-input" placeholder="예: 010-1234-5678">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="email">이메일</label>
-                <input type="email" id="email" class="form-input" placeholder="예: example@company.com">
+                <label class="form-label" for="parentEmail">이메일</label>
+                <input type="email" id="parentEmail" class="form-input" placeholder="예: example@company.com">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="address">주소</label>
-                <input type="text" id="address" class="form-input">
+                <label class="form-label" for="parentAddress">주소</label>
+                <input type="text" id="parentAddress" class="form-input">
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="countryId">국가 *</label>
-                <select id="countryId" class="form-select" required>
+                <label class="form-label" for="parentCountryId">국가 *</label>
+                <select id="parentCountryId" class="form-select" required>
                     <option value="">국가 선택</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="currency">통화 *</label>
-                <select id="currency" class="form-select" required>
+                <label class="form-label" for="parentCurrency">통화 *</label>
+                <select id="parentCurrency" class="form-select" required>
                     <option value="">통화 선택</option>
                     <option value="KRW">원화 (₩)</option>
                     <option value="USD">달러 ($)</option>
-                    <option value="JPY">엔화 (¥)</option>
                     <option value="EUR">유로 (€)</option>
+                    <option value="JPY">엔화 (¥)</option>
                     <option value="CNY">위안 (¥)</option>
-                    <option value="GBP">파운드 (£)</option>
                 </select>
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeRegisterModal()">취소</button>
+                <button type="button" class="btn btn-secondary" onclick="closeRegisterModal('parent')">취소</button>
+                <button type="submit" class="btn btn-primary"><span>등록</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="registerChildModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeRegisterModal('child')">&times;</span>
+        <h2 class="modal-header">하위 거래처 등록</h2>
+        <form id="registerChildForm" onsubmit="registerClient(event, 'child')">
+            <div class="form-group">
+                <label class="form-label" for="childParentClientId">소속 *</label>
+                <select id="childParentClientId" class="form-select" required>
+                    <option value="">선택</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childClientCode">거래처 코드 *</label>
+                <input type="text" id="childClientCode" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childName">고객명 *</label>
+                <input type="text" id="childName" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childContactNumber">연락처</label>
+                <input type="tel" id="childContactNumber" class="form-input" placeholder="예: 010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childEmail">이메일</label>
+                <input type="email" id="childEmail" class="form-input" placeholder="예: example@company.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childAddress">주소</label>
+                <input type="text" id="childAddress" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childCountryId">국가 *</label>
+                <select id="childCountryId" class="form-select" required>
+                    <option value="">국가 선택</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childCurrency">통화 *</label>
+                <select id="childCurrency" class="form-select" required>
+                    <option value="">통화 선택</option>
+                    <option value="KRW">원화 (₩)</option>
+                    <option value="USD">달러 ($)</option>
+                    <option value="EUR">유로 (€)</option>
+                    <option value="JPY">엔화 (¥)</option>
+                    <option value="CNY">위안 (¥)</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeRegisterModal('child')">취소</button>
                 <button type="submit" class="btn btn-primary"><span>등록</span></button>
             </div>
         </form>
@@ -637,8 +754,8 @@
 
     function renderClients(clients) {
         const tbody = document.getElementById('clientsTableBody');
-        const emptyState = document.getElementById('emptyState');
         const table = document.getElementById('clientsTable');
+        const emptyState = document.getElementById('emptyState');
 
         if (clients.length === 0) {
             table.style.display = 'none';
@@ -649,69 +766,254 @@
         table.style.display = 'table';
         emptyState.style.display = 'none';
 
-        tbody.innerHTML = clients.map(client => `
-            <tr>
-                <td><strong>${escapeHtml(client.clientCode)}</strong></td>
-                <td>${escapeHtml(client.name)}</td>
-                <td>${escapeHtml(client.contactNumber || '-')}</td>
-                <td>${escapeHtml(client.email || '-')}</td>
-                <td>${escapeHtml(client.address || '-')}</td>
-                <td>${escapeHtml(client.countryName || '-')}</td>
+        // 회사별로 그룹핑
+        const grouped = groupClientsByParent(clients);
+
+        tbody.innerHTML = grouped.map(group =>
+            renderParentGroup(group)
+        ).join('');
+    }
+
+    // 회사별로 거래처 그룹핑하는 함수
+    function groupClientsByParent(clients) {
+        const parents = clients.filter(c => c.clientType === 'PARENT');
+        const children = clients.filter(c => c.clientType === 'CHILD');
+
+        return parents.map(p => ({
+            parent: p,
+            children: children.filter(c => c.parentClientId === p.id)
+        }));
+    }
+
+    // 회사와 팀을 함께 렌더링하는 함수
+    function renderParentGroup(group) {
+        const { parent, children } = group;
+
+        // 회사 행
+        const parentRow = `
+            <tr class="parent-row">
                 <td>
-                    <strong>${client.currencySymbol || ''} ${client.currency || '-'}</strong>
+                    <span class="client-type-badge badge-parent">🏢</span>
+                    <strong>${escapeHtml(parent.clientCode)}</strong>
+                </td>
+                <td><strong>${escapeHtml(parent.name)}</strong></td>
+                <td>${escapeHtml(parent.contactNumber || '-')}</td>
+                <td>${escapeHtml(parent.email || '-')}</td>
+                <td>${escapeHtml(parent.address || '-')}</td>
+                <td>${escapeHtml(parent.countryName || '-')}</td>
+                <td>
+                    <strong>${parent.currencySymbol || ''} ${parent.currency || '-'}</strong>
                 </td>
                 <td>
-                <div class="action-buttons">
-                    <button class="btn btn-warning" onclick="openUpdateModal(${client.id})">수정</button>
-                    <button class="btn btn-danger" onclick="openDeleteModal(${client.id})">삭제</button>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning" onclick="openUpdateModal(${parent.id})">수정</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${parent.id})">삭제</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        // 팀 행들
+        const childRows = children.map(child => `
+            <tr class="child-row">
+                <td>
+                    <span class="client-type-badge badge-child">📁</span>
+                    <strong>${escapeHtml(child.clientCode)}</strong>
+                </td>
+                <td>${escapeHtml(child.name)}</td>
+                <td>${escapeHtml(child.contactNumber || '-')}</td>
+                <td>${escapeHtml(child.email || '-')}</td>
+                <td>${escapeHtml(child.address || '-')}</td>
+                <td>${escapeHtml(child.countryName || '-')}</td>
+                <td>
+                    <strong>${child.currencySymbol || ''} ${child.currency || '-'}</strong>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-warning" onclick="openUpdateModal(${child.id})">수정</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${child.id})">삭제</button>
+                    </div>
                 </td>
             </tr>
         `).join('');
+
+        return parentRow + childRows;
     }
 
+    // 843-851 라인의 filterClients 함수를 다음으로 교체
     function filterClients() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredClients = allClients.filter(client =>
-            client.clientCode.toLowerCase().includes(searchTerm) ||
-            client.name.toLowerCase().includes(searchTerm)
-        );
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+        if (!searchTerm) {
+            renderClients(allClients);
+            return;
+        }
+
+        const matchedClients = new Set();
+
+        allClients.forEach(client => {
+            const isDirectMatch =
+                client.clientCode.toLowerCase().includes(searchTerm) ||
+                client.name.toLowerCase().includes(searchTerm) ||
+                (client.countryName && client.countryName.toLowerCase().includes(searchTerm)) ||
+                (client.parentClientName && client.parentClientName.toLowerCase().includes(searchTerm));
+
+            if (isDirectMatch) {
+                matchedClients.add(client);
+
+                // 매칭된 거래처가 부모인 경우, 모든 하위 거래처 추가
+                if (client.clientType === 'PARENT') {
+                    allClients.forEach(childClient => {
+                        if (childClient.parentClientId === client.id) {
+                            matchedClients.add(childClient);
+                        }
+                    });
+                }
+
+                // 매칭된 거래처가 자식인 경우, 부모 거래처 추가
+                if (client.clientType === 'CHILD' && client.parentClientId) {
+                    const parentClient = allClients.find(c => c.id === client.parentClientId);
+                    if (parentClient) {
+                        matchedClients.add(parentClient);
+                    }
+                }
+            }
+        });
+
+        const filteredClients = Array.from(matchedClients);
         renderClients(filteredClients);
     }
 
-    function openRegisterModal() {
-        document.getElementById('registerModal').style.display = 'block';
-        document.getElementById('registerForm').reset();
+    // function openRegisterModal() {
+    //     document.getElementById('registerModal').style.display = 'block';
+    //     document.getElementById('registerForm').reset();
+    //
+    //     const countrySelect = document.getElementById('countryId');
+    //     countrySelect.innerHTML = '<option value="">국가 선택</option>' +
+    //         allCountries.map(country => `
+    //         <option value="${country.id}">${country.name} (${country.code})</option>
+    //     `).join('');
+    //
+    //     setTimeout(() => {
+    //         document.getElementById('clientCode').focus();
+    //     }, 100);
+    // }
+    //
+    // function closeRegisterModal() {
+    //     document.getElementById('registerModal').style.display = 'none';
+    // }
+    function openRegisterModal(type) {
+        if (type === 'parent') {
+            document.getElementById('registerParentModal').style.display = 'block';
+            document.getElementById('registerParentForm').reset();
 
-        const countrySelect = document.getElementById('countryId');
-        countrySelect.innerHTML = '<option value="">국가 선택</option>' +
-            allCountries.map(country => `
-            <option value="${country.id}">${country.name} (${country.code})</option>
-        `).join('');
+            const countrySelect = document.getElementById('parentCountryId');
+            countrySelect.innerHTML = '<option value="">국가 선택</option>' +
+                allCountries.map(country => `
+                    <option value="${country.id}">${country.name} (${country.code})</option>
+                `).join('');
 
-        setTimeout(() => {
-            document.getElementById('clientCode').focus();
-        }, 100);
+            setTimeout(() => {
+                document.getElementById('parentClientCode').focus();
+            }, 100);
+        } else if (type === 'child') {
+            document.getElementById('registerChildModal').style.display = 'block';
+            document.getElementById('registerChildForm').reset();
+
+            // 상위 회사 목록 로드
+            const parentSelect = document.getElementById('childParentClientId');
+            const parents = allClients.filter(client => client.clientType === 'PARENT');
+            parentSelect.innerHTML = '<option value="">회사 선택</option>' +
+                parents.map(org => `
+                    <option value="${org.id}">${org.name} (${org.clientCode})</option>
+                `).join('');
+
+            const countrySelect = document.getElementById('childCountryId');
+            countrySelect.innerHTML = '<option value="">국가 선택</option>' +
+                allCountries.map(country => `
+                    <option value="${country.id}">${country.name} (${country.code})</option>
+                `).join('');
+
+            setTimeout(() => {
+                document.getElementById('childParentClientId').focus();
+            }, 100);
+        }
     }
 
-    function closeRegisterModal() {
-        document.getElementById('registerModal').style.display = 'none';
+    function closeRegisterModal(type) {
+        if (type === 'parent') {
+            document.getElementById('registerParentModal').style.display = 'none';
+        } else if (type === 'child') {
+            document.getElementById('registerChildModal').style.display = 'none';
+        }
     }
 
-    async function registerClient(event) {
+
+    // async function registerClient(event) {
+    //     event.preventDefault();
+    //
+    //     const clientData = {
+    //         clientCode: document.getElementById('clientCode').value,
+    //         name: document.getElementById('name').value,
+    //         contactNumber: document.getElementById('contactNumber').value,
+    //         email: document.getElementById('email').value,
+    //         address: document.getElementById('address').value,
+    //         countryId: parseInt(document.getElementById('countryId').value),
+    //         currency: document.getElementById('currency').value
+    //     };
+    //
+    //     try {
+    //         const response = await fetch(API_BASE_URL, {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(clientData)
+    //         });
+    //
+    //         if (!response.ok) {
+    //             const errorData = await response.json();
+    //             throw new Error(errorData.message || '거래처 등록에 실패했습니다');
+    //         }
+    //
+    //         showNotification('거래처가 성공적으로 등록되었습니다', 'success');
+    //         closeRegisterModal();
+    //         await loadClients();
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //         showNotification(error.message, 'error');
+    //     }
+    // }
+    async function registerClient(event, type) {
         event.preventDefault();
 
-        const clientData = {
-            clientCode: document.getElementById('clientCode').value,
-            name: document.getElementById('name').value,
-            contactNumber: document.getElementById('contactNumber').value,
-            email: document.getElementById('email').value,
-            address: document.getElementById('address').value,
-            countryId: parseInt(document.getElementById('countryId').value),
-            currency: document.getElementById('currency').value
-        };
+        let clientData;
+        let apiUrl = API_BASE_URL;
+
+        if (type === 'parent') {
+            clientData = {
+                clientCode: document.getElementById('parentClientCode').value,
+                name: document.getElementById('parentName').value,
+                contactNumber: document.getElementById('parentContactNumber').value,
+                email: document.getElementById('parentEmail').value,
+                address: document.getElementById('parentAddress').value,
+                countryId: parseInt(document.getElementById('parentCountryId').value),
+                currency: document.getElementById('parentCurrency').value
+            };
+        } else if (type === 'child') {
+            apiUrl = `${API_BASE_URL}/child`;
+            clientData = {
+                parentClientId: parseInt(document.getElementById('childParentClientId').value),
+                clientCode: document.getElementById('childClientCode').value,
+                name: document.getElementById('childName').value,
+                contactNumber: document.getElementById('childContactNumber').value,
+                email: document.getElementById('childEmail').value,
+                address: document.getElementById('childAddress').value,
+                countryId: parseInt(document.getElementById('childCountryId').value),
+                currency: document.getElementById('childCurrency').value
+            };
+        }
 
         try {
-            const response = await fetch(API_BASE_URL, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(clientData)
@@ -722,8 +1024,9 @@
                 throw new Error(errorData.message || '거래처 등록에 실패했습니다');
             }
 
-            showNotification('거래처가 성공적으로 등록되었습니다', 'success');
-            closeRegisterModal();
+            const successMsg = type === 'parent' ? '회사가 성공적으로 등록되었습니다' : '팀이 성공적으로 등록되었습니다';
+            showNotification(successMsg, 'success');
+            closeRegisterModal(type);
             await loadClients();
         } catch (error) {
             console.error('Error:', error);
@@ -873,12 +1176,15 @@
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
-            const registerModal = document.getElementById('registerModal');
+            const registerParentModal = document.getElementById('registerParentModal');
+            const registerChildModal = document.getElementById('registerChildModal');
             const updateModal = document.getElementById('updateModal');
             const deleteModal = document.getElementById('deleteModal');
 
-            if (registerModal.style.display === 'block') {
-                closeRegisterModal();
+            if (registerParentModal.style.display === 'block') {
+                closeRegisterModal('parent');
+            } else if (registerChildModal.style.display === 'block') {
+                closeRegisterModal('child');
             } else if (updateModal.style.display === 'block') {
                 closeUpdateModal();
             } else if (deleteModal.style.display === 'block') {

@@ -23,14 +23,17 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final CountryRepository countryRepository;
 
+    /**
+     * 상위 거래처 생성
+     */
     @Transactional
-    public Client registerClient(ClientRegisterCommand command) {
+    public Client registerParentClient(ParentClientRegisterCommand command) {
         validateClientCodeDuplication(command.clientCode());
 
         Country country = countryRepository.findById(command.countryId())
                 .orElseThrow(() -> ResourceNotFoundException.country(command.countryId()));
 
-        Client client = new Client(
+        Client parentClient = new Client(
                 command.clientCode(),
                 country,
                 command.name(),
@@ -40,8 +43,34 @@ public class ClientService {
                 command.currency()
         );
 
-        return clientRepository.save(client);
+        return clientRepository.save(parentClient);
     }
+
+    /**
+     * 하위 거래처 생성
+     */
+    @Transactional
+    public Client registerChildClient(ChildClientRegisterCommand command) {
+        Client parentClient = clientRepository.findById(command.parentClientId())
+                .orElseThrow(() -> ResourceNotFoundException.client(command.parentClientId()));
+
+        Country country = countryRepository.findById(command.countryId())
+                .orElseThrow(() -> ResourceNotFoundException.country(command.countryId()));
+
+        Client childClient = new Client(
+                command.clientCode(),
+                parentClient,
+                country,
+                command.name(),
+                command.address(),
+                command.contactNumber(),
+                command.email()
+        );
+
+        parentClient.addChildClient(childClient);
+        return clientRepository.save(childClient);
+    }
+
 
     public List<Client> findAllClient() {
         return clientRepository.findAllActiveWithCountry();
@@ -53,19 +82,19 @@ public class ClientService {
     }
 
     @Transactional
-    public Client updateClient(Long clientId, ClientUpdateRequest request) {
+    public Client updateClient(Long clientId, ChildClientUpdateCommand command) {
         Client client = findClientById(clientId);
 
-        Country country = countryRepository.findById(request.countryId())
-                .orElseThrow(() -> ResourceNotFoundException.country(request.countryId()));
+        Country country = countryRepository.findById(command.countryId())
+                .orElseThrow(() -> ResourceNotFoundException.country(command.countryId()));
 
         client.updateInfo(
-                request.name(),
+                command.name(),
                 country,
-                request.address(),
-                request.contactNumber(),
-                request.email(),
-                request.currency()
+                command.address(),
+                command.contactNumber(),
+                command.email(),
+                command.currency()
         );
 
         return client;

@@ -14,6 +14,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     boolean existsByClientCodeAndNotDeleted(String clientCode);
 
     @Query("SELECT c FROM Client c " +
+            "LEFT JOIN FETCH c.parentClient " +
             "WHERE c.id = :clientId AND c.deletedAt IS NULL")
     Optional<Client> findByIdAndDeletedAt(Long clientId);
 
