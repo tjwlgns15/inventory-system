@@ -92,6 +92,23 @@ public class Delivery extends BaseTimeEntity {
         this.totalAmountKRW = BigDecimal.ZERO;
     }
 
+    /**
+     * 일괄 등록용 생성자 (status, deliveredAt 포함)
+     * 과거 데이터 마이그레이션 등에 사용
+     */
+    public Delivery(String deliveryNumber, Client client, LocalDate orderedAt, LocalDate requestedAt,
+                    DeliveryStatus status, LocalDateTime deliveredAt) {
+        this.deliveryNumber = deliveryNumber;
+        this.client = client;
+        this.orderedAt = orderedAt;
+        this.requestedAt = requestedAt;
+        this.status = status != null ? status : DeliveryStatus.PENDING;
+        this.deliveredAt = deliveredAt;
+        this.subtotalAmount = BigDecimal.ZERO;
+        this.totalAmount = BigDecimal.ZERO;
+        this.totalAmountKRW = BigDecimal.ZERO;
+    }
+
     public void addItem(DeliveryItem item) {
         this.items.add(item);
         calculateTotalAmount();

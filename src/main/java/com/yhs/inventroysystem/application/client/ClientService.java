@@ -64,7 +64,8 @@ public class ClientService {
                 command.name(),
                 command.address(),
                 command.contactNumber(),
-                command.email()
+                command.email(),
+                command.currency()
         );
 
         parentClient.addChildClient(childClient);

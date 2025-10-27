@@ -1153,8 +1153,8 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <div style="text-align: right;">
-                            <span class="client-total">${formatPriceByCurrency(client.totalAmount, client.currency)}</span>
-                            ${krwAmount}
+                            <span class="client-total">${formatPrice(client.totalAmountKRW)}</span>
+                            ${client.currency !== 'KRW' ? `<div style="font-size: 0.875rem; color: #6b7280; margin-top: 4px;">(${formatPriceByCurrency(client.totalAmount, client.currency)})</div>` : ''}
                         </div>
                         ${detailButton}
                     </div>
@@ -1170,14 +1170,19 @@
                         </tr>
                         </thead>
                         <tbody>
-                            ${client.productSales.map(product => `
-                                <tr>
-                                    <td><strong>${product.productCode}</strong></td>
-                                    <td>${product.productName}</td>
-                                    <td>${product.quantity.toLocaleString()}</td>
-                                    <td class="price-text">${formatPriceByCurrency(product.totalAmount, client.currency)}</td>
-                                </tr>
-                            `).join('')}
+                            ${client.productSales.map(product => {
+                                const productKrwDisplay = client.currency === 'KRW'
+                                    ? formatPrice(product.totalAmountKRW)
+                                    : `${formatPriceByCurrency(product.totalAmount, client.currency)}<div style="font-size: 0.75rem; color: #6b7280; margin-top: 2px;">(₩${formatNumber(product.totalAmountKRW)})</div>`;
+                                return `
+                                        <tr>
+                                            <td><strong>${product.productCode}</strong></td>
+                                            <td>${product.productName}</td>
+                                            <td>${product.quantity.toLocaleString()}</td>
+                                            <td class="price-text">${productKrwDisplay}</td>
+                                        </tr>
+                                    `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>

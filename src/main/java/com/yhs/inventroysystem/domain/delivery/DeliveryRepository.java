@@ -69,4 +69,21 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
         LIMIT 1
     """)
     Integer findLastSequenceByYearMonth(@Param("yearMonth") String yearMonth);
+
+
+    boolean existsByDeliveryNumber(String deliveryNumber);
+
+    @Query("SELECT d FROM Delivery d " +
+            "JOIN FETCH d.client " +
+            "WHERE d.deliveryNumber = :deliveryNumber")
+    Optional<Delivery> findByDeliveryNumber(@Param("deliveryNumber") String deliveryNumber);
+
+    @Query("""
+        SELECT CAST(SUBSTRING(d.deliveryNumber, LOCATE('-', d.deliveryNumber, LOCATE('-', d.deliveryNumber) + 1) + 1) AS integer)
+        FROM Delivery d
+        WHERE d.deliveryNumber LIKE CONCAT('SOLM-PO-', :year, '-%')
+        ORDER BY d.deliveryNumber DESC
+        LIMIT 1
+    """)
+    Integer findLastSequenceByYear(@Param("year") String year);
 }

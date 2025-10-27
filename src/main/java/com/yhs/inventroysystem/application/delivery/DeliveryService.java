@@ -197,15 +197,15 @@ public class DeliveryService {
     }
 
     private String generateDeliveryNumber(LocalDate orderedAt) {
-        String yearMonth = orderedAt.format(DateTimeFormatter.ofPattern("yyMM"));
+        String year = orderedAt.format(DateTimeFormatter.ofPattern("yyyy"));
 
-        String prefix = DELIVERY_PREFIX + yearMonth;
-        Integer lastSequence = deliveryRepository.findLastSequenceByYearMonth(yearMonth);
+        String prefix = DELIVERY_PREFIX + year;
+        Integer lastSequence = deliveryRepository.findLastSequenceByYear(year);
 
         if (lastSequence == null) {
-            return String.format("%s-%03d", prefix, 1);
+            return String.format("%s-%d", prefix, 1);
         } else {
-            return String.format("%s-%03d", prefix, lastSequence + 1);
+            return String.format("%s-%d", prefix, lastSequence + 1);
         }
     }
 

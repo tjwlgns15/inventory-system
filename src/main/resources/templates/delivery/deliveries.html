@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>수주/납품 관리</title>
+    <title>수주/출하 관리</title>
     <style>
         @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
 
@@ -990,7 +990,7 @@
 <div class="container">
     <div class="deliveries-section">
         <div class="deliveries-header">
-            <h2 class="deliveries-title">수주/납품 관리</h2>
+            <h2 class="deliveries-title">수주/출하 관리</h2>
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" onclick="openCreateModal()">
                     <span>+ 수주 등록</span>
@@ -1094,7 +1094,7 @@
 
                 <div class="delivery-right-column">
                     <div class="form-group full-height-items">
-                        <label class="form-label">납품 항목 *</label>
+                        <label class="form-label">출하 항목 *</label>
                         <div class="item-mapping-list" id="itemMappingList">
                             <p style="text-align: center; color: #6b7280; padding: 20px;">거래처를 선택해주세요</p>
                         </div>
@@ -1656,7 +1656,7 @@
             <td>
                 <div class="action-buttons">
                     ${delivery.status === 'PENDING' ? `
-                        <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">납품</button>
+                        <button class="btn btn-success" onclick="completeDelivery(${delivery.id})">출하</button>
                         <button class="btn btn-danger" onclick="openCancelModal(${delivery.id})">취소</button>
                     ` : ''}
                 </div>
@@ -2060,7 +2060,7 @@
     }
 
     async function completeDelivery(deliveryId) {
-        if (!confirm('이 수주를 납품 완료 처리하시겠습니까?')) {
+        if (!confirm('이 수주를 출하 완료 처리하시겠습니까?')) {
             return;
         }
 
@@ -2071,10 +2071,10 @@
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || '납품 완료 처리에 실패했습니다');
+                throw new Error(errorData.message || '출하 완료 처리에 실패했습니다');
             }
 
-            showNotification('납품이 완료 처리되었습니다', 'success');
+            showNotification('출하 완료 처리되었습니다', 'success');
             await loadDeliveries();
         } catch (error) {
             console.error('Error:', error);
@@ -2085,18 +2085,18 @@
     function openCancelModal(deliveryId) {
         const delivery = allDeliveries.find(d => d.id === deliveryId);
         if (!delivery) {
-            showNotification('납품을 찾을 수 없습니다', 'error');
+            showNotification('출하 정보를 찾을 수 없습니다', 'error');
             return;
         }
 
         cancelTargetId = deliveryId;
         document.getElementById('cancelDeliveryInfo').innerHTML = `
-        <strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}<br>
-        <strong>거래처:</strong> ${escapeHtml(delivery.clientName)}<br>
-        <strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}<br>
-        <strong>수주일:</strong> ${formatDateTime(delivery.orderedAt)}<br>
-        <strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}
-    `;
+            <strong>영업접수번호:</strong> ${escapeHtml(delivery.deliveryNumber)}<br>
+            <strong>거래처:</strong> ${escapeHtml(delivery.clientName)}<br>
+            <strong>금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}<br>
+            <strong>수주일:</strong> ${formatDateTime(delivery.orderedAt)}<br>
+            <strong>출하요청일:</strong> ${formatDateTime(delivery.requestedAt)}
+        `;
         document.getElementById('cancelModal').style.display = 'block';
     }
 

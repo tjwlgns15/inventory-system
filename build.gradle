@@ -45,6 +45,7 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
     implementation 'org.apache.poi:poi-ooxml:5.2.3' // Excel
+    implementation 'org.apache.commons:commons-csv:1.11.0'
 
 }
 

@@ -69,7 +69,8 @@ public class Client extends BaseTimeEntity {
 
     // 하위 거래처 생성
     public Client(String clientCode, Client parentClient, Country country,
-                  String name, String address, String contactNumber, String email) {
+                  String name, String address, String contactNumber,
+                  String email, Currency currency) {
         if (parentClient.isTeam()) {
             throw new IllegalArgumentException("팀 하위에는 팀을 생성할 수 없습니다.");
         }
@@ -80,7 +81,7 @@ public class Client extends BaseTimeEntity {
         this.address = address;
         this.contactNumber = contactNumber;
         this.email = email;
-        this.currency = parentClient.getCurrency();
+        this.currency = currency;
         this.clientType = ClientType.CHILD;
     }
 
@@ -103,9 +104,14 @@ public class Client extends BaseTimeEntity {
 
     public void markAsDeleted() {
         ensureNotDeleted();
-        if (isOrganization() && !childClients.isEmpty()) {
+
+        boolean hasActiveChildren = childClients.stream()
+                .anyMatch(child -> child.getDeletedAt() == null);
+
+        if (isOrganization() && hasActiveChildren) {
             throw new IllegalStateException("하위 팀이 존재하는 회사는 삭제할 수 없습니다.");
         }
+
         this.clientCode = this.clientCode + "_DELETED_" + System.currentTimeMillis();
         this.deletedAt = LocalDateTime.now();
     }
