@@ -128,4 +128,25 @@ public class ProductDtos {
 
             List<PartMappingRequest> partMappings
     ) {}
+
+    public record MaxProducibleResponse(Long productId, Integer maxProducibleQuantity) {}
+
+    public record ProductionValidationRequest(Integer quantity) {}
+
+    public record ProductionValidationResponse(
+            boolean canProduce,
+            Integer requestedQuantity,
+            Integer maxProducibleQuantity,
+            List<InsufficientPartInfo> insufficientParts
+    ) {}
+
+    public record InsufficientPartInfo(
+            Long partId,
+            String partName,
+            String partCode,
+            Integer requiredPerProduct,
+            Integer totalRequired,
+            Integer availableStock,
+            Integer shortage
+    ) {}
 }

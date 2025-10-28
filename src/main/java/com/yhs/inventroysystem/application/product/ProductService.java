@@ -238,4 +238,69 @@ public class ProductService {
                         quantity,
                         product.getStockQuantity());
     }
+
+    /**
+     * 제품의 최대 생산 가능 수량 계산
+     */
+    public Integer calculateMaxProducibleQuantity(Long productId) {
+        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
+                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+
+        // 부품이 없으면 제한 없음 (매우 큰 수 반환)
+        if (product.getPartMappings().isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
+
+        Integer maxQuantity = Integer.MAX_VALUE;
+
+        // 각 부품별로 생산 가능한 최대 수량 계산
+        for (ProductPart mapping : product.getPartMappings()) {
+            Part part = mapping.getPart();
+            Integer availableStock = part.getStockQuantity();
+            Integer requiredPerProduct = mapping.getRequiredQuantity();
+
+            // 해당 부품으로 생산 가능한 최대 수량
+            Integer producibleByThisPart = availableStock / requiredPerProduct;
+
+            // 가장 적게 생산 가능한 수량이 최대 생산 가능 수량
+            maxQuantity = Math.min(maxQuantity, producibleByThisPart);
+        }
+
+        return maxQuantity;
+    }
+
+    /**
+     * 특정 수량 생산 시 부족한 부품 정보 계산
+     */
+    public List<InsufficientPartDetail> calculateInsufficientParts(Long productId, Integer requestedQuantity) {
+        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
+                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+
+        if (product.getPartMappings().isEmpty()) {
+            return List.of();
+        }
+
+        List<InsufficientPartDetail> insufficientParts = new java.util.ArrayList<>();
+
+        for (ProductPart mapping : product.getPartMappings()) {
+            Part part = mapping.getPart();
+            Integer requiredTotal = mapping.calculateTotalRequired(requestedQuantity);
+            Integer availableStock = part.getStockQuantity();
+
+            if (availableStock < requiredTotal) {
+                insufficientParts.add(new InsufficientPartDetail(
+                        part.getId(),
+                        part.getName(),
+                        part.getPartCode(),
+                        mapping.getRequiredQuantity(),
+                        requiredTotal,
+                        availableStock,
+                        requiredTotal - availableStock
+                ));
+            }
+        }
+
+        return insufficientParts;
+    }
+
 }

@@ -112,6 +112,48 @@ public class ProductRestController {
     }
 
     /**
+     * 제품의 최대 생산 가능 수량 조회
+     */
+    @GetMapping("/{productId}/max-producible")
+    public ResponseEntity<MaxProducibleResponse> getMaxProducibleQuantity(@PathVariable Long productId) {
+        Integer maxQuantity = productService.calculateMaxProducibleQuantity(productId);
+        return ResponseEntity.ok(new MaxProducibleResponse(productId, maxQuantity));
+    }
+
+    /**
+     * 생산 가능 여부 검증 (부족 부품 정보 포함)
+     */
+    @PostMapping("/{productId}/validate-production")
+    public ResponseEntity<ProductionValidationResponse> validateProduction(
+            @PathVariable Long productId,
+            @RequestBody ProductionValidationRequest request) {
+
+        List<InsufficientPartDetail> insufficientParts =
+                productService.calculateInsufficientParts(productId, request.quantity());
+
+        Integer maxQuantity = productService.calculateMaxProducibleQuantity(productId);
+
+        ProductionValidationResponse response = new ProductionValidationResponse(
+                insufficientParts.isEmpty(),
+                request.quantity(),
+                maxQuantity,
+                insufficientParts.stream()
+                        .map(detail -> new InsufficientPartInfo(
+                                detail.partId(),
+                                detail.partName(),
+                                detail.partCode(),
+                                detail.requiredPerProduct(),
+                                detail.totalRequired(),
+                                detail.availableStock(),
+                                detail.shortage()
+                        ))
+                        .toList()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * 제품 정보 수정
      */
     @PatchMapping("/{productId}")

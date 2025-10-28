@@ -994,13 +994,29 @@
             <input type="hidden" id="productionProductId">
 
             <div class="form-group">
-                <label class="form-label" for="productionQuantity">생산 수량 *</label>
-                <input type="number" id="productionQuantity" class="form-input" min="1" required>
+                <label class="form-label" for="productionQuantity">
+                    생산 수량 *
+                    <span id="maxQuantityHint" style="font-size: 0.85rem; color: #6b7280; font-weight: normal;"></span>
+                </label>
+                <input type="number" id="productionQuantity" class="form-input" min="1" required
+                       oninput="validateProductionQuantity()">
+            </div>
+
+            <!-- 부족 부품 안내 영역 -->
+            <div id="insufficientPartsAlert" style="display: none; margin-top: 12px; padding: 16px; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <div style="flex: 1;">
+                        <span style="color: #dc2626; font-size: 1.2rem;">⚠️</span>
+                        <strong style="color: #dc2626; font-size: 0.95rem;">부족한 부품이 있습니다</strong>
+                        <div id="insufficientPartsList" style="margin-top: 8px; font-size: 0.875rem; color: #991b1b;">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeProductionModal()">취소</button>
-                <button type="submit" class="btn btn-primary"><span>생산</span></button>
+                <button type="submit" class="btn btn-primary" id="productionSubmitBtn"><span>생산</span></button>
             </div>
         </form>
     </div>
@@ -1783,14 +1799,170 @@
         }
     }
 
-    function openProductionModal(productId) {
+    async function openProductionModal(productId) {
         document.getElementById('productionProductId').value = productId;
         document.getElementById('productionForm').reset();
         document.getElementById('productionModal').style.display = 'block';
 
-        setTimeout(() => {
-            document.getElementById('productionQuantity').focus();
-        }, 100);
+        // 부족 부품 알림 숨기기
+        document.getElementById('insufficientPartsAlert').style.display = 'none';
+        document.getElementById('productionSubmitBtn').disabled = false;
+
+        try {
+            // 최대 생산 가능 수량 조회
+            const response = await fetch(`${API_BASE_URL}/${productId}/max-producible`);
+            if (response.ok) {
+                const data = await response.json();
+                const maxQuantity = data.maxProducibleQuantity;
+
+                // 최대 수량을 입력란에 자동 입력
+                const quantityInput = document.getElementById('productionQuantity');
+                quantityInput.value = maxQuantity === 2147483647 ? 100 : maxQuantity; // Integer.MAX_VALUE인 경우 100으로 설정
+
+                // 힌트 메시지 표시
+                const hint = document.getElementById('maxQuantityHint');
+                if (maxQuantity === 2147483647) {
+                    hint.textContent = '(부품 제약 없음)';
+                    hint.style.color = '#10b981';
+                } else if (maxQuantity === 0) {
+                    hint.textContent = '(생산 불가 - 부품 부족)';
+                    hint.style.color = '#dc2626';
+                    quantityInput.value = 1;
+                    await validateProductionQuantity(); // 즉시 검증하여 부족 부품 표시
+                } else {
+                    hint.textContent = `(최대: ${maxQuantity}개)`;
+                    hint.style.color = '#6b7280';
+                }
+
+                setTimeout(() => {
+                    quantityInput.focus();
+                    quantityInput.select();
+                }, 100);
+            }
+        } catch (error) {
+            console.error('최대 생산 가능 수량 조회 실패:', error);
+            setTimeout(() => {
+                document.getElementById('productionQuantity').focus();
+            }, 100);
+        }
+    }
+
+    // 생산 수량 검증 및 부족 부품 표시
+    let validationTimeout;
+    async function validateProductionQuantity() {
+        // 디바운싱 처리
+        clearTimeout(validationTimeout);
+
+        validationTimeout = setTimeout(async () => {
+            const productId = document.getElementById('productionProductId').value;
+            const quantity = parseInt(document.getElementById('productionQuantity').value);
+
+            if (!quantity || quantity < 1) {
+                document.getElementById('insufficientPartsAlert').style.display = 'none';
+                document.getElementById('productionSubmitBtn').disabled = false;
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${productId}/validate-production`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantity: quantity })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (!data.canProduce && data.insufficientParts.length > 0) {
+                        // 부족 부품이 있는 경우
+                        displayInsufficientParts(data.insufficientParts);
+                        document.getElementById('productionSubmitBtn').disabled = true;
+                    } else {
+                        // 생산 가능한 경우
+                        document.getElementById('insufficientPartsAlert').style.display = 'none';
+                        document.getElementById('productionSubmitBtn').disabled = false;
+                    }
+                }
+            } catch (error) {
+                console.error('생산 검증 실패:', error);
+            }
+        }, 300); // 300ms 디바운싱
+    }
+
+    // 부족 부품 정보 표시
+    function displayInsufficientParts(insufficientParts) {
+        const alert = document.getElementById('insufficientPartsAlert');
+        const listContainer = document.getElementById('insufficientPartsList');
+
+        const partsList = insufficientParts.map(part => `
+            <div style="margin-bottom: 8px; padding: 8px; background-color: white; border-radius: 4px;">
+                <div style="font-size: 1em; font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between;">
+                    <div style="align-content: center; font-size: 1.1em">${escapeHtml(part.partName)} (${escapeHtml(part.partCode)})</div>
+                    <div>
+                        <input type="number"
+                             id="inbound-${part.partId}"
+                             min="1"
+                             class="form-input"
+                             placeholder="입고 수량"
+                             style="max-width:150px; padding: 6px 9px;">
+                        <input type="button" class="btn btn-success" onclick="inboundPart(${part.partId})" value="입고">
+                    </div>
+                </div>
+                <div style="font-size: 0.8rem; color: #7f1d1d;">
+                    • 제품당 필요: ${part.requiredPerProduct}개<br>
+                    • 총 필요 수량: ${part.totalRequired}개<br>
+                    • 현재 재고: ${part.availableStock}개<br>
+                    • <span style="font-weight: 600;">부족 수량: ${part.shortage}개</span>
+                </div>
+            </div>
+        `).join('');
+
+        listContainer.innerHTML = partsList;
+        alert.style.display = 'block';
+    }
+
+    async function inboundPart(partId) {
+        console.log(partId);
+        const quantity = document.getElementById(`inbound-${partId}`).value;
+        if (!quantity || quantity <= 0) {
+            showNotification('입고 수량을 입력하세요.', 'error');
+            return;
+        }
+
+        const response = await fetch(`/api/parts/${partId}/stock/increase`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: Number(quantity) })
+        });
+
+        if (response.ok) {
+            showNotification('입고가 완료되었습니다.', 'success');
+            document.getElementById(`inbound-${partId}`).value = '';
+
+            const productId = document.getElementById('productionProductId').value;
+
+            fetch(`${API_BASE_URL}/${productId}/max-producible`)
+                .then(res => res.json())
+                .then(data => {
+                    const maxQuantity = data.maxProducibleQuantity;
+                    const hint = document.getElementById('maxQuantityHint');
+                    if (maxQuantity === 2147483647) {
+                        hint.textContent = '(부품 제약 없음)';
+                        hint.style.color = '#10b981';
+                    } else if (maxQuantity === 0) {
+                        hint.textContent = '(생산 불가 - 부품 부족)';
+                        hint.style.color = '#dc2626';
+                    } else {
+                        hint.textContent = `(최대: ${maxQuantity}개)`;
+                        hint.style.color = '#6b7280';
+                    }
+                });
+
+            await validateProductionQuantity();
+        } else {
+            showNotification('입고 처리 실패', 'error');
+        }
+
     }
 
     function closeProductionModal() {

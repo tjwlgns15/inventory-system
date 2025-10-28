@@ -40,4 +40,15 @@ public class ProductCommands {
             String description,
             List<PartMappingInfo> partMappings
     ) {}
+
+
+    public record InsufficientPartDetail(
+            Long partId,
+            String partName,
+            String partCode,
+            Integer requiredPerProduct,
+            Integer totalRequired,
+            Integer availableStock,
+            Integer shortage
+    ) {}
 }
