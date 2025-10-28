@@ -66,4 +66,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "WHERE p.deletedAt IS NULL " +
             "ORDER BY p.createdAt DESC")
     List<Product> findAllActiveWithPart();
+
+    @Query("""
+        SELECT p FROM Product p
+        WHERE
+            LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    List<Product> findByNameContainingIgnoreCase(@Param("keyword") String keyword);
+
 }

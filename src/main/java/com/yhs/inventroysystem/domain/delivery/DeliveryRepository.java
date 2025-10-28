@@ -49,6 +49,21 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     );
 
     @Query("""
+    SELECT d
+    FROM Delivery d 
+    JOIN FETCH d.items di 
+    JOIN FETCH di.product p
+    JOIN FETCH d.client c
+    WHERE d.status = 'COMPLETED' 
+    AND d.deliveredAt BETWEEN :startDate AND :endDate
+    ORDER BY d.deliveredAt
+    """)
+    List<Delivery> findCompletedDeliveriesByPeriod(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("""
         SELECT d
         FROM Delivery d 
         JOIN FETCH d.client c
@@ -78,12 +93,16 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
             "WHERE d.deliveryNumber = :deliveryNumber")
     Optional<Delivery> findByDeliveryNumber(@Param("deliveryNumber") String deliveryNumber);
 
-    @Query("""
-        SELECT CAST(SUBSTRING(d.deliveryNumber, LOCATE('-', d.deliveryNumber, LOCATE('-', d.deliveryNumber) + 1) + 1) AS integer)
-        FROM Delivery d
-        WHERE d.deliveryNumber LIKE CONCAT('SOLM-PO-', :year, '-%')
-        ORDER BY d.deliveryNumber DESC
-        LIMIT 1
-    """)
+    @Query(value = """
+    SELECT MAX(
+        CAST(
+            SUBSTRING_INDEX(delivery_number, '-', -1)
+            AS UNSIGNED
+        )
+    )
+    FROM deliveries
+    WHERE delivery_number LIKE CONCAT('SOLM-PO-', :year, '-%')
+      AND SUBSTRING_INDEX(delivery_number, '-', -1) REGEXP '^[0-9]+$'
+    """, nativeQuery = true)
     Integer findLastSequenceByYear(@Param("year") String year);
 }

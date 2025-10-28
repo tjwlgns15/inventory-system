@@ -504,6 +504,34 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
+        #productFilter {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        #productFilter:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        #productFilter:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 옵션 항목 스타일 */
+        #productFilter option {
+            padding: 10px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -516,8 +544,26 @@
         <!-- 주간 판매 비교 -->
         <div class="weekly-comparison">
             <div class="comparison-header">
-                <h3 class="comparison-title">주간 판매 비교 (납품 완료일 기준)</h3>
-                <div class="period-info" id="periodInfo"></div>
+                <span class="comparison-title">주간 판매량 비교</span>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <!-- 필터 드롭다운 -->
+<!--                    <select id="productFilter" onchange="loadWeeklyComparison()"-->
+<!--                            style="padding: 8px 16px;-->
+<!--                       border-radius: 8px;-->
+<!--                       border: 2px solid #667eea;-->
+<!--                       background: white;-->
+<!--                       color: #667eea;-->
+<!--                       font-weight: 600;-->
+<!--                       cursor: pointer;-->
+<!--                       font-size: 0.875rem;">-->
+<!--                        <option value="default">주요 제품 + 거래 발생</option>-->
+<!--                        <option value="top5">상위 5개만</option>-->
+<!--                        <option value="top10">상위 10개만</option>-->
+<!--                        <option value="transacted">거래 발생만</option>-->
+<!--                        <option value="all">전체 제품</option>-->
+<!--                    </select>-->
+                    <span class="period-info" id="periodInfo"></span>
+                </div>
             </div>
             <div class="table-container">
                 <table id="comparisonTable">
@@ -541,6 +587,17 @@
             <div class="chart-container">
                 <h3 class="chart-title">제품별 증가율</h3>
                 <canvas id="weeklyChangeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 월별 판매 추이 -->
+        <div class="weekly-comparison">
+            <div class="comparison-header">
+                <h3 class="comparison-title">12개월 주요 제품 판매 추이</h3>
+                <div class="period-info" id="monthlyPeriodInfo"></div>
+            </div>
+            <div class="chart-container" style="height: 450px;">
+                <canvas id="monthlyTrendChart"></canvas>
             </div>
         </div>
 
@@ -604,12 +661,15 @@
         .then(res => res.text())
         .then(html => {
             document.getElementById("sidebar-container").innerHTML = html;
-            const sidebar = document.getElementById("sidebar");
-            const toggleBtn = document.getElementById("menuToggle");
-            toggleBtn.addEventListener("click", () => {
-                sidebar.classList.toggle("open");
-            });
-        });
+
+            const sidebarMenu = document.querySelector(".left-slide-menu");
+
+            if (sidebarMenu) {
+                console.log("✅ 사이드바 로드 완료");
+            } else {
+                console.warn("⚠️ 사이드바 요소를 찾을 수 없습니다.");
+            }
+        })
 </script>
 
 <script>
@@ -621,12 +681,13 @@
     let yearlyPieChart = null;
     let yearlyBarChart = null;
     let allClients = [];
-
+    let monthlyTrendChart = null;
 
     document.addEventListener('DOMContentLoaded', function () {
-        loadClients();  // 추가
+        loadClients();
         initYearButtons();
         loadWeeklyComparison();
+        loadMonthlySales();
         loadYearlySales(selectedYear);
     });
 
@@ -662,26 +723,54 @@
 
     async function loadWeeklyComparison() {
         try {
-            const [lastWeekResponse, thisWeekResponse, allProductsResponse] = await Promise.all([
-                fetch(`${API_BASE_URL}/weekly/last`),
-                fetch(`${API_BASE_URL}/weekly/current`),
-                fetch(`/api/products`)
+            // 필터 옵션 가져오기 (선택사항 - UI에 select가 있는 경우)
+            const filterElement = document.getElementById('productFilter');
+            const filterValue = filterElement ? filterElement.value : 'default';
+
+            // 필터에 따른 쿼리 파라미터 설정
+            let queryParams = '';
+            switch(filterValue) {
+                case 'top5':
+                    // U7, U8, U9 + 거래 발생 제품 중 상위 5개
+                    queryParams = '?maxCount=5';
+                    break;
+                case 'top10':
+                    // U7, U8, U9 + 거래 발생 제품 중 상위 10개
+                    queryParams = '?maxCount=10';
+                    break;
+                case 'transacted':
+                    // 거래 발생 제품만 (주요 제품 필터 제거)
+                    queryParams = '?onlyTransacted=true';
+                    break;
+                case 'all':
+                    // 모든 제품 (거래 여부 무관)
+                    queryParams = '?onlyTransacted=false';
+                    break;
+                case 'default':
+                default:
+                    // 기본: U7, U8, U9 + 거래 발생 제품
+                    queryParams = '';
+                    break;
+            }
+
+            const [lastWeekResponse, thisWeekResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/weekly/last${queryParams}`),
+                fetch(`${API_BASE_URL}/weekly/current${queryParams}`)
             ]);
 
-            if (!lastWeekResponse.ok || !thisWeekResponse.ok || !allProductsResponse.ok) {
+            if (!lastWeekResponse.ok || !thisWeekResponse.ok) {
                 throw new Error('데이터 로드 실패');
             }
 
             const lastWeekData = await lastWeekResponse.json();
             const thisWeekData = await thisWeekResponse.json();
-            const allProducts = await allProductsResponse.json();
 
             document.getElementById('periodInfo').innerHTML = `
-                지난주: ${formatDate(lastWeekData.weekStart)} ~ ${formatDate(lastWeekData.weekEnd)} /
-                이번주: ${formatDate(thisWeekData.weekStart)} ~ ${formatDate(thisWeekData.weekEnd)}
-            `;
+            지난주: ${formatDate(lastWeekData.weekStart)} ~ ${formatDate(lastWeekData.weekEnd)} /
+            이번주: ${formatDate(thisWeekData.weekStart)} ~ ${formatDate(thisWeekData.weekEnd)}
+        `;
 
-            renderWeeklyComparison(lastWeekData.productSales, thisWeekData.productSales, allProducts);
+            renderWeeklyComparison(lastWeekData.productSales, thisWeekData.productSales);
         } catch (error) {
             console.error('Error:', error);
         }
@@ -692,20 +781,29 @@
         const thead = table.querySelector('thead tr');
         const tbody = table.querySelector('tbody');
 
-        // 전체 제품 목록 기준으로 테이블 생성
-        const products = allProducts.map(product => {
-            const lastWeek = lastWeekProducts.find(p => p.productCode === product.productCode);
-            const thisWeek = thisWeekProducts.find(p => p.productCode === product.productCode);
+        // API에서 반환된 제품들의 합집합 생성
+        const productCodesSet = new Set();
+        lastWeekProducts.forEach(p => productCodesSet.add(p.productCode));
+        thisWeekProducts.forEach(p => productCodesSet.add(p.productCode));
+
+        const allProductCodes = Array.from(productCodesSet);
+
+        const products = allProductCodes.map(code => {
+            const lastWeek = lastWeekProducts.find(p => p.productCode === code);
+            const thisWeek = thisWeekProducts.find(p => p.productCode === code);
 
             return {
-                code: product.productCode,
-                name: product.name,
+                code: code,
+                name: (lastWeek || thisWeek).productName,  // productName 사용
                 lastWeekQty: lastWeek?.quantity || 0,
                 thisWeekQty: thisWeek?.quantity || 0
             };
         });
 
-        // 각 행의 이합 계산
+        // 판매량 기준 정렬 (내림차순)
+        products.sort((a, b) => (b.lastWeekQty + b.thisWeekQty) - (a.lastWeekQty + a.thisWeekQty));
+
+        // 각 행의 합계 계산
         const lastWeekTotal = products.reduce((sum, p) => sum + p.lastWeekQty, 0);
         const thisWeekTotal = products.reduce((sum, p) => sum + p.thisWeekQty, 0);
         const increaseTotal = thisWeekTotal - lastWeekTotal;
@@ -715,7 +813,7 @@
             products.map(p => `<th>${p.name}<br><small>(${p.code})</small></th>`).join('') +
             '<th>총 판매량</th>';
 
-        // 판매량 행들만 생성
+        // 판매량 행들 생성
         const qtyRows = `
             <tr class="last-week-row">
                 <td>지난주</td>
@@ -730,12 +828,12 @@
             <tr class="increase-row">
                 <td>증가량</td>
                 ${products.map(p => {
-            const increase = p.thisWeekQty - p.lastWeekQty;
-            const className = increase > 0 ? 'increase-positive' :
-                increase < 0 ? 'increase-negative' : 'increase-zero';
-            const sign = increase > 0 ? '+' : '';
-            return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
-        }).join('')}
+                const increase = p.thisWeekQty - p.lastWeekQty;
+                const className = increase > 0 ? 'increase-positive' :
+                    increase < 0 ? 'increase-negative' : 'increase-zero';
+                const sign = increase > 0 ? '+' : '';
+                return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
+            }).join('')}
                 <td class="${increaseTotal > 0 ? 'increase-positive' : increaseTotal < 0 ? 'increase-negative' : 'increase-zero'}">
                     <strong>${increaseTotal > 0 ? '+' : ''}${increaseTotal.toLocaleString()}</strong>
                 </td>
@@ -801,28 +899,25 @@
             weeklyChangeChart.destroy();
         }
 
-        const changeData = products.map(p => {
-            if (p.lastWeekQty === 0) return p.thisWeekQty > 0 ? 100 : 0;
-            return ((p.thisWeekQty - p.lastWeekQty) / p.lastWeekQty * 100).toFixed(1);
-        });
-
         weeklyChangeChart = new Chart(changeCtx, {
             type: 'bar',
             data: {
                 labels: products.map(p => p.name),
                 datasets: [{
-                    label: '증가율 (%)',
-                    data: changeData,
-                    backgroundColor: changeData.map(val =>
-                        val > 0 ? 'rgba(16, 185, 129, 0.8)' :
-                            val < 0 ? 'rgba(239, 68, 68, 0.8)' :
-                                'rgba(156, 163, 175, 0.8)'
-                    ),
-                    borderColor: changeData.map(val =>
-                        val > 0 ? 'rgba(16, 185, 129, 1)' :
-                            val < 0 ? 'rgba(239, 68, 68, 1)' :
-                                'rgba(156, 163, 175, 1)'
-                    ),
+                    label: '증가량',
+                    data: products.map(p => p.thisWeekQty - p.lastWeekQty),
+                    backgroundColor: products.map(p => {
+                        const change = p.thisWeekQty - p.lastWeekQty;
+                        return change > 0 ? 'rgba(34, 197, 94, 0.8)' :
+                            change < 0 ? 'rgba(239, 68, 68, 0.8)' :
+                                'rgba(156, 163, 175, 0.8)';
+                    }),
+                    borderColor: products.map(p => {
+                        const change = p.thisWeekQty - p.lastWeekQty;
+                        return change > 0 ? 'rgba(34, 197, 94, 1)' :
+                            change < 0 ? 'rgba(239, 68, 68, 1)' :
+                                'rgba(156, 163, 175, 1)';
+                    }),
                     borderWidth: 2
                 }]
             },
@@ -836,9 +931,169 @@
                 },
                 scales: {
                     y: {
+                        beginAtZero: true,
                         ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadMonthlySales() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/monthly`);
+
+            if (!response.ok) {
+                throw new Error('월별 판매 데이터 로드 실패');
+            }
+
+            const data = await response.json();
+
+            // 기간 정보 표시
+            document.getElementById('monthlyPeriodInfo').textContent =
+                `${formatYearMonth(data.startMonth)} ~ ${formatYearMonth(data.endMonth)}`;
+
+            // 차트 렌더링
+            renderMonthlyTrendChart(data);
+
+        } catch (error) {
+            console.error('월별 판매 데이터 로드 에러:', error);
+        }
+    }
+
+    function formatYearMonth(yearMonth) {
+        const [year, month] = yearMonth.split('-');
+        return `${year}년 ${parseInt(month)}월`;
+    }
+
+    function renderMonthlyTrendChart(data) {
+        const ctx = document.getElementById('monthlyTrendChart');
+
+        // 기존 차트 파괴
+        if (monthlyTrendChart) {
+            monthlyTrendChart.destroy();
+        }
+
+        // 월 레이블 생성 (2024-11 → 11월)
+        const labels = data.productSales[0]?.monthlySales.map(m => {
+            const [year, month] = m.yearMonth.split('-');
+            return `${year}.${month}`;
+        }) || [];
+
+        // 제품별 색상 정의
+        const colorPalette = [
+            { border: 'rgb(99, 102, 241)', background: 'rgba(99, 102, 241, 0.1)' },    // Indigo
+            { border: 'rgb(239, 68, 68)', background: 'rgba(239, 68, 68, 0.1)' },      // Red
+            { border: 'rgb(34, 197, 94)', background: 'rgba(34, 197, 94, 0.1)' },      // Green
+            { border: 'rgb(234, 179, 8)', background: 'rgba(234, 179, 8, 0.1)' },      // Yellow
+            { border: 'rgb(168, 85, 247)', background: 'rgba(168, 85, 247, 0.1)' },    // Purple
+            { border: 'rgb(236, 72, 153)', background: 'rgba(236, 72, 153, 0.1)' },    // Pink
+            { border: 'rgb(20, 184, 166)', background: 'rgba(20, 184, 166, 0.1)' },    // Teal
+            { border: 'rgb(249, 115, 22)', background: 'rgba(249, 115, 22, 0.1)' }     // Orange
+        ];
+
+        // 데이터셋 생성
+        const datasets = data.productSales.map((product, index) => {
+            const color = colorPalette[index % colorPalette.length];
+
+            return {
+                label: product.productName,
+                data: product.monthlySales.map(m => m.quantity),
+                borderColor: color.border,
+                backgroundColor: color.background,
+                borderWidth: 2,
+                tension: 0.4,  // 곡선 부드럽게
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3
+            };
+        });
+
+        monthlyTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 12,
+                                family: 'notosanskr'
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                const value = context.parsed.y.toLocaleString();
+                                return `${label}: ${value}개`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11,
+                                family: 'notosanskr'
+                            },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 11,
+                                family: 'notosanskr'
+                            },
                             callback: function(value) {
-                                return value + '%';
+                                return value.toLocaleString() + '개';
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: '판매량',
+                            font: {
+                                size: 12,
+                                weight: 'bold',
+                                family: 'notosanskr'
                             }
                         }
                     }

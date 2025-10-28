@@ -1,8 +1,13 @@
 package com.yhs.inventroysystem.application.sales;
 
+import com.yhs.inventroysystem.application.sales.filter.ProductDisplayPolicy;
+import com.yhs.inventroysystem.application.sales.filter.ProductFilterFactory;
+import com.yhs.inventroysystem.application.sales.filter.ProductFilterStrategy;
 import com.yhs.inventroysystem.domain.delivery.Delivery;
 import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
 import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
+import com.yhs.inventroysystem.domain.product.Product;
+import com.yhs.inventroysystem.domain.product.ProductRepository;
 import com.yhs.inventroysystem.presentation.sales.SalesStatsDtos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,10 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,24 +28,34 @@ import java.util.stream.Collectors;
 public class SalesStatsService {
 
     private final DeliveryRepository deliveryRepository;
+    private final ProductRepository productRepository;
 
-    public WeeklySalesResponse getThisWeekSales() {
+    /**
+     * 이번 주 판매 현황 조회 (커스텀 정책 적용)
+     */
+    public WeeklySalesResponse getThisWeekSales(ProductDisplayPolicy policy) {
         LocalDate now = LocalDate.now();
         LocalDate weekStart = now.with(DayOfWeek.MONDAY);
         LocalDate weekEnd = now.with(DayOfWeek.SUNDAY);
 
-        return getWeeklySales(weekStart, weekEnd);
+        return getWeeklySales(weekStart, weekEnd, policy);
     }
 
-    public WeeklySalesResponse getLastWeekSales() {
+    /**
+     * 지난 주 판매 현황 조회 (커스텀 정책 적용)
+     */
+    public WeeklySalesResponse getLastWeekSales(ProductDisplayPolicy policy) {
         LocalDate now = LocalDate.now();
         LocalDate weekStart = now.minusWeeks(1).with(DayOfWeek.MONDAY);
         LocalDate weekEnd = now.minusWeeks(1).with(DayOfWeek.SUNDAY);
 
-        return getWeeklySales(weekStart, weekEnd);
+        return getWeeklySales(weekStart, weekEnd, policy);
     }
 
-    private WeeklySalesResponse getWeeklySales(LocalDate weekStart, LocalDate weekEnd) {
+    /**
+     * 주간 판매 현황 조회 (필터링 적용)
+     */
+    private WeeklySalesResponse getWeeklySales(LocalDate weekStart, LocalDate weekEnd, ProductDisplayPolicy policy) {
         LocalDateTime startDateTime = weekStart.atStartOfDay();
         LocalDateTime endDateTime = weekEnd.atTime(LocalTime.MAX);
 
@@ -83,18 +95,129 @@ public class SalesStatsService {
                         agg.totalAmountKRW
                 ))
                 .sorted((a, b) -> b.quantity().compareTo(a.quantity()))
-                .toList();
+                .collect(Collectors.toList());
 
-        return new WeeklySalesResponse(weekStart, weekEnd, productSales);
+        List<String> keyKeywords = policy.getKeyProductKeywords();
+        if (keyKeywords != null && !keyKeywords.isEmpty()) {
+            for (String keyword : keyKeywords) {
+                List<Product> keyProducts = productRepository.findByNameContainingIgnoreCase(keyword);
+                for (Product p : keyProducts) {
+                    boolean exists = productSales.stream()
+                            .anyMatch(ps -> ps.productId().equals(p.getId()));
+                    if (!exists) {
+                        productSales.add(new ProductSalesData(
+                                p.getId(),
+                                p.getProductCode(),
+                                p.getName(),
+                                0,
+                                BigDecimal.ZERO,
+                                BigDecimal.ZERO
+                        ));
+                    }
+                }
+            }
+        }
+
+        // 필터링 적용
+        ProductFilterStrategy filter = ProductFilterFactory.createFilter(policy);
+        List<ProductSalesData> filteredProducts = filter.filter(productSales);
+
+        return new WeeklySalesResponse(weekStart, weekEnd, filteredProducts);
     }
 
-    public YearlySalesByClientResponse getYearlySalesByClient(int year) {
+    public MonthlySalesResponse getMonthlySales(ProductDisplayPolicy policy) {
+        YearMonth currentMonth = YearMonth.now();
+        YearMonth startMonth = currentMonth.minusMonths(11);
+
+        LocalDateTime startDate = startMonth.atDay(1).atStartOfDay();
+        LocalDateTime endDate = currentMonth.atEndOfMonth().atTime(LocalTime.MAX);
+
+        List<Delivery> deliveries = deliveryRepository.findCompletedDeliveriesByPeriod(startDate, endDate);
+        Map<Long, ProductMonthlySalesAggregation> productMap = new HashMap<>();
+
+        for (Delivery delivery : deliveries) {
+            YearMonth deliveryMonth = YearMonth.from(delivery.getDeliveredAt());
+
+            for (DeliveryItem item : delivery.getItems()) {
+                Long productId = item.getProduct().getId();
+
+                ProductMonthlySalesAggregation agg = productMap.computeIfAbsent(productId,
+                        k -> new ProductMonthlySalesAggregation(
+                                productId,
+                                item.getProduct().getProductCode(),
+                                item.getProduct().getName(),
+                                startMonth,
+                                currentMonth
+                        )
+                );
+
+                BigDecimal itemAmountKRW = calculateItemAmountKRW(item, delivery);
+                agg.addMonthlySales(deliveryMonth, item.getQuantity(), item.getTotalPrice(), itemAmountKRW);
+            }
+        }
+
+        final List<String> keywords;
+        if (policy.getKeyProductKeywords() != null && !policy.getKeyProductKeywords().isEmpty()) {
+            keywords = policy.getKeyProductKeywords();
+        } else {
+            keywords = List.of("U7", "U8", "U9");  // 기본값
+        }
+
+        // 3. DB에서 주요 제품 전체 조회
+        List<Product> keyProducts = productRepository.findAll().stream()
+                .filter(product -> {
+                    String productName = product.getName();
+                    if (productName == null) return false;
+
+                    String upperProductName = productName.toUpperCase();
+                    return keywords.stream()
+                            .anyMatch(keyword -> upperProductName.contains(keyword.toUpperCase()));
+                })
+                .toList();
+
+        List<ProductMonthlySales> productMonthlySalesList = new ArrayList<>();
+
+        for (Product product : keyProducts) {
+            ProductMonthlySalesAggregation agg = productMap.get(product.getId());
+
+            if (agg == null) {
+                agg = new ProductMonthlySalesAggregation(
+                        product.getId(),
+                        product.getProductCode(),
+                        product.getName(),
+                        startMonth,
+                        currentMonth
+                );
+            }
+
+            productMonthlySalesList.add(new ProductMonthlySales(
+                    agg.productId,
+                    agg.productCode,
+                    agg.productName,
+                    agg.getMonthlySalesDataList(),
+                    agg.getTotalQuantity(),
+                    agg.getTotalAmount(),
+                    agg.getTotalAmountKRW()
+            ));
+        }
+
+        productMonthlySalesList.sort((a, b) -> b.totalQuantity().compareTo(a.totalQuantity()));
+
+        return new MonthlySalesResponse(startMonth, currentMonth, productMonthlySalesList);
+    }
+
+    /**
+     * 연간 거래처별 판매 현황 조회 (커스텀 정책 적용)
+     */
+    public YearlySalesByClientResponse getYearlySalesByClient(int year, ProductDisplayPolicy policy) {
         List<Delivery> deliveries = deliveryRepository.findCompletedDeliveriesByYear(year);
 
         Map<Long, List<Delivery>> deliveriesGroupByClient = deliveries.stream()
                 .collect(Collectors.groupingBy(d -> d.getClient().getId()));
 
         List<ClientSalesData> clientSalesDataList = new ArrayList<>();
+
+        ProductFilterStrategy filter = ProductFilterFactory.createFilter(policy);
 
         for (Map.Entry<Long, List<Delivery>> entry : deliveriesGroupByClient.entrySet()) {
             Long clientId = entry.getKey();
@@ -103,7 +226,7 @@ public class SalesStatsService {
             Delivery firstDelivery = clientDeliveries.get(0);
 
             // 거래처별 제품 판매 집계
-            Map<Long, ProductSalesAggregation> productMap = new java.util.HashMap<>();
+            Map<Long, ProductSalesAggregation> productMap = new HashMap<>();
 
             for (Delivery delivery : clientDeliveries) {
                 for (DeliveryItem item : delivery.getItems()) {
@@ -137,6 +260,9 @@ public class SalesStatsService {
                     .sorted((a, b) -> b.quantity().compareTo(a.quantity()))
                     .toList();
 
+            // 필터링 적용
+            List<ProductSalesData> filteredProducts = filter.filter(productSales);
+
             // 총액 계산
             BigDecimal totalAmount = clientDeliveries.stream()
                     .map(Delivery::getTotalAmount)
@@ -158,7 +284,7 @@ public class SalesStatsService {
                             : "-",
                     firstDelivery.getClient().getCurrency(),
                     firstDelivery.getClient().getCurrency().getSymbol(),
-                    productSales,
+                    filteredProducts,
                     totalAmount,
                     totalAmountKRW
             );
@@ -220,6 +346,101 @@ public class SalesStatsService {
 
         void addTotalAmountKRW(BigDecimal amountKRW) {
             this.totalAmountKRW = this.totalAmountKRW.add(amountKRW);
+        }
+    }
+
+    /**
+     * 제품별 월별 판매 집계 헬퍼 클래스
+     */
+    private static class ProductMonthlySalesAggregation {
+        private final Long productId;
+        private final String productCode;
+        private final String productName;
+        private final Map<YearMonth, MonthlySalesAggregation> monthlyMap;
+        private final YearMonth startMonth;
+        private final YearMonth endMonth;
+
+        public ProductMonthlySalesAggregation(Long productId, String productCode, String productName,
+                                              YearMonth startMonth, YearMonth endMonth) {
+            this.productId = productId;
+            this.productCode = productCode;
+            this.productName = productName;
+            this.startMonth = startMonth;
+            this.endMonth = endMonth;
+            this.monthlyMap = new HashMap<>();
+
+            // 12개월 초기화 (데이터 없는 월도 0으로 표시)
+            YearMonth current = startMonth;
+            while (!current.isAfter(endMonth)) {
+                monthlyMap.put(current, new MonthlySalesAggregation());
+                current = current.plusMonths(1);
+            }
+        }
+
+        public void addMonthlySales(YearMonth month, Integer quantity, BigDecimal amount, BigDecimal amountKRW) {
+            MonthlySalesAggregation monthData = monthlyMap.get(month);
+            if (monthData != null) {
+                monthData.addQuantity(quantity);
+                monthData.addAmount(amount);
+                monthData.addAmountKRW(amountKRW);
+            }
+        }
+
+        public Integer getTotalQuantity() {
+            return monthlyMap.values().stream()
+                    .mapToInt(m -> m.quantity)
+                    .sum();
+        }
+
+        public BigDecimal getTotalAmount() {
+            return monthlyMap.values().stream()
+                    .map(m -> m.amount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        public BigDecimal getTotalAmountKRW() {
+            return monthlyMap.values().stream()
+                    .map(m -> m.amountKRW)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        public List<MonthlySalesData> getMonthlySalesDataList() {
+            List<MonthlySalesData> result = new ArrayList<>();
+            YearMonth current = startMonth;
+
+            while (!current.isAfter(endMonth)) {
+                MonthlySalesAggregation data = monthlyMap.get(current);
+                result.add(new MonthlySalesData(
+                        current,
+                        data.quantity,
+                        data.amount,
+                        data.amountKRW
+                ));
+                current = current.plusMonths(1);
+            }
+
+            return result;
+        }
+    }
+
+    /**
+     * 월별 판매 집계 헬퍼 클래스
+     */
+    private static class MonthlySalesAggregation {
+        private Integer quantity = 0;
+        private BigDecimal amount = BigDecimal.ZERO;
+        private BigDecimal amountKRW = BigDecimal.ZERO;
+
+        public void addQuantity(Integer qty) {
+            this.quantity += qty;
+        }
+
+        public void addAmount(BigDecimal amt) {
+            this.amount = this.amount.add(amt);
+        }
+
+        public void addAmountKRW(BigDecimal amt) {
+            this.amountKRW = this.amountKRW.add(amt);
         }
     }
 }

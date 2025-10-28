@@ -769,12 +769,15 @@
         .then(res => res.text())
         .then(html => {
             document.getElementById("sidebar-container").innerHTML = html;
-            const sidebar = document.getElementById("sidebar");
-            const toggleBtn = document.getElementById("menuToggle");
-            toggleBtn.addEventListener("click", () => {
-                sidebar.classList.toggle("open");
-            });
-        });
+
+            const sidebarMenu = document.querySelector(".left-slide-menu");
+
+            if (sidebarMenu) {
+                console.log("✅ 사이드바 로드 완료");
+            } else {
+                console.warn("⚠️ 사이드바 요소를 찾을 수 없습니다.");
+            }
+        })
 </script>
 
 <script>
