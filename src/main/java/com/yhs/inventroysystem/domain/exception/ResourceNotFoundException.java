@@ -43,4 +43,8 @@ public class ResourceNotFoundException extends BusinessException {
                 String.format("가격 정보를 찾을 수 없습니다. 거래처 ID: %d, 제품 ID: %d", clientId, productId)
         );
     }
+
+    public static ResourceNotFoundException productLine(Long productLineId) {
+        return new ResourceNotFoundException("제품라인을 찾을 수 없습니다. ID: " + productLineId);
+    }
 }

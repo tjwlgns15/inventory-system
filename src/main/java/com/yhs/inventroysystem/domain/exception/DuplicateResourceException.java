@@ -51,4 +51,8 @@ public class DuplicateResourceException extends BusinessException {
     public static DuplicateResourceException email(String email) {
         return new DuplicateResourceException("이미 존재하는 이메일입니다: " + email);
     }
+
+    public static DuplicateResourceException productLine(String productLine) {
+        return new DuplicateResourceException("이미 존재하는 제품라인명입니다: " + productLine);
+    }
 }

@@ -202,31 +202,19 @@ public class DeliveryService {
         String year = orderedAt.format(DateTimeFormatter.ofPattern("yyyy"));
         String prefix = DELIVERY_PREFIX + year;
 
-        // 재시도 로직 추가 (최대 10번)
         for (int attempt = 0; attempt < 10; attempt++) {
             Integer lastSequence = deliveryRepository.findLastSequenceByYear(year);
             int nextSequence = (lastSequence == null) ? 1 : lastSequence + 1;
 
-            // 4자리 패딩 (0001, 0002, ...)
             String deliveryNumber = String.format("%s-%04d", prefix, nextSequence);
 
-            log.info("주문 번호 생성 시도 #{}: {} (lastSequence: {})",
-                    attempt + 1, deliveryNumber, lastSequence);
-
-            // 중복 체크
             if (!deliveryRepository.existsByDeliveryNumber(deliveryNumber)) {
-                log.info("✅ 주문 번호 생성 성공: {}", deliveryNumber);
                 return deliveryNumber;
             }
-
-            log.warn("⚠️ 주문 번호 중복 발견: {} - 재시도 중...", deliveryNumber);
         }
 
-        // 모든 재시도 실패 시 UUID 사용 (최후의 수단)
-        String fallbackNumber = String.format("%s-%s", prefix,
+        return String.format("%s-%s", prefix,
                 UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        log.error("❌ 주문 번호 생성 실패! Fallback 사용: {}", fallbackNumber);
-        return fallbackNumber;
     }
 
 

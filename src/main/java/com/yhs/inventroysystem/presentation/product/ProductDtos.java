@@ -1,10 +1,9 @@
 package com.yhs.inventroysystem.presentation.product;
 
 import com.yhs.inventroysystem.domain.product.Product;
+import com.yhs.inventroysystem.domain.product.ProductCategory;
 import com.yhs.inventroysystem.domain.product.ProductPart;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -15,6 +14,11 @@ import java.util.stream.Collectors;
 public class ProductDtos {
 
     public record ProductRegisterRequest(
+            @NotNull(message = "제품 카테고리는 필수입니다")
+            ProductCategory productCategory,
+
+            Long productLineId,
+
             @NotBlank(message = "제품 코드는 필수입니다")
             String productCode,
 
@@ -45,6 +49,8 @@ public class ProductDtos {
 
     public record ProductResponse(
             Long id,
+            ProductCategory productCategory,
+            ProductLineInfo productLine,
             String productCode,
             String name,
             BigDecimal defaultUnitPrice,
@@ -54,6 +60,13 @@ public class ProductDtos {
         public static ProductResponse from(Product product) {
             return new ProductResponse(
                     product.getId(),
+                    product.getProductCategory(),
+                    product.getProductLine() != null
+                            ? new ProductLineInfo(
+                            product.getProductLine().getId(),
+                            product.getProductLine().getName()
+                    )
+                            : null,
                     product.getProductCode(),
                     product.getName(),
                     product.getDefaultUnitPrice(),
@@ -63,9 +76,15 @@ public class ProductDtos {
         }
     }
 
+    public record ProductLineInfo(
+            Long id,
+            String name
+    ) {}
 
     public record ProductDetailResponse(
             Long id,
+            ProductCategory productCategory,
+            ProductLineInfo productLine,
             String productCode,
             String name,
             BigDecimal defaultUnitPrice,
@@ -76,6 +95,13 @@ public class ProductDtos {
         public static ProductDetailResponse from(Product product) {
             return new ProductDetailResponse(
                     product.getId(),
+                    product.getProductCategory(),
+                    product.getProductLine() != null
+                            ? new ProductLineInfo(
+                            product.getProductLine().getId(),
+                            product.getProductLine().getName()
+                    )
+                            : null,
                     product.getProductCode(),
                     product.getName(),
                     product.getDefaultUnitPrice(),
@@ -87,7 +113,6 @@ public class ProductDtos {
             );
         }
     }
-
 
     public record PartMappingResponse(
             Long partId,
@@ -113,12 +138,17 @@ public class ProductDtos {
 
     public record ProductionRequest(
             Long id,
+
             @NotNull(message = "생산 수량은 필수입니다")
             @Positive(message = "생산 수량은 0보다 커야 합니다")
             Integer quantity
     ) {}
 
     public record ProductUpdateRequest(
+            ProductCategory productCategory,
+
+            Long productLineId,
+
             @NotBlank(message = "제품명은 필수입니다")
             String name,
 

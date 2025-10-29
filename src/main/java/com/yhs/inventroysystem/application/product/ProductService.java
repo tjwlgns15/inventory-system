@@ -30,6 +30,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final PartRepository partRepository;
     private final TaskRepository taskRepository;
+    private final ProductLineRepository productLineRepository;
 
     private final ProductStockTransactionService productStockTransactionService;
     private final PartStockTransactionService partStockTransactionService;
@@ -39,7 +40,12 @@ public class ProductService {
         validateProductCodeDuplication(command.productCode());
         validateProductNameDuplication(command.name());
 
+        ProductLine productLine = productLineRepository.findById(command.productLineId())
+                .orElseThrow(() -> ResourceNotFoundException.productLine(command.productLineId()));
+
         Product product = new Product(
+                command.productCategory(),
+                productLine,
                 command.productCode(),
                 command.name(),
                 command.defaultUnitPrice(),
@@ -72,6 +78,7 @@ public class ProductService {
     public List<Product> findAllProduct() {
         return productRepository.findAllActive();
     }
+
     public List<Product> findAllProductWithParts() {
         return productRepository.findAllActiveWithPart();
     }
@@ -147,6 +154,19 @@ public class ProductService {
                 command.description()
         );
 
+        if (command.productCategory() != null) {
+            product.changeCategory(command.productCategory());
+        }
+
+        if (command.productLineId() != null) {
+            ProductLine productLine = productLineRepository.findById(command.productLineId())
+                    .orElseThrow(() -> ResourceNotFoundException.productLine(command.productLineId()));
+            product.assignProductLine(productLine);
+        } else {
+            // productLineId가 null이면 제품 라인 제거
+            product.removeProductLine();
+        }
+
         // 기존 부품 매핑 삭제
         product.clearPartMappings();
 
@@ -180,63 +200,6 @@ public class ProductService {
 
     public List<ProductStockTransaction> getAllStockTransactions() {
         return productStockTransactionService.findAll();
-    }
-
-    private void validateProductCodeDuplication(String productCode) {
-        if (productRepository.existsByProductCodeAndNotDeleted(productCode)) {
-            throw DuplicateResourceException.productCode(productCode);
-        }
-    }
-    private void validateProductNameDuplication(String productName) {
-        if (productRepository.existsByNameAndNotDeleted(productName)) {
-            throw DuplicateResourceException.productName(productName);
-        }
-    }
-
-    private void validateProductCodeDuplicationForUpdate(Long productId, String productCode) {
-        productRepository.findByProductCodeAndNotDeleted(productCode)
-                .ifPresent(existingProduct -> {
-                    if (!existingProduct.getId().equals(productId)) {
-                        throw DuplicateResourceException.productCode(productCode);
-                    }
-                });
-    }
-    private void validateProductNameDuplicationForUpdate(Long productId, String productName) {
-        productRepository.findByNameAndNotDeleted(productName)
-                .ifPresent(existingProduct -> {
-                    if (!existingProduct.getId().equals(productId)) {
-                        throw DuplicateResourceException.productName(productName);
-                    }
-                });
-    }
-
-    private void createTaskForProduct(Product product, Integer quantity, CustomUserDetails currentUser) {
-        String title = generateTaskTitle(product, quantity);
-        String description = generateTaskDescription(product, quantity);
-
-        Task task = new Task(
-                title,
-                description,
-                currentUser.getName(),
-                LocalDate.now(),
-                LocalDate.now(),
-                TaskStatus.COMPLETED,
-                Priority.MEDIUM
-        );
-        taskRepository.save(task);
-    }
-
-    private String generateTaskTitle(Product product, Integer quantity) {
-        return String.format("[생산] %s - %s",
-                product.getName(),
-                quantity);
-    }
-    private String generateTaskDescription(Product product, Integer quantity) {
-        return "생산 정보:\n" +
-                String.format("- %s: %d개 생산, 재고: %d\n",
-                        product.getName(),
-                        quantity,
-                        product.getStockQuantity());
     }
 
     /**
@@ -301,6 +264,63 @@ public class ProductService {
         }
 
         return insufficientParts;
+    }
+
+    private void validateProductCodeDuplication(String productCode) {
+        if (productRepository.existsByProductCodeAndNotDeleted(productCode)) {
+            throw DuplicateResourceException.productCode(productCode);
+        }
+    }
+    private void validateProductNameDuplication(String productName) {
+        if (productRepository.existsByNameAndNotDeleted(productName)) {
+            throw DuplicateResourceException.productName(productName);
+        }
+    }
+
+    private void validateProductCodeDuplicationForUpdate(Long productId, String productCode) {
+        productRepository.findByProductCodeAndNotDeleted(productCode)
+                .ifPresent(existingProduct -> {
+                    if (!existingProduct.getId().equals(productId)) {
+                        throw DuplicateResourceException.productCode(productCode);
+                    }
+                });
+    }
+    private void validateProductNameDuplicationForUpdate(Long productId, String productName) {
+        productRepository.findByNameAndNotDeleted(productName)
+                .ifPresent(existingProduct -> {
+                    if (!existingProduct.getId().equals(productId)) {
+                        throw DuplicateResourceException.productName(productName);
+                    }
+                });
+    }
+
+    private void createTaskForProduct(Product product, Integer quantity, CustomUserDetails currentUser) {
+        String title = generateTaskTitle(product, quantity);
+        String description = generateTaskDescription(product, quantity);
+
+        Task task = new Task(
+                title,
+                description,
+                currentUser.getName(),
+                LocalDate.now(),
+                LocalDate.now(),
+                TaskStatus.COMPLETED,
+                Priority.MEDIUM
+        );
+        taskRepository.save(task);
+    }
+
+    private String generateTaskTitle(Product product, Integer quantity) {
+        return String.format("[생산] %s - %s",
+                product.getName(),
+                quantity);
+    }
+    private String generateTaskDescription(Product product, Integer quantity) {
+        return "생산 정보:\n" +
+                String.format("- %s: %d개 생산, 재고: %d\n",
+                        product.getName(),
+                        quantity,
+                        product.getStockQuantity());
     }
 
 }

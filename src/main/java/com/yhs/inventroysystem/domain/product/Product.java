@@ -21,6 +21,14 @@ public class Product extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "product_category")
+    private ProductCategory productCategory;
+
+    @ManyToOne
+    @JoinColumn(name = "product_line_id")
+    private ProductLine productLine;
+
     @Column(nullable = false, unique = true)
     private String productCode;
 
@@ -37,12 +45,38 @@ public class Product extends BaseTimeEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPart> partMappings = new ArrayList<>();
 
-    public Product(String productCode, String name, BigDecimal defaultUnitPrice, String description, Integer initialStock) {
+    public Product(ProductCategory productCategory, ProductLine productLine,
+                   String productCode, String name, BigDecimal defaultUnitPrice,
+                   String description, Integer initialStock) {
+        validateProductCategory(productCategory);
+        validateProductCode(productCode);
+        validateName(name);
+
+        this.productCategory = productCategory;
+        this.productLine = productLine;
         this.productCode = productCode;
         this.name = name;
         this.defaultUnitPrice = defaultUnitPrice;
         this.description = description;
         this.stockQuantity = initialStock;
+    }
+
+    private void validateProductCategory(ProductCategory productCategory) {
+        if (productCategory == null) {
+            throw new IllegalArgumentException("제품 카테고리는 필수입니다.");
+        }
+    }
+
+    private void validateProductCode(String productCode) {
+        if (productCode == null || productCode.trim().isEmpty()) {
+            throw new IllegalArgumentException("제품 코드는 필수입니다.");
+        }
+    }
+
+    private void validateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("제품명은 필수입니다.");
+        }
     }
 
     public void addPartMapping(ProductPart mapping) {
@@ -68,6 +102,22 @@ public class Product extends BaseTimeEntity {
         this.name = name;
         this.defaultUnitPrice = defaultUnitPrice;
         this.description = description;
+    }
+
+    public void changeCategory(ProductCategory category) {
+        ensureNotDeleted();
+        validateProductCategory(category);
+        this.productCategory = category;
+    }
+
+    public void assignProductLine(ProductLine productLine) {
+        ensureNotDeleted();
+        this.productLine = productLine;
+    }
+
+    public void removeProductLine() {
+        ensureNotDeleted();
+        this.productLine = null;
     }
 
     public void clearPartMappings() {

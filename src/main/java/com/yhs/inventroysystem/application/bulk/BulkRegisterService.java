@@ -198,7 +198,10 @@ public class BulkRegisterService {
                 }
 
                 // Product 생성 및 저장 (부품 매핑 없이)
+                // todo: 임시로 HARDWARE, null
                 Product product = new Product(
+                        ProductCategory.HARDWARE,
+                        null,
                         bulkData.productCode(),
                         bulkData.name(),
                         bulkData.defaultUnitPrice(),

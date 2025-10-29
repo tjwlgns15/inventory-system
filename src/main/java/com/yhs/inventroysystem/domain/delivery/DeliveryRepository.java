@@ -105,4 +105,5 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
       AND SUBSTRING_INDEX(delivery_number, '-', -1) REGEXP '^[0-9]+$'
     """, nativeQuery = true)
     Integer findLastSequenceByYear(@Param("year") String year);
+
 }

@@ -865,6 +865,9 @@
         <div class="products-header">
             <h2 class="products-title">제품 관리</h2>
             <div>
+                <button class="btn btn-secondary" onclick="openProductLineManageModal()">
+                    <span>📋 제품라인 관리</span>
+                </button>
                 <button class="btn btn-primary" onclick="openRegisterModal()">
                     <span>+ 제품 등록</span>
                 </button>
@@ -891,14 +894,16 @@
                 <table id="productsTable">
                     <thead>
                         <tr>
-                            <th style="width: 12%;">제품 코드</th>
+                            <th style="width: 10%;">제품 코드</th>
                             <th style="width: 12%;">제품명</th>
-                            <th style="width: 12%;">기본 단가</th>
-                            <th style="width: 20%;">설명</th>
-                            <th style="width: 10%;">사용 부품</th>
-                            <th style="width: 10%;">재고</th>
-                            <th style="width: 8%;">생산</th>
-                            <th style="width: 16%;">작업</th>
+                            <th style="width: 8%;">카테고리</th>
+                            <th style="width: 10%;">제품라인</th>
+                            <th style="width: 10%;">기본 단가</th>
+                            <th style="width: 15%;">설명</th>
+                            <th style="width: 8%;">사용 부품</th>
+                            <th style="width: 8%;">재고</th>
+                            <th style="width: 7%;">생산</th>
+                            <th style="width: 12%;">작업</th>
                         </tr>
                     </thead>
                     <tbody id="productsTableBody">
@@ -919,9 +924,33 @@
     <div class="modal-content modal-content-large">
         <span class="close" onclick="closeRegisterModal()">&times;</span>
         <h2 class="modal-header">제품 등록</h2>
+
         <form id="registerForm" onsubmit="registerProduct(event)">
             <div class="product-form-container">
+
                 <div class="product-left-column">
+                    <div class="form-group">
+                        <label for="productCategory">제품 카테고리 <span style="color: red;">*</span></label>
+                        <select id="productCategory" class="form-input" required>
+                            <option value="">카테고리 선택</option>
+                            <option value="HARDWARE">하드웨어</option>
+                            <option value="SOFTWARE">소프트웨어</option>
+                            <option value="SERVICE">서비스</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="productLineId">제품 라인 (선택사항)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="productLineId" class="form-input product-line-select" style="flex: 1;">
+                                <option value="">제품라인 선택 안함</option>
+                            </select>
+                            <button type="button" class="btn btn-secondary" onclick="openProductLineModal()" title="제품라인 추가">
+                                +
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label" for="productCode">제품 코드 *</label>
                         <input type="text" id="productCode" class="form-input" required>
@@ -1027,10 +1056,29 @@
     <div class="modal-content modal-content-large">
         <span class="close" onclick="closeUpdateModal()">&times;</span>
         <h2 class="modal-header">제품 정보 수정</h2>
+
         <form id="updateForm" onsubmit="updateProduct(event)">
             <input type="hidden" id="updateProductId">
             <div class="product-form-container">
+
                 <div class="product-left-column">
+                    <div class="form-group">
+                        <label for="updateProductCategory">제품 카테고리 <span style="color: red;">*</span></label>
+                        <select id="updateProductCategory" class="form-input" required>
+                            <option value="">카테고리 선택</option>
+                            <option value="HARDWARE">하드웨어</option>
+                            <option value="SOFTWARE">소프트웨어</option>
+                            <option value="SERVICE">서비스</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="updateProductLineId">제품 라인 (선택사항)</label>
+                        <select id="updateProductLineId" class="form-input product-line-select">
+                            <option value="">제품라인 선택 안함</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label class="form-label" for="updateName">제품명 *</label>
                         <input type="text" id="updateName" class="form-input" required>
@@ -1093,6 +1141,62 @@
     </div>
 </div>
 
+<!-- 제품라인 관리 모달 -->
+<div id="productLineManageModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3>제품라인 관리</h3>
+            <span class="close" onclick="closeProductLineManageModal()">&times;</span>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="openProductLineModal()">+ 제품라인 추가</button>
+        </div>
+
+        <table id="productLineTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+            <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <th style="padding: 12px; width: 20%;">ID</th>
+                <th style="padding: 12px; width: 60%;">이름</th>
+                <th style="padding: 12px; width: 20%;">작업</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- JavaScript로 동적 생성 -->
+            </tbody>
+        </table>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeProductLineManageModal()">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 제품라인 추가 모달 -->
+<div id="productLineModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>제품라인 추가</h3>
+            <span class="close" onclick="closeProductLineModal()">&times;</span>
+        </div>
+
+        <div class="form-group">
+            <label for="newProductLineName">제품라인 이름 <span style="color: red;">*</span></label>
+            <input type="text"
+                   id="newProductLineName"
+                   class="form-input"
+                   placeholder="예: U8 시리즈"
+                   required>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeProductLineModal()">취소</button>
+            <button type="button" class="btn btn-primary" onclick="registerProductLine()">추가</button>
+        </div>
+    </div>
+</div>
+
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -1113,16 +1217,19 @@
 <script>
     const API_BASE_URL = '/api/products';
     const PARTS_API_URL = '/api/parts';
+    const PRODUCT_LINES_API_URL = '/api/product-lines';
     let allProducts = [];
     let allParts = [];
     let deleteTargetId = null;
     let originalParts = [];
     let partCheckedStates = new Map();
     let updatePartCheckedStates = new Map();
+    let productLines = [];
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadParts();
-        loadProducts();
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadProducts();
+        await loadParts();
+        await loadProductLines();
     });
 
     async function loadParts() {
@@ -1166,6 +1273,8 @@
             <tr>
                 <td><strong>${escapeHtml(product.productCode)}</strong></td>
                 <td>${escapeHtml(product.name)}</td>
+                <td>${getCategoryDisplayName(product.productCategory)}</td>
+                <td>${product.productLine ? escapeHtml(product.productLine.name) : '-'}</td>
                 <td class="price-badge">${product.defaultUnitPrice ? formatPrice(product.defaultUnitPrice) : '-'}</td>
                 <td>${escapeHtml(product.description || '-')}</td>
                 <td>
@@ -1397,6 +1506,8 @@
         });
 
         const productData = {
+            productCategory: document.getElementById('productCategory').value,  // 추가된 줄
+            productLineId: document.getElementById('productLineId').value || null,  // 추가된 줄
             productCode: document.getElementById('productCode').value,
             name: document.getElementById('name').value,
             defaultUnitPrice: document.getElementById('defaultUnitPrice').value ?
@@ -1426,7 +1537,6 @@
             showNotification(error.message, 'error');
         }
     }
-
 
     async function viewProductDetail(productId) {
         try {
@@ -1533,6 +1643,8 @@
             const product = await response.json();
 
             document.getElementById('updateProductId').value = productId;
+            document.getElementById('updateProductCategory').value = product.productCategory;  // 추가
+            document.getElementById('updateProductLineId').value = product.productLine ? product.productLine.id : '';  // 추가
             document.getElementById('updateName').value = product.name;
             document.getElementById('updateDefaultUnitPrice').value = product.defaultUnitPrice || '';
             document.getElementById('updateDescription').value = product.description || '';
@@ -1771,6 +1883,8 @@
         });
 
         const productData = {
+            productCategory: document.getElementById('updateProductCategory').value,  // 추가
+            productLineId: document.getElementById('updateProductLineId').value || null,  // 추가
             name: document.getElementById('updateName').value,
             defaultUnitPrice: document.getElementById('updateDefaultUnitPrice').value ?
                 parseFloat(document.getElementById('updateDefaultUnitPrice').value) : null,
@@ -2085,6 +2199,167 @@
         }
     }
 
+    // ============ 제품라인 관리 함수 ============
+    async function loadProductLines() {
+        try {
+            const response = await fetch(PRODUCT_LINES_API_URL);
+            if (response.ok) {
+                productLines = await response.json();
+                updateProductLineSelects();
+            }
+        } catch (error) {
+            console.error('제품라인 조회 실패:', error);
+        }
+    }
+
+    function updateProductLineSelects() {
+        const selects = document.querySelectorAll('.product-line-select');
+        selects.forEach(select => {
+            // 기존 옵션 제거 (첫 번째 제외)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            // 제품라인 옵션 추가
+            productLines.forEach(line => {
+                const option = document.createElement('option');
+                option.value = line.partId; // PLResponse의 partId 사용
+                option.textContent = line.name;
+                select.appendChild(option);
+            });
+        });
+    }
+
+    async function registerProductLine() {
+        const name = document.getElementById('newProductLineName').value.trim();
+
+        if (!name) {
+            showNotification('제품라인 이름을 입력해주세요.', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(PRODUCT_LINES_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+
+            if (response.ok) {
+                showNotification('제품라인이 등록되었습니다.', 'success');
+                await loadProductLines();
+                closeProductLineModal();
+            } else {
+                const error = await response.json();
+                showNotification(error.message || '제품라인 등록에 실패했습니다.', 'error');
+            }
+        } catch (error) {
+            console.error('제품라인 등록 실패:', error);
+            showNotification('제품라인 등록 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
+    async function updateProductLine(id) {
+        const name = prompt('새로운 제품라인 이름을 입력하세요:');
+
+        if (!name || !name.trim()) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${PRODUCT_LINES_API_URL}/${id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name.trim() })
+            });
+
+            if (response.ok) {
+                showNotification('제품라인이 수정되었습니다.', 'success');
+                await loadProductLines();
+                await loadProducts();
+            } else {
+                const error = await response.json();
+                showNotification(error.message || '제품라인 수정에 실패했습니다.', 'error');
+            }
+        } catch (error) {
+            console.error('제품라인 수정 실패:', error);
+            showNotification('제품라인 수정 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
+    async function deleteProductLine(id) {
+        if (!confirm('이 제품라인을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${PRODUCT_LINES_API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showNotification('제품라인이 삭제되었습니다.', 'success');
+                await loadProductLines();
+                await loadProducts();
+            } else {
+                const error = await response.json();
+                showNotification(error.message || '제품라인 삭제에 실패했습니다.', 'error');
+            }
+        } catch (error) {
+            console.error('제품라인 삭제 실패:', error);
+            showNotification('제품라인 삭제 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
+    function openProductLineManageModal() {
+        loadProductLineList();
+        document.getElementById('productLineManageModal').style.display = 'block';
+    }
+
+    function closeProductLineManageModal() {
+        document.getElementById('productLineManageModal').style.display = 'none';
+    }
+
+    function loadProductLineList() {
+        const tbody = document.querySelector('#productLineTable tbody');
+        tbody.innerHTML = '';
+
+        if (productLines.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">등록된 제품라인이 없습니다.</td></tr>';
+            return;
+        }
+
+        productLines.forEach(line => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+            <td>${line.partId}</td>
+            <td>${line.name}</td>
+            <td>
+                <button class="btn btn-warning" onclick="updateProductLine(${line.partId})" style="padding: 6px 12px;">수정</button>
+                <button class="btn btn-danger" onclick="deleteProductLine(${line.partId})" style="padding: 6px 12px;">삭제</button>
+            </td>
+        `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function openProductLineModal() {
+        document.getElementById('newProductLineName').value = '';
+        document.getElementById('productLineModal').style.display = 'block';
+    }
+
+    function closeProductLineModal() {
+        document.getElementById('productLineModal').style.display = 'none';
+    }
+
+    function getCategoryDisplayName(category) {
+        const categoryMap = {
+            'HARDWARE': '하드웨어',
+            'SOFTWARE': '소프트웨어',
+            'SERVICE': '서비스'
+        };
+        return categoryMap[category] || category;
+    }
 
     function escapeHtml(text) {
         if (!text) return '';
@@ -2111,20 +2386,6 @@
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
-
-    // window.onclick = function(event) {
-    //     const registerModal = document.getElementById('registerModal');
-    //     const detailModal = document.getElementById('detailModal');
-    //     const productionModal = document.getElementById('productionModal');
-    //     const updateModal = document.getElementById('updateModal');
-    //     const deleteModal = document.getElementById('deleteModal');
-    //
-    //     if (event.target === registerModal) closeRegisterModal();
-    //     if (event.target === detailModal) closeDetailModal();
-    //     if (event.target === productionModal) closeProductionModal();
-    //     if (event.target === updateModal) closeUpdateModal();
-    //     if (event.target === deleteModal) closeDeleteModal();
-    // }
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {

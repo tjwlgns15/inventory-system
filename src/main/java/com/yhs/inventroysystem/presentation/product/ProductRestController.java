@@ -42,6 +42,8 @@ public class ProductRestController {
         }
 
         ProductRegisterCommand command = new ProductRegisterCommand(
+                request.productCategory(),
+                request.productLineId(),
                 request.productCode(),
                 request.name(),
                 request.defaultUnitPrice(),
@@ -162,6 +164,8 @@ public class ProductRestController {
             @Valid @RequestBody ProductUpdateRequest request) {
 
         ProductUpdateCommand command = new ProductUpdateCommand(
+                request.productCategory(),
+                request.productLineId(),
                 request.name(),
                 request.defaultUnitPrice(),
                 request.description(),
