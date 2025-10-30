@@ -194,6 +194,13 @@ public class ProductService {
         product.markAsDeleted();
     }
 
+    @Transactional
+    public Product toggleProductFeatured(Long productId) {
+        Product product = findProductById(productId);
+        product.toggleFeatured();
+        return product;
+    }
+
     public List<ProductStockTransaction> getProductStockTransactions(Long productId) {
         return productStockTransactionService.findByProductId(productId);
     }

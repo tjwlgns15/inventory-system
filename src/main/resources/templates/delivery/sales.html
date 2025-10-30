@@ -127,7 +127,6 @@
         }
 
         th:first-child {
-            text-align: left;
             min-width: 100px;
         }
 
@@ -135,16 +134,6 @@
             padding: 12px 16px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             text-align: center;
-        }
-
-        td:first-child {
-            text-align: left;
-            font-weight: 600;
-            background: #f9fafb;
-        }
-
-        tr:hover td {
-            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
         }
 
         tr:last-child td {
@@ -218,6 +207,156 @@
 
         .btn-year:hover:not(.active) {
             background: #f8f9ff;
+        }
+
+        .btn-product-list {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-product-list:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .product-list-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .product-list-modal-content {
+            background: white;
+            margin: 3% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1200px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .product-list-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-list-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .product-list-modal-body {
+            padding: 32px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .product-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+        }
+
+        .product-list-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .product-list-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .product-list-table td {
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .product-list-table tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        .product-list-table tbody tr:hover {
+            background: rgba(102, 126, 234, 0.03);
+        }
+
+        .product-name-cell {
+            display: flex;
+            text-align: left;
+        }
+
+        .product-name-text {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 1rem;
+            display: block;
+        }
+
+        .featured-cell {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+
+        .featured-icon {
+            color: #f59e0b;
+            font-size: 1.2rem;
+        }
+
+        .featured-checkbox-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .no-product-line {
+            color: #9ca3af;
+            font-style: italic;
         }
 
         .client-section {
@@ -541,7 +680,12 @@
 <div class="container">
     <div class="stats-section">
         <div class="stats-header">
-            <h2 class="stats-title">판매 현황</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="stats-title">판매 현황</h2>
+                <button class="btn-product-list" onclick="openProductListModal()">
+                    제품 목록
+                </button>
+            </div>
         </div>
 
         <!-- 주간 판매 비교 -->
@@ -657,6 +801,20 @@
     </div>
 </div>
 
+<div id="productListModal" class="product-list-modal">
+    <div class="product-list-modal-content">
+        <div class="product-list-modal-header">
+            <h2 class="product-list-modal-title">제품 목록</h2>
+            <button class="close" onclick="closeProductListModal()">×</button>
+        </div>
+        <div class="product-list-modal-body" id="productListModalBody">
+            <div style="text-align: center; color: #6b7280; padding: 40px;">
+                제품 목록을 불러오는 중...
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="sidebar-container"></div>
 <script>
     fetch("/infra/sidebar.html")
@@ -676,6 +834,7 @@
 
 <script>
     const API_BASE_URL = '/api/sales-stats';
+    const PRODUCTS_API_URL = '/api/products';
     const CLIENTS_API_URL = '/api/clients';
     let selectedYear = new Date().getFullYear();
     let weeklyComparisonChart = null;
@@ -684,14 +843,26 @@
     let yearlyBarChart = null;
     let allClients = [];
     let monthlyTrendChart = null;
+    let allProducts = [];
 
-    document.addEventListener('DOMContentLoaded', function () {
-        loadClients();
+    document.addEventListener('DOMContentLoaded', async function () {
+        await loadProducts(); // 제품 로드 완료 후
+        await loadClients();
         initYearButtons();
-        loadWeeklyComparison();
-        loadMonthlySales();
-        loadYearlySales(selectedYear);
+        await loadWeeklyComparison(); // 이제 allProducts가 준비됨
+        await loadMonthlySales();
+        await loadYearlySales(selectedYear);
     });
+
+    async function loadProducts() {
+        try {
+            const response = await fetch(PRODUCTS_API_URL);
+            if (!response.ok) throw new Error('제품 목록을 불러오는데 실패했습니다');
+            allProducts = await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
 
     async function loadClients() {
         try {
@@ -778,32 +949,136 @@
         }
     }
 
-    function renderWeeklyComparison(lastWeekProducts, thisWeekProducts, allProducts) {
+    /**
+     * 주간 판매 데이터를 isFeatured와 productLine 기준으로 그룹화
+     */
+    function groupWeeklySalesData(salesData) {
+        // allProducts를 productCode로 빠르게 찾기 위한 Map 생성
+        const productMap = new Map();
+        allProducts.forEach(product => {
+            productMap.set(product.productCode, product);
+        });
+
+        // 그룹별 데이터 저장
+        const groups = new Map();
+        let othersTotalQuantity = 0;
+        let othersAmountKRW = 0;
+
+        salesData.forEach(sale => {
+            const product = productMap.get(sale.productCode);
+
+            if (!product) {
+                // 제품 정보가 없으면 기타로 분류
+                othersTotalQuantity += sale.quantity;
+                othersAmountKRW += (sale.totalAmountKRW || sale.totalAmount || 0);
+                return;
+            }
+
+            if (product.isFeatured) {
+                // 주요 제품
+                if (product.productLine) {
+                    // productLine이 있으면 그룹화
+                    const groupKey = product.productLine.name;
+                    if (!groups.has(groupKey)) {
+                        groups.set(groupKey, {
+                            name: groupKey,
+                            isGroup: true,
+                            quantity: 0,
+                            totalAmountKRW: 0
+                        });
+                    }
+                    const group = groups.get(groupKey).quantity += sale.quantity;
+                    group.quantity += sale.quantity;
+                    group.totalAmountKRW += (sale.totalAmountKRW || sale.totalAmount || 0);
+                } else {
+                    // productLine이 없으면 개별 표시
+                    groups.set(product.productCode, {
+                        name: sale.productName,
+                        code: product.productCode,
+                        isGroup: false,
+                        quantity: sale.quantity,
+                        totalAmountKRW: (sale.totalAmountKRW || sale.totalAmount || 0)
+                    });
+                }
+            } else {
+                // 주요 제품이 아니면 기타로 합산
+                othersTotalQuantity += sale.quantity;
+                othersAmountKRW += (sale.totalAmountKRW || sale.totalAmount || 0);
+            }
+        });
+
+        // 주요 제품 중 판매량이 0인 것도 추가
+        allProducts.forEach(product => {
+            if (product.isFeatured) {
+                if (product.productLine) {
+                    const groupKey = product.productLine.name;
+                    if (!groups.has(groupKey)) {
+                        groups.set(groupKey, {
+                            name: groupKey,
+                            isGroup: true,
+                            quantity: 0,
+                            totalAmountKRW: 0
+                        });
+                    }
+                } else {
+                    if (!groups.has(product.productCode)) {
+                        groups.set(product.productCode, {
+                            name: product.name,
+                            code: product.productCode,
+                            isGroup: false,
+                            quantity: 0,
+                            totalAmountKRW: 0
+                        });
+                    }
+                }
+            }
+        });
+
+        // 기타 추가
+        if (othersTotalQuantity > 0 || groups.size > 0) {
+            groups.set('__others__', {
+                name: '기타',
+                isGroup: true,
+                quantity: othersTotalQuantity,
+                totalAmountKRW: othersAmountKRW
+            });
+        }
+
+        return Array.from(groups.values());
+    }
+
+    function renderWeeklyComparison(lastWeekProducts, thisWeekProducts) {
         const table = document.getElementById('comparisonTable');
         const thead = table.querySelector('thead tr');
         const tbody = table.querySelector('tbody');
 
-        // API에서 반환된 제품들의 합집합 생성
-        const productCodesSet = new Set();
-        lastWeekProducts.forEach(p => productCodesSet.add(p.productCode));
-        thisWeekProducts.forEach(p => productCodesSet.add(p.productCode));
+        // 데이터 그룹화
+        const lastWeekGroups = groupWeeklySalesData(lastWeekProducts);
+        const thisWeekGroups = groupWeeklySalesData(thisWeekProducts);
 
-        const allProductCodes = Array.from(productCodesSet);
+        // 모든 그룹 키 수집 (합집합)
+        const allGroupKeys = new Set();
+        lastWeekGroups.forEach(g => allGroupKeys.add(g.name));
+        thisWeekGroups.forEach(g => allGroupKeys.add(g.name));
 
-        const products = allProductCodes.map(code => {
-            const lastWeek = lastWeekProducts.find(p => p.productCode === code);
-            const thisWeek = thisWeekProducts.find(p => p.productCode === code);
+        // 그룹별 데이터 병합
+        const products = Array.from(allGroupKeys).map(groupName => {
+            const lastWeek = lastWeekGroups.find(g => g.name === groupName);
+            const thisWeek = thisWeekGroups.find(g => g.name === groupName);
 
             return {
-                code: code,
-                name: (lastWeek || thisWeek).productName,  // productName 사용
+                name: groupName,
                 lastWeekQty: lastWeek?.quantity || 0,
                 thisWeekQty: thisWeek?.quantity || 0
             };
         });
 
-        // 판매량 기준 정렬 (내림차순)
-        products.sort((a, b) => (b.lastWeekQty + b.thisWeekQty) - (a.lastWeekQty + a.thisWeekQty));
+        // "기타"를 마지막으로 이동
+        const othersIndex = products.findIndex(p => p.name === '기타');
+        if (othersIndex > -1) {
+            const others = products.splice(othersIndex, 1)[0];
+            products.push(others);
+        }
 
         // 각 행의 합계 계산
         const lastWeekTotal = products.reduce((sum, p) => sum + p.lastWeekQty, 0);
@@ -812,7 +1087,7 @@
 
         // 헤더 생성
         thead.innerHTML = '<th>구분</th>' +
-            products.map(p => `<th>${p.name}<br><small>(${p.code})</small></th>`).join('') +
+            products.map(p => `<th>${p.name}</th>`).join('') +
             '<th>총 판매량</th>';
 
         // 판매량 행들 생성
@@ -830,12 +1105,12 @@
             <tr class="increase-row">
                 <td>증가량</td>
                 ${products.map(p => {
-                const increase = p.thisWeekQty - p.lastWeekQty;
-                const className = increase > 0 ? 'increase-positive' :
-                    increase < 0 ? 'increase-negative' : 'increase-zero';
-                const sign = increase > 0 ? '+' : '';
-                return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
-            }).join('')}
+            const increase = p.thisWeekQty - p.lastWeekQty;
+            const className = increase > 0 ? 'increase-positive' :
+                increase < 0 ? 'increase-negative' : 'increase-zero';
+            const sign = increase > 0 ? '+' : '';
+            return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
+        }).join('')}
                 <td class="${increaseTotal > 0 ? 'increase-positive' : increaseTotal < 0 ? 'increase-negative' : 'increase-zero'}">
                     <strong>${increaseTotal > 0 ? '+' : ''}${increaseTotal.toLocaleString()}</strong>
                 </td>
@@ -978,7 +1253,7 @@
             monthlyTrendChart.destroy();
         }
 
-        // 월 레이블 생성 (2024-11 → 11월)
+        // 월 레이블 생성 (예: 2024-11 → 11월)
         const labels = data.productSales[0]?.monthlySales.map(m => {
             const [year, month] = m.yearMonth.split('-');
             return `${year}.${month}`;
@@ -986,38 +1261,31 @@
 
         // 제품별 색상 정의
         const colorPalette = [
-            { border: 'rgb(99, 102, 241)', background: 'rgba(99, 102, 241, 0.1)' },    // Indigo
-            { border: 'rgb(239, 68, 68)', background: 'rgba(239, 68, 68, 0.1)' },      // Red
-            { border: 'rgb(34, 197, 94)', background: 'rgba(34, 197, 94, 0.1)' },      // Green
-            { border: 'rgb(234, 179, 8)', background: 'rgba(234, 179, 8, 0.1)' },      // Yellow
-            { border: 'rgb(168, 85, 247)', background: 'rgba(168, 85, 247, 0.1)' },    // Purple
-            { border: 'rgb(236, 72, 153)', background: 'rgba(236, 72, 153, 0.1)' },    // Pink
-            { border: 'rgb(20, 184, 166)', background: 'rgba(20, 184, 166, 0.1)' },    // Teal
-            { border: 'rgb(249, 115, 22)', background: 'rgba(249, 115, 22, 0.1)' }     // Orange
+            { border: 'rgb(99, 102, 241)', background: 'rgba(99, 102, 241, 0.7)' },   // Indigo
+            { border: 'rgb(239, 68, 68)', background: 'rgba(239, 68, 68, 0.7)' },     // Red
+            { border: 'rgb(34, 197, 94)', background: 'rgba(34, 197, 94, 0.7)' },     // Green
+            { border: 'rgb(234, 179, 8)', background: 'rgba(234, 179, 8, 0.7)' },     // Yellow
+            { border: 'rgb(168, 85, 247)', background: 'rgba(168, 85, 247, 0.7)' },   // Purple
+            { border: 'rgb(236, 72, 153)', background: 'rgba(236, 72, 153, 0.7)' },   // Pink
+            { border: 'rgb(20, 184, 166)', background: 'rgba(20, 184, 166, 0.7)' },   // Teal
+            { border: 'rgb(249, 115, 22)', background: 'rgba(249, 115, 22, 0.7)' }    // Orange
         ];
 
         // 데이터셋 생성
         const datasets = data.productSales.map((product, index) => {
             const color = colorPalette[index % colorPalette.length];
-
             return {
-                label: product.productName,
+                label: product.displayName,
                 data: product.monthlySales.map(m => m.quantity),
-                borderColor: color.border,
                 backgroundColor: color.background,
-                borderWidth: 2,
-                tension: 0.4,  // 곡선 부드럽게
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                pointBackgroundColor: '#fff',
-                pointBorderWidth: 2,
-                pointHoverBorderWidth: 3
+                borderColor: color.border,
+                borderWidth: 1
             };
         });
 
+        // 차트 생성 (stacked bar chart)
         monthlyTrendChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: labels,
                 datasets: datasets
@@ -1039,7 +1307,7 @@
                                 family: 'notosanskr'
                             },
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'rectRounded'
                         }
                     },
                     tooltip: {
@@ -1053,7 +1321,7 @@
                             size: 13
                         },
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const label = context.dataset.label || '';
                                 const value = context.parsed.y.toLocaleString();
                                 return `${label}: ${value}개`;
@@ -1063,6 +1331,7 @@
                 },
                 scales: {
                     x: {
+                        stacked: true, // X축 누적
                         grid: {
                             display: false
                         },
@@ -1076,6 +1345,7 @@
                         }
                     },
                     y: {
+                        stacked: true, // Y축 누적
                         beginAtZero: true,
                         grid: {
                             color: 'rgba(0, 0, 0, 0.05)'
@@ -1085,7 +1355,7 @@
                                 size: 11,
                                 family: 'notosanskr'
                             },
-                            callback: function(value) {
+                            callback: function (value) {
                                 return value.toLocaleString() + '개';
                             }
                         },
@@ -1102,6 +1372,105 @@
                 }
             }
         });
+    }
+
+    /**
+     * 연간 판매 데이터를 isFeatured와 productLine 기준으로 그룹화
+     */
+    function groupYearlySalesData(productMap) {
+        // allProducts를 productCode로 빠르게 찾기 위한 Map 생성
+        const productLookup = new Map();
+        allProducts.forEach(product => {
+            productLookup.set(product.productCode, product);
+        });
+
+        // 그룹별 데이터 저장
+        const groups = new Map();
+        let othersQuantity = 0;
+        let othersAmountKRW = 0;
+
+        // 제품 데이터를 그룹화
+        productMap.forEach((productData, productCode) => {
+            const product = productLookup.get(productCode);
+
+            if (!product) {
+                // 제품 정보가 없으면 기타로 분류
+                othersQuantity += productData.quantity;
+                othersAmountKRW += productData.totalAmountKRW;
+                return;
+            }
+
+            if (product.isFeatured) {
+                // 주요 제품
+                if (product.productLine) {
+                    // productLine이 있으면 그룹화
+                    const groupKey = product.productLine.name;
+                    if (!groups.has(groupKey)) {
+                        groups.set(groupKey, {
+                            name: groupKey,
+                            isGroup: true,
+                            quantity: 0,
+                            totalAmountKRW: 0
+                        });
+                    }
+                    const group = groups.get(groupKey);
+                    group.quantity += productData.quantity;
+                    group.totalAmountKRW += productData.totalAmountKRW;
+                } else {
+                    // productLine이 없으면 개별 표시
+                    groups.set(productCode, {
+                        name: productData.productName,
+                        code: productCode,
+                        isGroup: false,
+                        quantity: productData.quantity,
+                        totalAmountKRW: productData.totalAmountKRW
+                    });
+                }
+            } else {
+                // 주요 제품이 아니면 기타로 합산
+                othersQuantity += productData.quantity;
+                othersAmountKRW += productData.totalAmountKRW;
+            }
+        });
+
+        // 주요 제품 중 판매량이 0인 것도 추가
+        allProducts.forEach(product => {
+            if (product.isFeatured) {
+                if (product.productLine) {
+                    const groupKey = product.productLine.name;
+                    if (!groups.has(groupKey)) {
+                        groups.set(groupKey, {
+                            name: groupKey,
+                            isGroup: true,
+                            quantity: 0,
+                            totalAmountKRW: 0
+                        });
+                    }
+                } else {
+                    if (!groups.has(product.productCode)) {
+                        groups.set(product.productCode, {
+                            name: product.name,
+                            code: product.productCode,
+                            isGroup: false,
+                            quantity: 0,
+                            totalAmountKRW: 0
+                        });
+                    }
+                }
+            }
+        });
+
+        // 기타 추가
+        if (othersQuantity > 0 || groups.size > 0) {
+            groups.set('__others__', {
+                name: '기타',
+                isGroup: true,
+                quantity: othersQuantity,
+                totalAmountKRW: othersAmountKRW
+            });
+        }
+
+        return Array.from(groups.values());
     }
 
     async function loadYearlySales(year) {
@@ -1151,40 +1520,48 @@
             });
         });
 
-        const products = Array.from(productMap.values());
+        // 그룹화된 제품 데이터 생성
+        const groupedProducts = groupYearlySalesData(productMap);
 
-        if (products.length === 0) {
+        if (groupedProducts.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" class="empty-state">판매 데이터가 없습니다</td></tr>';
             document.getElementById('yearlyTotalPeriod').textContent = '';
             return;
         }
 
-        // 판매량 기준 내림차순 정렬
-        products.sort((a, b) => b.quantity - a.quantity);
+        // "기타"를 마지막으로 정렬
+        const sortedProducts = [...groupedProducts].sort((a, b) => {
+            if (a.name === '기타') return 1;
+            if (b.name === '기타') return -1;
+            return b.quantity - a.quantity;
+        });
 
-        const totalQty = products.reduce((sum, p) => sum + p.quantity, 0);
-        const totalAmountKRW = products.reduce((sum, p) => sum + p.totalAmountKRW, 0);
+        const totalQty = sortedProducts.reduce((sum, p) => sum + p.quantity, 0);
+        const totalAmountKRW = sortedProducts.reduce((sum, p) => sum + p.totalAmountKRW, 0);
 
         document.getElementById('yearlyTotalPeriod').textContent =
             `${new Date().getFullYear()}년 1월 1일 ~ 현재`;
 
-        tbody.innerHTML = products.map(product => `
-            <tr>
-                <td><strong>${product.productCode}</strong></td>
-                <td>${product.productName}</td>
-                <td>${product.quantity.toLocaleString()}</td>
-                <td class="price-text">${formatPrice(product.totalAmountKRW)}</td>
-            </tr>
-        `).join('') + `
-            <tr style="background: #f3f4f6; font-weight: 700;">
-                <td colspan="2">총계</td>
-                <td>${totalQty.toLocaleString()}</td>
-                <td class="price-text">${formatPrice(totalAmountKRW)}</td>
-            </tr>
-        `;
+        tbody.innerHTML = sortedProducts
+            .filter(product => product.totalAmountKRW !== 0) // ✅ 0이 아닌 항목만 표시
+            .map(product => `
+                <tr>
+                    <td><strong>${product.code || '-'}</strong></td>
+                    <td>${product.name}</td>
+                    <td>${product.quantity.toLocaleString()}</td>
+                    <td class="price-text">${formatPrice(product.totalAmountKRW)}</td>
+                </tr>
+            `).join('') + `
+                <tr style="background: #f3f4f6; font-weight: 700;">
+                    <td colspan="2">총계</td>
+                    <td>${totalQty.toLocaleString()}</td>
+                    <td class="price-text">${formatPrice(totalAmountKRW)}</td>
+                </tr>
+            `;
+
 
         // 차트 렌더링
-        renderYearlyCharts(products);
+        renderYearlyCharts(sortedProducts);
     }
 
     function renderYearlyCharts(products) {
@@ -1195,7 +1572,7 @@
             '#3BA272', '#FC8452', '#9A60B4', '#EA7CCC', '#2ec7c9'
         ];
 
-        const productNames = products.map(p => p.productName);
+        const productNames = products.map(p => p.name);
         const quantities = products.map(p => p.quantity);
         const totalAmounts = products.map(p => p.totalAmountKRW);
 
@@ -1240,7 +1617,7 @@
                     smooth: true
                 },
                 data: products.map((p, i) => ({
-                    name: p.productName,
+                    name: p.name,
                     value: p.quantity,
                     itemStyle: { color: colors[i % colors.length] }
                 }))
@@ -1633,21 +2010,190 @@
 
     // 모달 외부 클릭 시 닫기
     window.onclick = function(event) {
-        const modal = document.getElementById('childClientsModal');
-        if (event.target === modal) {
+        const childModal = document.getElementById('childClientsModal');
+        const productModal = document.getElementById('productListModal');
+
+        if (event.target === childModal) {
             closeChildClientsModal();
+        }
+
+        if (event.target === productModal) {
+            closeProductListModal();
         }
     }
 
     // ESC 키로 모달 닫기
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
-            const modal = document.getElementById('childClientsModal');
-            if (modal.style.display === 'block') {
+            const childModal = document.getElementById('childClientsModal');
+            const productModal = document.getElementById('productListModal');
+
+            if (childModal.style.display === 'block') {
                 closeChildClientsModal();
+            }
+
+            if (productModal.style.display === 'block') {
+                closeProductListModal();
             }
         }
     });
+
+    // 제품 목록 모달 열기
+    async function openProductListModal() {
+        const modal = document.getElementById('productListModal');
+        modal.style.display = 'block';
+
+        await loadProducts();
+
+        renderProductListModal();
+    }
+
+    // 제품 목록 모달 닫기
+    function closeProductListModal() {
+        const modal = document.getElementById('productListModal');
+        modal.style.display = 'none';
+        setTimeout(() => {
+            location.reload();
+        }, 100);
+    }
+
+    // 제품 목록 모달 렌더링
+    function renderProductListModal() {
+        const modalBody = document.getElementById('productListModalBody');
+
+        if (!allProducts || allProducts.length === 0) {
+            modalBody.innerHTML = `
+                <div style="text-align: center; color: #6b7280; padding: 40px;">
+                    등록된 제품이 없습니다.
+                </div>
+            `;
+            return;
+        }
+
+        // productLine이 있는 제품을 상단에, 없는 제품을 하단에 배치
+        const sortedProducts = [...allProducts].sort((a, b) => {
+            // productLine이 있는 것을 우선
+            if (a.productLine && !b.productLine) return -1;
+            if (!a.productLine && b.productLine) return 1;
+
+            // productLine이 같으면 제품명순
+            if (a.productLine && b.productLine) {
+                const lineCompare = a.productLine.name.localeCompare(b.productLine.name, 'ko');
+                if (lineCompare !== 0) return lineCompare;
+            }
+
+            return a.name.localeCompare(b.name, 'ko');
+        });
+
+        // productLine별로 그룹화하여 rowspan 계산
+        const productLineGroups = new Map();
+        sortedProducts.forEach(product => {
+            const lineName = product.productLine ? product.productLine.name : null;
+            if (!productLineGroups.has(lineName)) {
+                productLineGroups.set(lineName, []);
+            }
+            productLineGroups.get(lineName).push(product);
+        });
+
+        let tableRows = '';
+        let isFirstInGroup = true;
+        let currentProductLine = null;
+
+        sortedProducts.forEach((product, index) => {
+            const lineName = product.productLine ? product.productLine.name : null;
+
+            // 새로운 productLine 그룹의 시작인지 확인
+            if (currentProductLine !== lineName) {
+                isFirstInGroup = true;
+                currentProductLine = lineName;
+            }
+
+            const rowspan = isFirstInGroup ? productLineGroups.get(lineName).length : 0;
+
+            tableRows += '<tr>';
+
+            // productLine 컬럼 (병합)
+            if (isFirstInGroup) {
+                const lineDisplay = lineName
+                    ? lineName
+                    : '<span class="no-product-line">-</span>';
+                tableRows += `<td rowspan="${rowspan}">${lineDisplay}</td>`;
+            }
+
+            // 제품명(제품코드) 컬럼
+            tableRows += `
+                <td class="product-name-cell">
+                    <span class="product-name-text">${product.name}</span>
+                </td>
+            `;
+
+            // 주요 제품 체크박스 컬럼
+            tableRows += `
+                <td>
+                    <div class="featured-cell">
+                        <input type="checkbox" class="featured-checkbox-input"
+                               data-product-id="${product.id}"
+                               ${product.isFeatured ? 'checked' : ''}
+                               onchange="toggleProductFeatured(${product.id})">
+                    </div>
+                </td>
+            `;
+
+            tableRows += '</tr>';
+
+            isFirstInGroup = false;
+        });
+
+        modalBody.innerHTML = `
+            <table class="product-list-table">
+                <thead>
+                    <tr>
+                        <th>제품라인</th>
+                        <th>제품명</th>
+                        <th>주요 제품</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+            </table>
+        `;
+    }
+
+    // 주요 제품 토글
+    async function toggleProductFeatured(productId) {
+        try {
+            const response = await fetch(`${PRODUCTS_API_URL}/${productId}/toggle-featured`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('주요 제품 설정 변경에 실패했습니다');
+            }
+
+            const updatedProduct = await response.json();
+
+            // allProducts 배열에서 해당 제품 업데이트
+            const productIndex = allProducts.findIndex(p => p.id === productId);
+            if (productIndex !== -1) {
+                allProducts[productIndex] = updatedProduct;
+            }
+
+            // 모달 다시 렌더링
+            renderProductListModal();
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('주요 제품 설정 변경에 실패했습니다');
+
+            // 에러 발생 시 체크박스 상태 원복을 위해 다시 로드
+            await loadProducts();
+            renderProductListModal();
+        }
+    }
 </script>
 </body>
 </html>

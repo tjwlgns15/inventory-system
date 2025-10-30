@@ -148,8 +148,15 @@ public class SalesStatsRestController {
         return ResponseEntity.ok(salesStatsService.getLastWeekSales());
     }
 
+    @GetMapping("/monthly")
+    public ResponseEntity<MonthlySalesResponse> getMonthlySales() {
+        return ResponseEntity.ok(salesStatsService.getMonthlySales());
+    }
+
     @GetMapping("/yearly/{year}")
     public ResponseEntity<YearlySalesByClientResponse> getYearlySalesByClient(@PathVariable int year) {
         return ResponseEntity.ok(salesStatsService.getYearlySalesByClient(year));
     }
+
+
 }

@@ -55,7 +55,8 @@ public class ProductDtos {
             String name,
             BigDecimal defaultUnitPrice,
             String description,
-            Integer stockQuantity
+            Integer stockQuantity,
+            boolean isFeatured
     ) {
         public static ProductResponse from(Product product) {
             return new ProductResponse(
@@ -71,7 +72,8 @@ public class ProductDtos {
                     product.getName(),
                     product.getDefaultUnitPrice(),
                     product.getDescription(),
-                    product.getStockQuantity()
+                    product.getStockQuantity(),
+                    product.getIsFeatured()
             );
         }
     }

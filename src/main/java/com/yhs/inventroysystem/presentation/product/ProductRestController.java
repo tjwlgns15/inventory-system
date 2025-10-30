@@ -209,4 +209,13 @@ public class ProductRestController {
 
         return ResponseEntity.ok(responses);
     }
+
+    /**
+     * 주요 제품 토글
+     */
+    @PatchMapping("/{productId}/toggle-featured")
+    public ResponseEntity<ProductResponse> toggleProductFeatured(@PathVariable Long productId) {
+        Product product = productService.toggleProductFeatured(productId);
+        return ResponseEntity.ok(ProductResponse.from(product));
+    }
 }

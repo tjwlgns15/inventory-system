@@ -42,6 +42,9 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer stockQuantity;
 
+    @Column(nullable = false)
+    private Boolean isFeatured = false;  // 주력 상품 여부 (기본값: false)
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPart> partMappings = new ArrayList<>();
 
@@ -59,6 +62,7 @@ public class Product extends BaseTimeEntity {
         this.defaultUnitPrice = defaultUnitPrice;
         this.description = description;
         this.stockQuantity = initialStock;
+        this.isFeatured = false;
     }
 
     private void validateProductCategory(ProductCategory productCategory) {
@@ -118,6 +122,28 @@ public class Product extends BaseTimeEntity {
     public void removeProductLine() {
         ensureNotDeleted();
         this.productLine = null;
+    }
+
+    // 주력 상품 설정
+    public void markAsFeatured() {
+        ensureNotDeleted();
+        this.isFeatured = true;
+    }
+
+    // 주력 상품 해제
+    public void unmarkAsFeatured() {
+        ensureNotDeleted();
+        this.isFeatured = false;
+    }
+
+    // 주력 상품 여부 토글
+    public void toggleFeatured() {
+        ensureNotDeleted();
+        this.isFeatured = !this.isFeatured;
+    }
+
+    public boolean isFeaturedProduct() {
+        return this.isFeatured;
     }
 
     public void clearPartMappings() {
