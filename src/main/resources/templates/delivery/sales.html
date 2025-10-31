@@ -6,6 +6,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-piechart-outlabels@1.1.4/dist/chartjs-plugin-piechart-outlabels.min.js"></script>
+
     <title>판매 현황</title>
     <style>
         @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
@@ -106,7 +110,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.875rem;
+            font-size: 1rem;
             background: white;
             min-width: 800px;
         }
@@ -119,7 +123,6 @@
             padding: 12px 16px;
             text-align: center;
             font-weight: 600;
-            font-size: 0.75rem;
             color: white;
             text-transform: uppercase;
             letter-spacing: 0.8px;
@@ -134,10 +137,6 @@
             padding: 12px 16px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             text-align: center;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
         }
 
         .last-week-row {
@@ -693,22 +692,6 @@
             <div class="comparison-header">
                 <span class="comparison-title">주간 판매량 비교</span>
                 <div style="display: flex; gap: 12px; align-items: center;">
-                    <!-- 필터 드롭다운 -->
-<!--                    <select id="productFilter" onchange="loadWeeklyComparison()"-->
-<!--                            style="padding: 8px 16px;-->
-<!--                       border-radius: 8px;-->
-<!--                       border: 2px solid #667eea;-->
-<!--                       background: white;-->
-<!--                       color: #667eea;-->
-<!--                       font-weight: 600;-->
-<!--                       cursor: pointer;-->
-<!--                       font-size: 0.875rem;">-->
-<!--                        <option value="default">주요 제품 + 거래 발생</option>-->
-<!--                        <option value="top5">상위 5개만</option>-->
-<!--                        <option value="top10">상위 10개만</option>-->
-<!--                        <option value="transacted">거래 발생만</option>-->
-<!--                        <option value="all">전체 제품</option>-->
-<!--                    </select>-->
                     <span class="period-info" id="periodInfo"></span>
                 </div>
             </div>
@@ -728,11 +711,11 @@
         <!-- 주간 비교 차트 -->
         <div class="charts-grid">
             <div class="chart-container">
-                <h3 class="chart-title">주간 판매량 비교</h3>
+                <h3 class="chart-title">주간 누적 판매량 비교</h3>
                 <canvas id="weeklyComparisonChart"></canvas>
             </div>
             <div class="chart-container">
-                <h3 class="chart-title">제품별 증가율</h3>
+                <h3 class="chart-title">제품별 증가량</h3>
                 <canvas id="weeklyChangeChart"></canvas>
             </div>
         </div>
@@ -763,8 +746,8 @@
                 <table id="yearlyTotalTable">
                     <thead>
                     <tr>
-                        <th>제품코드</th>
                         <th>제품명</th>
+                        <th>제품코드</th>
                         <th>누적 판매량</th>
                         <th>누적 판매액 (원화)</th>
                     </tr>
@@ -778,14 +761,13 @@
         <div class="charts-grid">
             <div class="chart-container">
                 <h3 class="chart-title">제품별 판매량 분포</h3>
-                <div id="yearlyPieChart" style="width: 100%; height: 400px;"></div>
+                <div id="yearlyPieChart" style="width: 100%;  height: 400px;"></div>
             </div>
             <div class="chart-container">
                 <h3 class="chart-title">제품별 판매액 (원화)</h3>
                 <div id="yearlyBarChart" style="width: 100%; height: 400px;"></div>
             </div>
         </div>
-
         <div id="yearlyStats"></div>
     </div>
 </div>
@@ -839,17 +821,15 @@
     let selectedYear = new Date().getFullYear();
     let weeklyComparisonChart = null;
     let weeklyChangeChart = null;
-    let yearlyPieChart = null;
-    let yearlyBarChart = null;
     let allClients = [];
     let monthlyTrendChart = null;
     let allProducts = [];
 
     document.addEventListener('DOMContentLoaded', async function () {
-        await loadProducts(); // 제품 로드 완료 후
+        await loadProducts();
         await loadClients();
         initYearButtons();
-        await loadWeeklyComparison(); // 이제 allProducts가 준비됨
+        await loadWeeklyComparison();
         await loadMonthlySales();
         await loadYearlySales(selectedYear);
     });
@@ -894,41 +874,16 @@
         loadYearlySales(year);
     }
 
+    // loadWeeklyComparison 함수 수정
     async function loadWeeklyComparison() {
         try {
-            // 필터 옵션 가져오기 (선택사항 - UI에 select가 있는 경우)
-            const filterElement = document.getElementById('productFilter');
-            const filterValue = filterElement ? filterElement.value : 'default';
+            const currentYear = new Date().getFullYear();
 
-            // 필터에 따른 쿼리 파라미터 설정
-            let queryParams = '';
-            switch(filterValue) {
-                case 'top5':
-                    // U7, U8, U9 + 거래 발생 제품 중 상위 5개
-                    queryParams = '?maxCount=5';
-                    break;
-                case 'top10':
-                    // U7, U8, U9 + 거래 발생 제품 중 상위 10개
-                    queryParams = '?maxCount=10';
-                    break;
-                case 'transacted':
-                    // 거래 발생 제품만 (주요 제품 필터 제거)
-                    queryParams = '?onlyTransacted=true';
-                    break;
-                case 'all':
-                    // 모든 제품 (거래 여부 무관)
-                    queryParams = '?onlyTransacted=false';
-                    break;
-                case 'default':
-                default:
-                    // 기본: U7, U8, U9 + 거래 발생 제품
-                    queryParams = '';
-                    break;
-            }
-
-            const [lastWeekResponse, thisWeekResponse] = await Promise.all([
-                fetch(`${API_BASE_URL}/weekly/last${queryParams}`),
-                fetch(`${API_BASE_URL}/weekly/current${queryParams}`)
+            // 주간 정보와 연간 누적 데이터 가져오기
+            const [lastWeekResponse, thisWeekResponse, yearlyResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/weekly/last`),
+                fetch(`${API_BASE_URL}/weekly/current`),
+                fetch(`${API_BASE_URL}/yearly/${currentYear}`)
             ]);
 
             if (!lastWeekResponse.ok || !thisWeekResponse.ok) {
@@ -938,15 +893,82 @@
             const lastWeekData = await lastWeekResponse.json();
             const thisWeekData = await thisWeekResponse.json();
 
+            let lastWeekCumulative, thisWeekCumulative;
+
+            if (yearlyResponse.ok) {
+                const yearlyData = await yearlyResponse.json();
+
+                // 연간 전체 데이터에서 누적 계산
+                const yearlyProducts = calculateCumulativeFromClientSales(yearlyData.clientSales);
+                const thisWeekProducts = calculateProductSalesMap(thisWeekData.productSales);
+
+                // 이번주 누적 = 연간 전체
+                thisWeekCumulative = yearlyProducts;
+
+                // 지난주 누적 = 연간 전체 - 이번주 판매량
+                lastWeekCumulative = yearlyProducts.map(product => {
+                    const thisWeekProduct = thisWeekProducts.get(product.productCode);
+                    const thisWeekQty = thisWeekProduct ? thisWeekProduct.quantity : 0;
+
+                    return {
+                        ...product,
+                        quantity: product.quantity - thisWeekQty
+                    };
+                });
+            } else {
+                // 연간 데이터도 없으면 주간 데이터 사용
+                lastWeekCumulative = lastWeekData.productSales;
+                thisWeekCumulative = thisWeekData.productSales;
+            }
+
             document.getElementById('periodInfo').innerHTML = `
             지난주: ${formatDate(lastWeekData.weekStart)} ~ ${formatDate(lastWeekData.weekEnd)} /
             이번주: ${formatDate(thisWeekData.weekStart)} ~ ${formatDate(thisWeekData.weekEnd)}
+            <span style="font-size: 0.75em; color: #9CA3AF; margin-left: 8px;">(판매량: ${currentYear}년 1월 1일부터 누적)</span>
         `;
 
-            renderWeeklyComparison(lastWeekData.productSales, thisWeekData.productSales);
+            renderWeeklyComparison(lastWeekCumulative, thisWeekCumulative);
         } catch (error) {
             console.error('Error:', error);
         }
+    }
+
+    // clientSales에서 제품별 누적 데이터 계산
+    function calculateCumulativeFromClientSales(clientSales) {
+        const productMap = new Map();
+
+        clientSales.forEach(client => {
+            client.productSales.forEach(product => {
+                const amountKRW = product.totalAmountKRW || product.totalAmount;
+
+                if (productMap.has(product.productCode)) {
+                    const existing = productMap.get(product.productCode);
+                    existing.quantity += product.quantity;
+                    existing.totalAmount += amountKRW;
+                    existing.totalAmountKRW += amountKRW;
+                } else {
+                    productMap.set(product.productCode, {
+                        productId: product.productId,
+                        productCode: product.productCode,
+                        productName: product.productName,
+                        quantity: product.quantity,
+                        totalAmount: amountKRW,
+                        totalAmountKRW: amountKRW
+                    });
+                }
+            });
+        });
+
+        return Array.from(productMap.values());
+    }
+
+    // 제품 판매 데이터를 Map으로 변환
+    function calculateProductSalesMap(productSales) {
+        const map = new Map();
+        productSales.forEach(product => {
+            map.set(product.productCode, product);
+        });
+        return map;
     }
 
     /**
@@ -1377,6 +1399,103 @@
     /**
      * 연간 판매 데이터를 isFeatured와 productLine 기준으로 그룹화
      */
+    // function groupYearlySalesData(productMap) {
+    //     const productLookup = new Map();
+    //     allProducts.forEach(product => {
+    //         productLookup.set(product.productCode, product);
+    //     });
+    //
+    //     // 그룹별 데이터 저장
+    //     const groups = new Map();
+    //     let othersQuantity = 0;
+    //     let othersAmountKRW = 0;
+    //
+    //     // 제품 데이터를 그룹화
+    //     productMap.forEach((productData, productCode) => {
+    //         const product = productLookup.get(productCode);
+    //
+    //         if (!product) {
+    //             // 제품 정보가 없으면 기타로 분류
+    //             othersQuantity += productData.quantity;
+    //             othersAmountKRW += productData.totalAmountKRW;
+    //             return;
+    //         }
+    //
+    //         if (product.isFeatured) {
+    //             // 주요 제품
+    //             if (product.productLine) {
+    //                 // productLine이 있으면 그룹화
+    //                 const groupKey = product.productLine.name;
+    //                 if (!groups.has(groupKey)) {
+    //                     groups.set(groupKey, {
+    //                         name: groupKey,
+    //                         isGroup: true,
+    //                         quantity: 0,
+    //                         totalAmountKRW: 0
+    //                     });
+    //                 }
+    //                 const group = groups.get(groupKey);
+    //                 group.quantity += productData.quantity;
+    //                 group.totalAmountKRW += productData.totalAmountKRW;
+    //             } else {
+    //                 // productLine이 없으면 개별 표시
+    //                 groups.set(productCode, {
+    //                     name: productData.productName,
+    //                     code: productCode,
+    //                     isGroup: false,
+    //                     quantity: productData.quantity,
+    //                     totalAmountKRW: productData.totalAmountKRW
+    //                 });
+    //             }
+    //         } else {
+    //             // 주요 제품이 아니면 기타로 합산
+    //             othersQuantity += productData.quantity;
+    //             othersAmountKRW += productData.totalAmountKRW;
+    //         }
+    //     });
+    //
+    //     // 주요 제품 중 판매량이 0인 것도 추가
+    //     allProducts.forEach(product => {
+    //         if (product.isFeatured) {
+    //             if (product.productLine) {
+    //                 const groupKey = product.productLine.name;
+    //                 if (!groups.has(groupKey)) {
+    //                     groups.set(groupKey, {
+    //                         name: groupKey,
+    //                         isGroup: true,
+    //                         quantity: 0,
+    //                         totalAmountKRW: 0
+    //                     });
+    //                 }
+    //             } else {
+    //                 if (!groups.has(product.productCode)) {
+    //                     groups.set(product.productCode, {
+    //                         name: product.name,
+    //                         code: product.productCode,
+    //                         isGroup: false,
+    //                         quantity: 0,
+    //                         totalAmountKRW: 0
+    //                     });
+    //                 }
+    //             }
+    //         }
+    //     });
+    //
+    //     // 기타 추가
+    //     if (othersQuantity > 0 || groups.size > 0) {
+    //         groups.set('__others__', {
+    //             name: '기타',
+    //             isGroup: true,
+    //             quantity: othersQuantity,
+    //             totalAmountKRW: othersAmountKRW
+    //         });
+    //     }
+    //
+    //     return Array.from(groups.values());
+    // }
+    /**
+     * 연간 판매 데이터를 isFeatured와 productLine 기준으로 그룹화
+     */
     function groupYearlySalesData(productMap) {
         // allProducts를 productCode로 빠르게 찾기 위한 Map 생성
         const productLookup = new Map();
@@ -1388,6 +1507,8 @@
         const groups = new Map();
         let othersQuantity = 0;
         let othersAmountKRW = 0;
+        // 기타에 포함된 제품들을 추적
+        const othersProducts = [];
 
         // 제품 데이터를 그룹화
         productMap.forEach((productData, productCode) => {
@@ -1397,6 +1518,11 @@
                 // 제품 정보가 없으면 기타로 분류
                 othersQuantity += productData.quantity;
                 othersAmountKRW += productData.totalAmountKRW;
+                // 기타 제품 목록에 추가
+                othersProducts.push({
+                    name: productData.productName,
+                    quantity: productData.quantity
+                });
                 return;
             }
 
@@ -1430,6 +1556,11 @@
                 // 주요 제품이 아니면 기타로 합산
                 othersQuantity += productData.quantity;
                 othersAmountKRW += productData.totalAmountKRW;
+                // 기타 제품 목록에 추가
+                othersProducts.push({
+                    name: productData.productName,
+                    quantity: productData.quantity
+                });
             }
         });
 
@@ -1460,11 +1591,27 @@
             }
         });
 
-        // 기타 추가
+        // 기타 추가 - 최다 판매 제품명 표시
         if (othersQuantity > 0 || groups.size > 0) {
+            let othersName = '기타';
+
+            if (othersProducts.length > 0) {
+                // 판매량 기준으로 정렬하여 최다 판매 제품 찾기
+                othersProducts.sort((a, b) => b.quantity - a.quantity);
+                const topProduct = othersProducts[0];
+                const otherCount = othersProducts.length - 1;
+
+                if (otherCount > 0) {
+                    othersName = `기타(${topProduct.name} 외 ${otherCount}건)`;
+                } else {
+                    othersName = topProduct.name;
+                }
+            }
+
             groups.set('__others__', {
-                name: '기타',
+                name: othersName,
                 isGroup: true,
+                isOthers: true,
                 quantity: othersQuantity,
                 totalAmountKRW: othersAmountKRW
             });
@@ -1529,10 +1676,10 @@
             return;
         }
 
-        // "기타"를 마지막으로 정렬
+        // "기타(~ 외 *건)"를 마지막으로 정렬
         const sortedProducts = [...groupedProducts].sort((a, b) => {
-            if (a.name === '기타') return 1;
-            if (b.name === '기타') return -1;
+            if (a.isOthers) return 1;
+            if (b.isOthers) return -1;
             return b.quantity - a.quantity;
         });
 
@@ -1546,8 +1693,8 @@
             .filter(product => product.totalAmountKRW !== 0) // ✅ 0이 아닌 항목만 표시
             .map(product => `
                 <tr>
-                    <td><strong>${product.code || '-'}</strong></td>
-                    <td>${product.name}</td>
+                    <td><strong>${product.name}</strong></td>
+                    <td>${product.code || '-'}</td>
                     <td>${product.quantity.toLocaleString()}</td>
                     <td class="price-text">${formatPrice(product.totalAmountKRW)}</td>
                 </tr>
@@ -1564,6 +1711,7 @@
         renderYearlyCharts(sortedProducts);
     }
 
+    // renderYearlyCharts 함수 수정
     function renderYearlyCharts(products) {
 
         // 색상 팔레트
@@ -1579,41 +1727,33 @@
         const pieDom = document.getElementById('yearlyPieChart');
         const pieChart = echarts.init(pieDom);
         const pieOption = {
-            title: {
-                text: '제품별 판매량 비율',
-                left: 'center',
-                textStyle: { fontSize: 20 }
-            },
             grid: {
-                top: '5%',
-                left: '5%',
-                right: '5%',
-                bottom: '5%',
+                top: 10,
+                bottom: 10,
+                left: 10,
+                right: 10,
+                containLabel: false
             },
             tooltip: {
                 trigger: 'item',
                 formatter: '{b}<br/>판매량: {c}개 ({d}%)'
             },
-            legend: {
-                orient: 'vertical',
-                right: 10,
-                top: 'center'
-            },
             series: [{
                 name: '판매량',
                 type: 'pie',
-                radius: ['30%', '70%'], // 도넛 형태
+                radius: ['35%', '80%'], // 도넛 형태
+                center: ['50%', '50%'],
                 avoidLabelOverlap: true,
                 label: {
                     show: true,
                     position: 'outside',
                     formatter: '{b} ({d}%)',
-                    fontSize: 12
+                    fontSize: 15
                 },
                 labelLine: {
                     show: true,
-                    length: 15,
-                    length2: 10,
+                    length: 20,
+                    length2: 15,
                     smooth: true
                 },
                 data: products.map((p, i) => ({
@@ -1629,10 +1769,12 @@
         const barDom = document.getElementById('yearlyBarChart');
         const barChart = echarts.init(barDom);
         const barOption = {
-            title: {
-                text: '제품별 판매액',
-                left: 'center',
-                textStyle: { fontSize: 20 }
+            grid: {
+                top: 20,
+                bottom: 60,
+                left: 60,
+                right: 20,
+                containLabel: false
             },
             tooltip: {
                 trigger: 'axis',
@@ -1641,13 +1783,6 @@
                     const v = params[0].value.toLocaleString();
                     return `${params[0].axisValue}<br/>판매액: ₩${v}`;
                 }
-            },
-            grid: {
-                top: '5%',
-                left: '5%',
-                right: '5%',
-                bottom: '5%',
-                containLabel: true
             },
             xAxis: {
                 type: 'category',
@@ -1682,6 +1817,7 @@
         barChart.setOption(barOption);
         window.yearlyBarChart = barChart;
     }
+
 
     function renderYearlySales(clientSales) {
         const container = document.getElementById('yearlyStats');
