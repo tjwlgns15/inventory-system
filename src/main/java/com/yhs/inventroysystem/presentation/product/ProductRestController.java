@@ -74,6 +74,7 @@ public class ProductRestController {
         List<Product> products = productService.findAllProductWithParts();
         List<ProductDetailResponse> responses = products.stream()
                 .map(ProductDetailResponse::from)
+                .filter(response -> response.partMappings() != null && !response.partMappings().isEmpty())
                 .toList();
         return ResponseEntity.ok(responses);
     }

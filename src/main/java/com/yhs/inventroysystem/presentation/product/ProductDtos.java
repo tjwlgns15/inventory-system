@@ -92,7 +92,8 @@ public class ProductDtos {
             BigDecimal defaultUnitPrice,
             String description,
             Integer stockQuantity,
-            List<PartMappingResponse> partMappings
+            List<PartMappingResponse> partMappings,
+            boolean isFeatured
     ) {
         public static ProductDetailResponse from(Product product) {
             return new ProductDetailResponse(
@@ -111,7 +112,8 @@ public class ProductDtos {
                     product.getStockQuantity(),
                     product.getPartMappings().stream()
                             .map(PartMappingResponse::from)
-                            .collect(Collectors.toList())
+                            .collect(Collectors.toList()),
+                    product.getIsFeatured()
             );
         }
     }
