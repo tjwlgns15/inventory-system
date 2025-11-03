@@ -74,7 +74,6 @@ public class ProductRestController {
         List<Product> products = productService.findAllProductWithParts();
         List<ProductDetailResponse> responses = products.stream()
                 .map(ProductDetailResponse::from)
-                .filter(response -> response.partMappings() != null && !response.partMappings().isEmpty())
                 .toList();
         return ResponseEntity.ok(responses);
     }
@@ -217,6 +216,12 @@ public class ProductRestController {
     @PatchMapping("/{productId}/toggle-featured")
     public ResponseEntity<ProductResponse> toggleProductFeatured(@PathVariable Long productId) {
         Product product = productService.toggleProductFeatured(productId);
+        return ResponseEntity.ok(ProductResponse.from(product));
+    }
+
+    @PatchMapping("/{productId}/toggle-featured2")
+    public ResponseEntity<ProductResponse> toggleProductFeatured2(@PathVariable Long productId) {
+        Product product = productService.toggleProductFeatured2(productId);
         return ResponseEntity.ok(ProductResponse.from(product));
     }
 }

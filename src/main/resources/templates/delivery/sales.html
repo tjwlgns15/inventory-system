@@ -139,6 +139,14 @@
             text-align: center;
         }
 
+        .before-last-week-row {
+            background-color: #f9fafb;
+        }
+
+        .before-last-week-row td {
+            color: #6b7280;
+        }
+
         .last-week-row {
             background: #f9fafb;
         }
@@ -874,26 +882,27 @@
         loadYearlySales(year);
     }
 
-    // loadWeeklyComparison 함수 수정
     async function loadWeeklyComparison() {
         try {
             const currentYear = new Date().getFullYear();
 
             // 주간 정보와 연간 누적 데이터 가져오기
-            const [lastWeekResponse, thisWeekResponse, yearlyResponse] = await Promise.all([
+            const [beforeLastWeekResponse, lastWeekResponse, thisWeekResponse, yearlyResponse] = await Promise.all([
+                fetch(`${API_BASE_URL}/weekly/before-last`),
                 fetch(`${API_BASE_URL}/weekly/last`),
                 fetch(`${API_BASE_URL}/weekly/current`),
                 fetch(`${API_BASE_URL}/yearly/${currentYear}`)
             ]);
 
-            if (!lastWeekResponse.ok || !thisWeekResponse.ok) {
+            if (!beforeLastWeekResponse.ok || !lastWeekResponse.ok || !thisWeekResponse.ok) {
                 throw new Error('데이터 로드 실패');
             }
 
+            const beforeLastWeekData = await beforeLastWeekResponse.json();
             const lastWeekData = await lastWeekResponse.json();
             const thisWeekData = await thisWeekResponse.json();
 
-            let lastWeekCumulative, thisWeekCumulative;
+            let beforeLastWeekCumulative, lastWeekCumulative, thisWeekCumulative;
 
             if (yearlyResponse.ok) {
                 const yearlyData = await yearlyResponse.json();
@@ -901,6 +910,7 @@
                 // 연간 전체 데이터에서 누적 계산
                 const yearlyProducts = calculateCumulativeFromClientSales(yearlyData.clientSales);
                 const thisWeekProducts = calculateProductSalesMap(thisWeekData.productSales);
+                const lastWeekProducts = calculateProductSalesMap(lastWeekData.productSales);
 
                 // 이번주 누적 = 연간 전체
                 thisWeekCumulative = yearlyProducts;
@@ -915,19 +925,34 @@
                         quantity: product.quantity - thisWeekQty
                     };
                 });
+
+                // 지지난주 누적 = 연간 전체 - 이번주 판매량 - 지난주 판매량
+                beforeLastWeekCumulative = yearlyProducts.map(product => {
+                    const thisWeekProduct = thisWeekProducts.get(product.productCode);
+                    const lastWeekProduct = lastWeekProducts.get(product.productCode);
+                    const thisWeekQty = thisWeekProduct ? thisWeekProduct.quantity : 0;
+                    const lastWeekQty = lastWeekProduct ? lastWeekProduct.quantity : 0;
+
+                    return {
+                        ...product,
+                        quantity: product.quantity - thisWeekQty - lastWeekQty
+                    };
+                });
             } else {
                 // 연간 데이터도 없으면 주간 데이터 사용
+                beforeLastWeekCumulative = beforeLastWeekData.productSales;
                 lastWeekCumulative = lastWeekData.productSales;
                 thisWeekCumulative = thisWeekData.productSales;
             }
 
             document.getElementById('periodInfo').innerHTML = `
+            지지난주: ${formatDate(beforeLastWeekData.weekStart)} ~ ${formatDate(beforeLastWeekData.weekEnd)} /
             지난주: ${formatDate(lastWeekData.weekStart)} ~ ${formatDate(lastWeekData.weekEnd)} /
             이번주: ${formatDate(thisWeekData.weekStart)} ~ ${formatDate(thisWeekData.weekEnd)}
             <span style="font-size: 0.75em; color: #9CA3AF; margin-left: 8px;">(판매량: ${currentYear}년 1월 1일부터 누적)</span>
         `;
 
-            renderWeeklyComparison(lastWeekCumulative, thisWeekCumulative);
+            renderWeeklyComparison(beforeLastWeekCumulative, lastWeekCumulative, thisWeekCumulative);
         } catch (error) {
             console.error('Error:', error);
         }
@@ -1069,27 +1094,31 @@
         return Array.from(groups.values());
     }
 
-    function renderWeeklyComparison(lastWeekProducts, thisWeekProducts) {
+    function renderWeeklyComparison(beforeLastWeekProducts, lastWeekProducts, thisWeekProducts) {
         const table = document.getElementById('comparisonTable');
         const thead = table.querySelector('thead tr');
         const tbody = table.querySelector('tbody');
 
         // 데이터 그룹화
+        const beforeLastWeekGroups = groupWeeklySalesData(beforeLastWeekProducts);
         const lastWeekGroups = groupWeeklySalesData(lastWeekProducts);
         const thisWeekGroups = groupWeeklySalesData(thisWeekProducts);
 
         // 모든 그룹 키 수집 (합집합)
         const allGroupKeys = new Set();
+        beforeLastWeekGroups.forEach(g => allGroupKeys.add(g.name));
         lastWeekGroups.forEach(g => allGroupKeys.add(g.name));
         thisWeekGroups.forEach(g => allGroupKeys.add(g.name));
 
         // 그룹별 데이터 병합
         const products = Array.from(allGroupKeys).map(groupName => {
+            const beforeLastWeek = beforeLastWeekGroups.find(g => g.name === groupName);
             const lastWeek = lastWeekGroups.find(g => g.name === groupName);
             const thisWeek = thisWeekGroups.find(g => g.name === groupName);
 
             return {
                 name: groupName,
+                beforeLastWeekQty: beforeLastWeek?.quantity || 0,
                 lastWeekQty: lastWeek?.quantity || 0,
                 thisWeekQty: thisWeek?.quantity || 0
             };
@@ -1103,9 +1132,12 @@
         }
 
         // 각 행의 합계 계산
+        const beforeLastWeekTotal = products.reduce((sum, p) => sum + p.beforeLastWeekQty, 0);
         const lastWeekTotal = products.reduce((sum, p) => sum + p.lastWeekQty, 0);
         const thisWeekTotal = products.reduce((sum, p) => sum + p.thisWeekQty, 0);
-        const increaseTotal = thisWeekTotal - lastWeekTotal;
+
+        const increaseFromBeforeLastTotal = thisWeekTotal - beforeLastWeekTotal;
+        const increaseFromLastTotal = thisWeekTotal - lastWeekTotal;
 
         // 헤더 생성
         thead.innerHTML = '<th>구분</th>' +
@@ -1114,6 +1146,11 @@
 
         // 판매량 행들 생성
         const qtyRows = `
+            <tr class="before-last-week-row" style="background-color: #f9fafb;">
+                <td>지지난주</td>
+                ${products.map(p => `<td>${p.beforeLastWeekQty.toLocaleString()}</td>`).join('')}
+                <td><strong>${beforeLastWeekTotal.toLocaleString()}</strong></td>
+            </tr>
             <tr class="last-week-row">
                 <td>지난주</td>
                 ${products.map(p => `<td>${p.lastWeekQty.toLocaleString()}</td>`).join('')}
@@ -1125,16 +1162,29 @@
                 <td><strong>${thisWeekTotal.toLocaleString()}</strong></td>
             </tr>
             <tr class="increase-row">
-                <td>증가량</td>
+                <td>전주 대비 증가</td>
                 ${products.map(p => {
-            const increase = p.thisWeekQty - p.lastWeekQty;
-            const className = increase > 0 ? 'increase-positive' :
-                increase < 0 ? 'increase-negative' : 'increase-zero';
-            const sign = increase > 0 ? '+' : '';
-            return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
-        }).join('')}
-                <td class="${increaseTotal > 0 ? 'increase-positive' : increaseTotal < 0 ? 'increase-negative' : 'increase-zero'}">
-                    <strong>${increaseTotal > 0 ? '+' : ''}${increaseTotal.toLocaleString()}</strong>
+                const increase = p.thisWeekQty - p.lastWeekQty;
+                const className = increase > 0 ? 'increase-positive' :
+                    increase < 0 ? 'increase-negative' : 'increase-zero';
+                const sign = increase > 0 ? '+' : '';
+                return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
+            }).join('')}
+                <td class="${increaseFromLastTotal > 0 ? 'increase-positive' : increaseFromLastTotal < 0 ? 'increase-negative' : 'increase-zero'}">
+                    <strong>${increaseFromLastTotal > 0 ? '+' : ''}${increaseFromLastTotal.toLocaleString()}</strong>
+                </td>
+            </tr>
+            <tr class="increase-row" style="background-color: #f9fafb;">
+                <td>전전주 대비 증가</td>
+                ${products.map(p => {
+                const increase = p.thisWeekQty - p.beforeLastWeekQty;
+                const className = increase > 0 ? 'increase-positive' :
+                    increase < 0 ? 'increase-negative' : 'increase-zero';
+                const sign = increase > 0 ? '+' : '';
+                return `<td class="${className}">${sign}${increase.toLocaleString()}</td>`;
+            }).join('')}
+                <td class="${increaseFromBeforeLastTotal > 0 ? 'increase-positive' : increaseFromBeforeLastTotal < 0 ? 'increase-negative' : 'increase-zero'}">
+                    <strong>${increaseFromBeforeLastTotal > 0 ? '+' : ''}${increaseFromBeforeLastTotal.toLocaleString()}</strong>
                 </td>
             </tr>
         `;
@@ -1158,73 +1208,37 @@
                 labels: products.map(p => p.name),
                 datasets: [
                     {
+                        label: '지지난주',
+                        data: products.map(p => p.beforeLastWeekQty),
+                        backgroundColor: 'rgba(156, 163, 175, 0.7)',
+                        borderColor: 'rgba(156, 163, 175, 1)',
+                        borderWidth: 1
+                    },
+                    {
                         label: '지난주',
                         data: products.map(p => p.lastWeekQty),
-                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 2
+                        backgroundColor: 'rgba(251, 146, 60, 0.7)',
+                        borderColor: 'rgba(251, 146, 60, 1)',
+                        borderWidth: 1
                     },
                     {
                         label: '이번주',
                         data: products.map(p => p.thisWeekQty),
-                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
                     }
                 ]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
-
-        // 증가율 차트
-        const changeCtx = document.getElementById('weeklyChangeChart').getContext('2d');
-        if (weeklyChangeChart) {
-            weeklyChangeChart.destroy();
-        }
-
-        weeklyChangeChart = new Chart(changeCtx, {
-            type: 'bar',
-            data: {
-                labels: products.map(p => p.name),
-                datasets: [{
-                    label: '증가량',
-                    data: products.map(p => p.thisWeekQty - p.lastWeekQty),
-                    backgroundColor: products.map(p => {
-                        const change = p.thisWeekQty - p.lastWeekQty;
-                        return change > 0 ? 'rgba(34, 197, 94, 0.8)' :
-                            change < 0 ? 'rgba(239, 68, 68, 0.8)' :
-                                'rgba(156, 163, 175, 0.8)';
-                    }),
-                    borderColor: products.map(p => {
-                        const change = p.thisWeekQty - p.lastWeekQty;
-                        return change > 0 ? 'rgba(34, 197, 94, 1)' :
-                            change < 0 ? 'rgba(239, 68, 68, 1)' :
-                                'rgba(156, 163, 175, 1)';
-                    }),
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    datalabels: {
                         display: false
                     }
                 },
@@ -1232,7 +1246,81 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            precision: 0
+                            callback: function (value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 제품별 증가량 차트
+        const changeCtx = document.getElementById('weeklyChangeChart').getContext('2d');
+        if (weeklyChangeChart) {
+            weeklyChangeChart.destroy();
+        }
+
+        // 전주 대비 증가량 계산
+        const changesFromLast = products.map(p => p.thisWeekQty - p.lastWeekQty);
+        // 전전주 대비 증가량 계산
+        const changesFromBeforeLast = products.map(p => p.thisWeekQty - p.beforeLastWeekQty);
+
+        weeklyChangeChart = new Chart(changeCtx, {
+            type: 'bar',
+            data: {
+                labels: products.map(p => p.name),
+                datasets: [
+                    {
+                        label: '전전주 대비',
+                        data: changesFromBeforeLast,
+                        backgroundColor: changesFromBeforeLast.map(v =>
+                            v > 0 ? 'rgba(34, 197, 94, 0.7)' :
+                                v < 0 ? 'rgba(239, 68, 68, 0.7)' :
+                                    'rgba(156, 163, 175, 0.7)'
+                        ),
+                        borderColor: changesFromBeforeLast.map(v =>
+                            v > 0 ? 'rgba(34, 197, 94, 1)' :
+                                v < 0 ? 'rgba(239, 68, 68, 1)' :
+                                    'rgba(156, 163, 175, 1)'
+                        ),
+                        borderWidth: 1
+                    },
+                    {
+                        label: '전주 대비',
+                        data: changesFromLast,
+                        backgroundColor: changesFromLast.map(v =>
+                            v > 0 ? 'rgba(59, 130, 246, 0.7)' :
+                                v < 0 ? 'rgba(251, 146, 60, 0.7)' :
+                                    'rgba(156, 163, 175, 0.7)'
+                        ),
+                        borderColor: changesFromLast.map(v =>
+                            v > 0 ? 'rgba(59, 130, 246, 1)' :
+                                v < 0 ? 'rgba(251, 146, 60, 1)' :
+                                    'rgba(156, 163, 175, 1)'
+                        ),
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function (value) {
+                                return (value > 0 ? '+' : '') + value.toLocaleString();
+                            }
                         }
                     }
                 }

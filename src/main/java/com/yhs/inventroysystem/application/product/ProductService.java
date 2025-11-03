@@ -199,6 +199,14 @@ public class ProductService {
         return product;
     }
 
+    @Transactional
+    public Product toggleProductFeatured2(Long productId) {
+        Product product = findProductById(productId);
+        product.toggleFeatured2();
+        return product;
+    }
+
+
     public List<ProductStockTransaction> getProductStockTransactions(Long productId) {
         return productStockTransactionService.findByProductId(productId);
     }

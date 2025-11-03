@@ -46,6 +46,13 @@ public class SalesStatsService {
 
         return getWeeklySales(weekStart, weekEnd);
     }
+    public WeeklySalesResponse getBeforeLastWeekSales() {
+        LocalDate now = LocalDate.now();
+        LocalDate weekStart = now.minusWeeks(2).with(DayOfWeek.MONDAY);
+        LocalDate weekEnd = now.minusWeeks(2).with(DayOfWeek.SUNDAY);
+
+        return getWeeklySales(weekStart, weekEnd);
+    }
 
     private WeeklySalesResponse getWeeklySales(LocalDate weekStart, LocalDate weekEnd) {
         LocalDateTime startDateTime = weekStart.atStartOfDay();

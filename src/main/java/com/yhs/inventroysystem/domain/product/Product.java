@@ -43,7 +43,10 @@ public class Product extends BaseTimeEntity {
     private Integer stockQuantity;
 
     @Column(nullable = false)
-    private Boolean isFeatured = false;  // 주력 상품 여부 (기본값: false)
+    private Boolean isFeatured = false;  // 판매 현황
+
+    @Column(nullable = false)
+    private Boolean isFeatured2 = false;  // 제품 현황
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPart> partMappings = new ArrayList<>();
@@ -63,6 +66,7 @@ public class Product extends BaseTimeEntity {
         this.description = description;
         this.stockQuantity = initialStock;
         this.isFeatured = false;
+        this.isFeatured2 = false;
     }
 
     private void validateProductCategory(ProductCategory productCategory) {
@@ -140,6 +144,10 @@ public class Product extends BaseTimeEntity {
     public void toggleFeatured() {
         ensureNotDeleted();
         this.isFeatured = !this.isFeatured;
+    }
+    public void toggleFeatured2() {
+        ensureNotDeleted();
+        this.isFeatured2 = !this.isFeatured2;
     }
 
     public boolean isFeaturedProduct() {

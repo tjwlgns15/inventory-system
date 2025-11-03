@@ -148,6 +148,11 @@ public class SalesStatsRestController {
         return ResponseEntity.ok(salesStatsService.getLastWeekSales());
     }
 
+    @GetMapping("/weekly/before-last")
+    public ResponseEntity<WeeklySalesResponse> getBeforeLastWeekSales() {
+        return ResponseEntity.ok(salesStatsService.getBeforeLastWeekSales());
+    }
+
     @GetMapping("/monthly")
     public ResponseEntity<MonthlySalesResponse> getMonthlySales() {
         return ResponseEntity.ok(salesStatsService.getMonthlySales());

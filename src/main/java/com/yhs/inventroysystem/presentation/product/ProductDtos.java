@@ -56,7 +56,8 @@ public class ProductDtos {
             BigDecimal defaultUnitPrice,
             String description,
             Integer stockQuantity,
-            boolean isFeatured
+            boolean isFeatured,
+            boolean isFeatured2
     ) {
         public static ProductResponse from(Product product) {
             return new ProductResponse(
@@ -73,7 +74,8 @@ public class ProductDtos {
                     product.getDefaultUnitPrice(),
                     product.getDescription(),
                     product.getStockQuantity(),
-                    product.getIsFeatured()
+                    product.getIsFeatured(),
+                    product.getIsFeatured2()
             );
         }
     }
@@ -93,7 +95,8 @@ public class ProductDtos {
             String description,
             Integer stockQuantity,
             List<PartMappingResponse> partMappings,
-            boolean isFeatured
+            boolean isFeatured,
+            boolean isFeatured2
     ) {
         public static ProductDetailResponse from(Product product) {
             return new ProductDetailResponse(
@@ -113,7 +116,8 @@ public class ProductDtos {
                     product.getPartMappings().stream()
                             .map(PartMappingResponse::from)
                             .collect(Collectors.toList()),
-                    product.getIsFeatured()
+                    product.getIsFeatured(),
+                    product.getIsFeatured2()
             );
         }
     }

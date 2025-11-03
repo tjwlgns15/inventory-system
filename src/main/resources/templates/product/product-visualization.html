@@ -101,6 +101,25 @@
             transform: translateY(-1px);
         }
 
+        .btn-product-list {
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-product-list:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
         .content-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -150,6 +169,17 @@
         .product-stock {
             font-size: 1rem;
             opacity: 0.95;
+        }
+
+        .parts-chart-container {
+            padding: 20px;
+            background: white;
+        }
+
+        .parts-chart-wrapper {
+            position: relative;
+            height: 250px;
+            margin-bottom: 10px;
         }
 
         .parts-table {
@@ -282,27 +312,20 @@
         }
 
         .stock-badge {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
             font-weight: 600;
             display: inline-block;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .stock-high {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
+            color: #10b981;
         }
 
         .stock-medium {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: white;
+            color: #e8af1e;
         }
 
         .stock-low {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
+            color: #ef4444;
         }
 
         .notification {
@@ -372,6 +395,142 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
+
+        /* 제품 목록 모달 */
+        .product-list-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .product-list-modal-content {
+            background: white;
+            margin: 3% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-list-modal-header {
+            padding: 24px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-list-modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .product-list-modal-close {
+            color: white;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+
+        .product-list-modal-close:hover {
+            transform: rotate(90deg);
+        }
+
+        .product-list-modal-body {
+            padding: 32px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .product-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+            background: white;
+        }
+
+        .product-list-table thead {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 10;
+        }
+
+        .product-list-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .product-list-table td {
+            padding: 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .product-list-table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        }
+
+        .product-name-cell {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .product-name-text {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .product-code-text {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        .featured-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .featured-checkbox-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .no-product-line {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -383,7 +542,10 @@
 
         <div class="page-header">
             <h2 class="page-title">제품 재고 시각화</h2>
-            <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-product-list" onclick="openProductListModal()">주요 제품 관리</button>
+                <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+            </div>
         </div>
 
         <div class="content-card">
@@ -398,6 +560,19 @@
         <div class="empty-state" id="emptyState" style="display: none;">
             <div class="empty-state-icon">📊</div>
             <h3 class="empty-state-title">표시할 데이터가 없습니다</h3>
+        </div>
+    </div>
+</div>
+
+<!-- 제품 목록 모달 -->
+<div id="productListModal" class="product-list-modal">
+    <div class="product-list-modal-content">
+        <div class="product-list-modal-header">
+            <h2>주요 제품 관리</h2>
+            <span class="product-list-modal-close" onclick="closeProductListModal()">&times;</span>
+        </div>
+        <div class="product-list-modal-body" id="productListModalBody">
+            <!-- 제품 목록이 여기에 렌더링됩니다 -->
         </div>
     </div>
 </div>
@@ -420,7 +595,9 @@
 </script>
 <script>
     const API_BASE_URL = '/api/products';
+    const PARTS_API_URL = '/api/parts';
     let stockChart = null;
+    let allProducts = [];
 
     document.addEventListener('DOMContentLoaded', function() {
         loadProductsData();
@@ -431,15 +608,18 @@
             const response = await fetch(`${API_BASE_URL}/with-parts`);
             if (!response.ok) throw new Error('제품 데이터를 불러오는데 실패했습니다');
 
-            const products = await response.json();
+            allProducts = await response.json();
 
-            if (products.length === 0) {
+            // isFeatured2가 true인 제품만 필터링
+            const featuredProducts = allProducts.filter(p => p.isFeatured2);
+
+            if (featuredProducts.length === 0) {
                 document.getElementById('emptyState').style.display = 'block';
                 return;
             }
 
-            renderChart(products);
-            renderProductTables(products);
+            renderChart(featuredProducts);
+            renderProductTables(featuredProducts);
         } catch (error) {
             console.error('Error:', error);
             showNotification('제품 데이터를 불러오는데 실패했습니다', 'error');
@@ -580,84 +760,240 @@
 
     function renderProductTables(products) {
         const container = document.getElementById('productsContainer');
-        const PARTS_API_URL = '/api/parts';
 
-        container.innerHTML = products.map(product => {
+        container.innerHTML = products.map((product, productIndex) => {
             const possibleCount = product.partMappings.length > 0
                 ? Math.min(...product.partMappings.map(pm =>
                     Math.floor(pm.partStockQuantity / pm.requiredQuantity)
                 ))
                 : 0;
 
+            // 차트 ID를 고유하게 생성
+            const chartId = `partChart_${product.id}`;
+
             return `
-            <div class="content-card">
-                <div class="product-section">
-                    <div class="product-header">
-                        <div>
-                            <div class="product-name">${escapeHtml(product.name)}</div>
-                            <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
-                                ${escapeHtml(product.productCode)}
+                <div class="content-card">
+                    <div class="product-section">
+                        <div class="product-header">
+                            <div>
+                                <div class="product-name">${escapeHtml(product.name)}</div>
+                                <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
+                                    ${escapeHtml(product.productCode)}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="product-stock">현재 재고: ${product.stockQuantity}개</div>
+                                <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
+                                    생산 가능: ${possibleCount}개
+                                </div>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div class="product-stock">현재 재고: ${product.stockQuantity}개</div>
-                            <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
-                                생산 가능: ${possibleCount}개
+
+                        ${product.partMappings.length > 0 ? `
+                            <div class="parts-chart-container">
+                                <div class="parts-chart-wrapper">
+                                    <canvas id="${chartId}"></canvas>
+                                </div>
                             </div>
-                        </div>
+                            <table class="parts-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 10%;">이미지</th>
+                                        <th style="width: 18%;">부품 코드</th>
+                                        <th style="width: 18%;">부품명</th>
+                                        <th style="width: 18%;">필요 수량</th>
+                                        <th style="width: 18%;">현재 재고</th>
+                                        <th style="width: 18%;">생산 가능</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${product.partMappings.map(pm => {
+                    const possibleProduction = Math.floor(pm.partStockQuantity / pm.requiredQuantity);
+                    const stockClass = getStockClass(pm.partStockQuantity, pm.requiredQuantity);
+
+                    // 이미지 HTML 생성
+                    const imageHtml = pm.imagePath
+                        ? `<img src="${PARTS_API_URL}/${pm.partId}/image"
+                                                    alt="${escapeHtml(pm.partName)}"
+                                                    class="part-image-thumb"
+                                                    onclick="viewPartImageModal(${pm.partId}, '${escapeHtml(pm.partName)}')">`
+                        : '<div class="no-part-image">이미지<br>없음</div>';
+
+                    return `
+                                            <tr>
+                                                <td>${imageHtml}</td>
+                                                <td><strong>${escapeHtml(pm.partCode)}</strong></td>
+                                                <td>${escapeHtml(pm.partName)}</td>
+                                                <td>${pm.requiredQuantity}</td>
+                                                <td>
+                                                    <span class="stock-badge ${stockClass}">
+                                                        ${pm.partStockQuantity}
+                                                    </span>
+                                                </td>
+                                                <td><strong>${possibleProduction}개</strong></td>
+                                            </tr>
+                                        `;
+                }).join('')}
+                                </tbody>
+                            </table>
+                        ` : `
+                            <div style="padding: 40px; text-align: center; color: #9ca3af;">
+                                등록된 부품이 없습니다
+                            </div>
+                        `}
                     </div>
-
-                    ${product.partMappings.length > 0 ? `
-                        <table class="parts-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 10%;">이미지</th>
-                                    <th style="width: 18%;">부품 코드</th>
-                                    <th style="width: 18%;">부품명</th>
-                                    <th style="width: 18%;">필요 수량</th>
-                                    <th style="width: 18%;">현재 재고</th>
-                                    <th style="width: 18%;">생산 가능</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${product.partMappings.map(pm => {
-                const possibleProduction = Math.floor(pm.partStockQuantity / pm.requiredQuantity);
-                const stockClass = getStockClass(pm.partStockQuantity, pm.requiredQuantity);
-
-                // 이미지 HTML 생성
-                const imageHtml = pm.imagePath
-                    ? `<img src="${PARTS_API_URL}/${pm.partId}/image"
-                                                alt="${escapeHtml(pm.partName)}"
-                                                class="part-image-thumb"
-                                                onclick="viewPartImageModal(${pm.partId}, '${escapeHtml(pm.partName)}')">`
-                    : '<div class="no-part-image">이미지<br>없음</div>';
-
-                return `
-                                        <tr>
-                                            <td>${imageHtml}</td>
-                                            <td><strong>${escapeHtml(pm.partCode)}</strong></td>
-                                            <td>${escapeHtml(pm.partName)}</td>
-                                            <td>${pm.requiredQuantity}</td>
-                                            <td>
-                                                <span class="stock-badge ${stockClass}">
-                                                    ${pm.partStockQuantity}
-                                                </span>
-                                            </td>
-                                            <td><strong>${possibleProduction}개</strong></td>
-                                        </tr>
-                                    `;
-            }).join('')}
-                            </tbody>
-                        </table>
-                    ` : `
-                        <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                            등록된 부품이 없습니다
-                        </div>
-                    `}
                 </div>
-            </div>
-        `;
-        }).join('');
+            `;
+            }).join('');
+
+        // 모든 제품 차트 렌더링
+        products.forEach(product => {
+            if (product.partMappings.length > 0) {
+                renderPartChart(product);
+            }
+        });
+    }
+
+    function renderPartChart(product) {
+        const chartId = `partChart_${product.id}`;
+        const ctx = document.getElementById(chartId);
+
+        if (!ctx) return;
+
+        const labels = product.partMappings.map(pm => pm.partName);
+        const data = product.partMappings.map(pm => pm.partStockQuantity);
+
+        // 재고 수준에 따른 색상 결정
+        const backgroundColors = product.partMappings.map(pm => {
+            const stock = pm.partStockQuantity;
+            const required = pm.requiredQuantity;
+            if (stock < required) return 'rgba(239, 68, 68, 0.8)';
+            if (stock < required * 2) return 'rgba(251, 191, 36, 0.8)';
+            return 'rgba(16, 185, 129, 0.8)';
+        });
+
+        const borderColors = product.partMappings.map(pm => {
+            const stock = pm.partStockQuantity;
+            const required = pm.requiredQuantity;
+            if (stock < required) return 'rgba(239, 68, 68, 1)';
+            if (stock < required * 2) return 'rgba(251, 191, 36, 1)';
+            return 'rgba(16, 185, 129, 1)';
+        });
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '재고 수량',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 25
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        callbacks: {
+                            afterLabel: function(context) {
+                                const index = context.dataIndex;
+                                const pm = product.partMappings[index];
+                                return [
+                                    `필요 수량: ${pm.requiredQuantity}`,
+                                    `생산 가능: ${Math.floor(pm.partStockQuantity / pm.requiredQuantity)}개`
+                                ];
+                            }
+                        }
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 11
+                            },
+                            color: '#6b7280'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11,
+                                weight: 'bold'
+                            },
+                            color: '#374151',
+                            maxRotation: 45,
+                            minRotation: 0
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                animation: {
+                    onComplete: function() {
+                        const chartInstance = this;
+                        const ctx = chartInstance.ctx;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.font = 'bold 13px notosanskr, sans-serif';
+
+                        this.data.datasets.forEach(function(dataset, i) {
+                            const meta = chartInstance.getDatasetMeta(i);
+                            meta.data.forEach(function(bar, index) {
+                                const data = dataset.data[index];
+                                const pm = product.partMappings[index];
+                                const stock = pm.partStockQuantity;
+                                const required = pm.requiredQuantity;
+
+                                // 값에 따라 색상 결정
+                                if (stock < required) {
+                                    ctx.fillStyle = '#dc2626';
+                                } else if (stock < required * 2) {
+                                    ctx.fillStyle = '#d97706';
+                                } else {
+                                    ctx.fillStyle = '#059669';
+                                }
+
+                                ctx.fillText(data, bar.x, bar.y - 5);
+                            });
+                        });
+                    }
+                }
+            }
+        });
     }
 
     function viewPartImageModal(partId, partName) {
@@ -734,8 +1070,177 @@
             if (partImageModal && partImageModal.style.display === 'block') {
                 closePartImageModal();
             }
+
+            const productModal = document.getElementById('productListModal');
+            if (productModal && productModal.style.display === 'block') {
+                closeProductListModal();
+            }
         }
     });
+
+    // 제품 목록 모달 열기
+    async function openProductListModal() {
+        const modal = document.getElementById('productListModal');
+        modal.style.display = 'block';
+
+        renderProductListModal();
+    }
+
+    // 제품 목록 모달 닫기
+    function closeProductListModal() {
+        const modal = document.getElementById('productListModal');
+        modal.style.display = 'none';
+        setTimeout(() => {
+            location.reload();
+        }, 100);
+    }
+
+    // 제품 목록 모달 렌더링
+    function renderProductListModal() {
+        const modalBody = document.getElementById('productListModalBody');
+
+        if (!allProducts || allProducts.length === 0) {
+            modalBody.innerHTML = `
+                <div style="text-align: center; color: #6b7280; padding: 40px;">
+                    등록된 제품이 없습니다.
+                </div>
+            `;
+            return;
+        }
+
+        // productLine이 있는 제품을 상단에, 없는 제품을 하단에 배치
+        const sortedProducts = [...allProducts].sort((a, b) => {
+            // productLine이 있는 것을 우선
+            if (a.productLine && !b.productLine) return -1;
+            if (!a.productLine && b.productLine) return 1;
+
+            // productLine이 같으면 제품명순
+            if (a.productLine && b.productLine) {
+                const lineCompare = a.productLine.name.localeCompare(b.productLine.name, 'ko');
+                if (lineCompare !== 0) return lineCompare;
+            }
+
+            return a.name.localeCompare(b.name, 'ko');
+        });
+
+        // productLine별로 그룹화하여 rowspan 계산
+        const productLineGroups = new Map();
+        sortedProducts.forEach(product => {
+            const lineName = product.productLine ? product.productLine.name : null;
+            if (!productLineGroups.has(lineName)) {
+                productLineGroups.set(lineName, []);
+            }
+            productLineGroups.get(lineName).push(product);
+        });
+
+        let tableRows = '';
+        let isFirstInGroup = true;
+        let currentProductLine = null;
+
+        sortedProducts.forEach((product, index) => {
+            const lineName = product.productLine ? product.productLine.name : null;
+
+            // 새로운 productLine 그룹의 시작인지 확인
+            if (currentProductLine !== lineName) {
+                isFirstInGroup = true;
+                currentProductLine = lineName;
+            }
+
+            const rowspan = isFirstInGroup ? productLineGroups.get(lineName).length : 0;
+
+            tableRows += '<tr>';
+
+            // productLine 컬럼 (병합)
+            if (isFirstInGroup) {
+                const lineDisplay = lineName
+                    ? lineName
+                    : '<span class="no-product-line">-</span>';
+                tableRows += `<td rowspan="${rowspan}">${lineDisplay}</td>`;
+            }
+
+            // 제품명 컬럼
+            tableRows += `
+                <td class="product-name-cell">
+                    <span class="product-name-text">${product.name}</span>
+                </td>
+            `;
+
+            // 주요 제품 체크박스 컬럼 (isFeatured2 사용)
+            tableRows += `
+                <td>
+                    <div class="featured-cell">
+                        <input type="checkbox" class="featured-checkbox-input"
+                               data-product-id="${product.id}"
+                               ${product.isFeatured2 ? 'checked' : ''}
+                               onchange="toggleProductFeatured2(${product.id})">
+                    </div>
+                </td>
+            `;
+
+            tableRows += '</tr>';
+
+            isFirstInGroup = false;
+        });
+
+        modalBody.innerHTML = `
+            <table class="product-list-table">
+                <thead>
+                    <tr>
+                        <th>제품라인</th>
+                        <th>제품명</th>
+                        <th>주요 제품</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+            </table>
+        `;
+    }
+
+    // 주요 제품 토글 (isFeatured2 사용)
+    async function toggleProductFeatured2(productId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${productId}/toggle-featured2`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('주요 제품 설정 변경에 실패했습니다');
+            }
+
+            const updatedProduct = await response.json();
+
+            // allProducts 배열에서 해당 제품 업데이트
+            const productIndex = allProducts.findIndex(p => p.id === productId);
+            if (productIndex !== -1) {
+                allProducts[productIndex] = updatedProduct;
+            }
+
+            // 모달 다시 렌더링
+            console.log("check");
+            renderProductListModal();
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('주요 제품 설정 변경에 실패했습니다');
+
+            // 에러 발생 시 체크박스 상태 원복을 위해 다시 로드
+            await loadProductsData();
+            renderProductListModal();
+        }
+    }
+
+    // 모달 외부 클릭 시 닫기
+    window.onclick = function(event) {
+        const productModal = document.getElementById('productListModal');
+        if (event.target === productModal) {
+            closeProductListModal();
+        }
+    };
 </script>
 </body>
 </html>
