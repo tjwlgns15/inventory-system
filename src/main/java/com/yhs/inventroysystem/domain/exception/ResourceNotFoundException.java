@@ -47,4 +47,16 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException productLine(Long productLineId) {
         return new ResourceNotFoundException("제품라인을 찾을 수 없습니다. ID: " + productLineId);
     }
+
+    public static ResourceNotFoundException task(Long taskId) {
+        return new  ResourceNotFoundException("일정을 찾을 수 없습니다. ID: " + taskId);
+    }
+
+    public static ResourceNotFoundException taskCategory(Long taskCategoryId) {
+        return new ResourceNotFoundException("일정 카테고리를 찾을 수 없습니다. ID: " + taskCategoryId);
+    }
+
+    public static ResourceNotFoundException taskCategory(String taskCategoryName) {
+        return new ResourceNotFoundException(taskCategoryName);
+    }
 }

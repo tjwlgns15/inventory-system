@@ -13,10 +13,7 @@ import com.yhs.inventroysystem.domain.product.Product;
 import com.yhs.inventroysystem.domain.client.ClientRepository;
 import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
 import com.yhs.inventroysystem.domain.product.ProductRepository;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskRepository;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.task.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,6 +40,7 @@ public class DeliveryService {
     private final ClientProductPriceRepository priceRepository;
     private final StockDeductionService stockDeductionService;
     private final TaskRepository taskRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
     private final ExchangeRateService exchangeRateService;
 
     private static final String DELIVERY_PREFIX = "SOLM-PO-";
@@ -86,12 +84,16 @@ public class DeliveryService {
 
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
+        TaskCategory orderDeliveryCategory = findOrderTaskCategory();
+
         // 주문일 Task
         Task orderTask = createOrderTask(savedDelivery, client, currentUser, command.orderedAt());
+        orderTask.addCategory(orderDeliveryCategory);
         savedDelivery.setOrderTask(orderTask);
 
         // 출하 요청일 Task
         Task shipmentTask = createShipmentTask(savedDelivery, client, currentUser, command.requestedAt());
+        shipmentTask.addCategory(orderDeliveryCategory);
         savedDelivery.setShipmentTask(shipmentTask);
 
         return savedDelivery;
@@ -326,5 +328,10 @@ public class DeliveryService {
         }
 
         return description.toString();
+    }
+
+    private TaskCategory findOrderTaskCategory() {
+        return taskCategoryRepository.findByName("수주/납품")
+                .orElseThrow(() -> ResourceNotFoundException.taskCategory("카테고리 '수주/납품'을 찾을 수 없습니다."));
     }
 }

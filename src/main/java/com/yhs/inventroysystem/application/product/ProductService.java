@@ -9,10 +9,7 @@ import com.yhs.inventroysystem.domain.part.Part;
 import com.yhs.inventroysystem.domain.part.PartRepository;
 import com.yhs.inventroysystem.domain.part.TransactionType;
 import com.yhs.inventroysystem.domain.product.*;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskRepository;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.task.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +28,7 @@ public class ProductService {
     private final PartRepository partRepository;
     private final TaskRepository taskRepository;
     private final ProductLineRepository productLineRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
 
     private final ProductStockTransactionService productStockTransactionService;
     private final PartStockTransactionService partStockTransactionService;
@@ -305,6 +303,9 @@ public class ProductService {
         String title = generateTaskTitle(product, quantity);
         String description = generateTaskDescription(product, quantity);
 
+        TaskCategory productionCategory = taskCategoryRepository.findByName("제품 생산")
+                .orElseThrow(() -> ResourceNotFoundException.taskCategory("카테고리 '생산'을 찾을 수 없습니다."));
+
         Task task = new Task(
                 title,
                 description,
@@ -314,6 +315,8 @@ public class ProductService {
                 TaskStatus.COMPLETED,
                 Priority.MEDIUM
         );
+
+        task.addCategory(productionCategory);
         taskRepository.save(task);
     }
 

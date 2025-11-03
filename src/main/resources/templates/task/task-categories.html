@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작업 일정 관리 시스템</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+
+        .sidebar h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .category-list {
+            list-style: none;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-item:hover {
+            background: #f8f9fa;
+        }
+
+        .category-item.active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+        }
+
+        .category-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .category-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .category-name {
+            font-weight: 500;
+        }
+
+        .category-count {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        /* 작업 영역 */
+        .tasks-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f3f5;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 작업 카드 */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-card.priority-LOW {
+            border-left-color: #28a745;
+        }
+
+        .task-card.priority-MEDIUM {
+            border-left-color: #ffc107;
+        }
+
+        .task-card.priority-HIGH {
+            border-left-color: #fd7e14;
+        }
+
+        .task-card.priority-URGENT {
+            border-left-color: #dc3545;
+        }
+
+        .task-card.status-COMPLETED {
+            opacity: 0.7;
+        }
+
+        .task-card.status-COMPLETED .task-title {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-priority-LOW {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-priority-MEDIUM {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-priority-HIGH {
+            background: #ffe5d0;
+            color: #833c0c;
+        }
+
+        .badge-priority-URGENT {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-status {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .task-dates {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 12px;
+        }
+
+        .task-description {
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .task-categories {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .task-category-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-icon {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .btn-edit:hover {
+            background: #cce5ff;
+        }
+
+        .btn-delete {
+            background: #ffe5e5;
+            color: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #ffcccc;
+        }
+
+        .btn-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .btn-complete:hover {
+            background: #c3e6cb;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            max-width: 600px;
+            margin: 50px auto;
+            border-radius: 15px;
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .close-btn:hover {
+            color: #dc3545;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .category-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .category-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-checkbox:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .category-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .category-checkbox.selected {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-color: #667eea;
+        }
+
+        /* 알림 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 헤더 -->
+    <div class="header">
+        <h1>📅 작업 일정 관리</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="location.href='/tasks'">📅 캘린더</button>
+            <button class="btn btn-secondary" onclick="loadCategories()">🔄 새로고침</button>
+            <button class="btn btn-secondary" onclick="openCategoryModal()">🏷️ 카테고리 관리</button>
+            <button class="btn btn-primary" onclick="openTaskModal()">➕ 새 작업 추가</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- 사이드바 -->
+        <div class="sidebar">
+            <h2>카테고리</h2>
+            <ul class="category-list" id="categoryList">
+                <li class="category-item active" onclick="filterByCategory(null)">
+                    <div class="category-info">
+                        <span class="category-name">📋 전체 작업</span>
+                    </div>
+                    <span class="category-count" id="totalTaskCount">0</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 작업 영역 -->
+        <div class="tasks-section">
+            <div class="tasks-header">
+                <h2>작업 목록</h2>
+                <div class="filters">
+                    <select class="filter-select" id="statusFilter" onchange="filterTasks()">
+                        <option value="">모든 상태</option>
+                        <option value="TODO">할 일</option>
+                        <option value="IN_PROGRESS">진행 중</option>
+                        <option value="COMPLETED">완료</option>
+                    </select>
+                    <select class="filter-select" id="priorityFilter" onchange="filterTasks()">
+                        <option value="">모든 우선순위</option>
+                        <option value="LOW">낮음</option>
+                        <option value="MEDIUM">보통</option>
+                        <option value="HIGH">높음</option>
+                        <option value="URGENT">긴급</option>
+                    </select>
+                    <select class="filter-select" id="sortSelect" onchange="filterTasks()">
+                        <option value="createdAt">최신순</option>
+                        <option value="endDate">마감일순</option>
+                        <option value="priority">우선순위순</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="tasksContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>작업을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 작업 모달 -->
+<div id="taskModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title" id="modalTitle">새 작업 추가</h2>
+            <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+        </div>
+        <form id="taskForm" onsubmit="saveTask(event)">
+            <div class="form-group">
+                <label class="form-label">제목 *</label>
+                <input type="text" class="form-control" id="taskTitle" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">설명</label>
+                <textarea class="form-control" id="taskDescription"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">시작일 *</label>
+                    <input type="date" class="form-control" id="taskStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">종료일 *</label>
+                    <input type="date" class="form-control" id="taskEndDate" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">우선순위 *</label>
+                    <select class="form-control" id="taskPriority" required>
+                        <option value="LOW">낮음</option>
+                        <option value="MEDIUM" selected>보통</option>
+                        <option value="HIGH">높음</option>
+                        <option value="URGENT">긴급</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">상태 *</label>
+                    <select class="form-control" id="taskStatus" required>
+                        <option value="TODO" selected>할 일</option>
+                        <option value="IN_PROGRESS">진행 중</option>
+                        <option value="COMPLETED">완료</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">카테고리</label>
+                <div class="category-selector" id="categorySelectorModal"></div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 카테고리 추가 모달 -->
+<div id="categoryAddModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">새 카테고리 추가</h2>
+            <button class="close-btn" onclick="closeCategoryAddModal()">&times;</button>
+        </div>
+        <form id="categoryAddForm" onsubmit="addCategory(event)">
+            <div class="form-group">
+                <label class="form-label">카테고리 이름 *</label>
+                <input type="text" class="form-control" id="categoryAddName" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">설명</label>
+                <input type="text" class="form-control" id="categoryAddDescription">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">색상 코드 *</label>
+                    <input type="color" class="form-control" id="categoryAddColor" value="#667eea" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">표시 순서</label>
+                    <input type="number" class="form-control" id="categoryAddOrder" value="0" min="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">카테고리 추가</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 카테고리 관리 모달 -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">카테고리 관리</h2>
+            <button class="close-btn" onclick="closeCategoryModal()">&times;</button>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <button class="btn btn-primary" onclick="openCategoryAddModal()" style="width: 100%;">
+                ➕ 새 카테고리 추가
+            </button>
+        </div>
+
+        <h3 style="margin-bottom: 15px;">카테고리 목록</h3>
+        <div id="categoryManageList"></div>
+    </div>
+</div>
+
+<!-- 카테고리 수정 모달 -->
+<div id="categoryEditModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">카테고리 수정</h2>
+            <button class="close-btn" onclick="closeCategoryEditModal()">&times;</button>
+        </div>
+        <form id="categoryEditForm" onsubmit="updateCategorySubmit(event)">
+            <div class="form-group">
+                <label class="form-label">카테고리 이름 *</label>
+                <input type="text" class="form-control" id="categoryEditName" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">설명</label>
+                <input type="text" class="form-control" id="categoryEditDescription">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">색상 코드 *</label>
+                    <input type="color" class="form-control" id="categoryEditColor" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">표시 순서</label>
+                    <input type="number" class="form-control" id="categoryEditOrder" min="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">수정 완료</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // API Base URL
+    const API_BASE_URL = '/api';
+
+    // 전역 변수
+    let tasks = [];
+    let categories = [];
+    let editingTaskId = null;
+    let editingCategoryId = null;
+    let selectedCategoryId = null;
+
+    // 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCategories();
+        loadTasks();
+    });
+
+    // ==================== API 호출 함수 ====================
+
+    // 작업 API
+    async function loadTasks() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks?size=1000`);
+            const data = await response.json();
+            tasks = data.tasks || [];
+            renderTasks();
+            updateTotalCount();
+        } catch (error) {
+            console.error('작업 로드 실패:', error);
+            showNotification('작업을 불러오는데 실패했습니다.', 'error');
+        }
+    }
+
+    async function createTask(taskData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskData)
+            });
+
+            if (response.ok) {
+                showNotification('작업이 추가되었습니다.');
+                closeTaskModal();
+                loadTasks();
+                loadCategories(); // 카테고리 카운트 업데이트
+            } else {
+                throw new Error('작업 생성 실패');
+            }
+        } catch (error) {
+            console.error('작업 생성 실패:', error);
+            showNotification('작업 추가에 실패했습니다.', 'error');
+        }
+    }
+
+    async function updateTask(taskId, taskData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskData)
+            });
+
+            if (response.ok) {
+                showNotification('작업이 수정되었습니다.');
+                closeTaskModal();
+                loadTasks();
+                loadCategories();
+            } else {
+                throw new Error('작업 수정 실패');
+            }
+        } catch (error) {
+            console.error('작업 수정 실패:', error);
+            showNotification('작업 수정에 실패했습니다.', 'error');
+        }
+    }
+
+    async function deleteTask(taskId) {
+        if (!confirm('정말 이 작업을 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showNotification('작업이 삭제되었습니다.');
+                loadTasks();
+                loadCategories();
+            } else {
+                throw new Error('작업 삭제 실패');
+            }
+        } catch (error) {
+            console.error('작업 삭제 실패:', error);
+            showNotification('작업 삭제에 실패했습니다.', 'error');
+        }
+    }
+
+    async function updateTaskStatus(taskId, status) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/status?status=${status}`, {
+                method: 'PATCH'
+            });
+
+            if (response.ok) {
+                showNotification('작업 상태가 변경되었습니다.');
+                loadTasks();
+            } else {
+                throw new Error('상태 변경 실패');
+            }
+        } catch (error) {
+            console.error('상태 변경 실패:', error);
+            showNotification('상태 변경에 실패했습니다.', 'error');
+        }
+    }
+
+    // async function loadTaskCategories(taskId) {
+    //     try {
+    //         const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/categories`);
+    //         return await response.json();
+    //     } catch (error) {
+    //         console.error('작업 카테고리 로드 실패:', error);
+    //         return [];
+    //     }
+    // }
+
+    // 카테고리 API
+    async function loadCategories() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/task-categories`);
+            const data = await response.json();
+            categories = data.categories || [];
+            renderCategories();
+            renderCategorySelector();
+        } catch (error) {
+            console.error('카테고리 로드 실패:', error);
+            showNotification('카테고리를 불러오는데 실패했습니다.', 'error');
+        }
+    }
+
+    async function createCategory(categoryData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/task-categories`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(categoryData)
+            });
+
+            if (response.ok) {
+                showNotification('카테고리가 추가되었습니다.');
+                closeCategoryAddModal();
+                loadCategories();
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || '카테고리 생성 실패');
+            }
+        } catch (error) {
+            console.error('카테고리 생성 실패:', error);
+            showNotification(error.message || '카테고리 추가에 실패했습니다.', 'error');
+        }
+    }
+
+    async function updateCategory(categoryId, categoryData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/task-categories/${categoryId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(categoryData)
+            });
+
+            if (response.ok) {
+                showNotification('카테고리가 수정되었습니다.');
+                closeCategoryEditModal();
+                loadCategories();
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || '카테고리 수정 실패');
+            }
+        } catch (error) {
+            console.error('카테고리 수정 실패:', error);
+            showNotification(error.message || '카테고리 수정에 실패했습니다.', 'error');
+        }
+    }
+
+    async function deleteCategory(categoryId) {
+        if (!confirm('정말 이 카테고리를 삭제하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/task-categories/${categoryId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                showNotification('카테고리가 삭제되었습니다.');
+                loadCategories();
+                loadTasks();
+            } else {
+                const error = await response.json();
+                throw new Error(error.message || '카테고리 삭제 실패');
+            }
+        } catch (error) {
+            console.error('카테고리 삭제 실패:', error);
+            showNotification(error.message || '카테고리 삭제에 실패했습니다.', 'error');
+        }
+    }
+
+    async function toggleCategoryStatus(categoryId, isActive) {
+        try {
+            const endpoint = isActive ? 'deactivate' : 'activate';
+            const response = await fetch(`${API_BASE_URL}/task-categories/${categoryId}/${endpoint}`, {
+                method: 'PATCH'
+            });
+
+            if (response.ok) {
+                showNotification(`카테고리가 ${isActive ? '비활성화' : '활성화'}되었습니다.`);
+                loadCategories();
+            } else {
+                throw new Error('상태 변경 실패');
+            }
+        } catch (error) {
+            console.error('카테고리 상태 변경 실패:', error);
+            showNotification('상태 변경에 실패했습니다.', 'error');
+        }
+    }
+
+    // ==================== 렌더링 함수 ====================
+
+    function renderCategories() {
+        const categoryList = document.getElementById('categoryList');
+        const existingAllItem = categoryList.querySelector('.category-item');
+
+        // 전체 작업 항목 제외하고 초기화
+        categoryList.innerHTML = '';
+        if (existingAllItem) {
+            categoryList.appendChild(existingAllItem);
+        }
+
+        categories.forEach(category => {
+            if (!category.isActive) return;
+
+            const li = document.createElement('li');
+            li.className = `category-item ${selectedCategoryId === category.id ? 'active' : ''}`;
+            li.onclick = () => filterByCategory(category.id);
+            li.innerHTML = `
+                    <div class="category-info">
+                        <div class="category-color" style="background: ${category.colorCode}"></div>
+                        <span class="category-name">${escapeHtml(category.name)}</span>
+                    </div>
+                    <span class="category-count">${category.taskCount || 0}</span>
+                `;
+            categoryList.appendChild(li);
+        });
+
+        // 카테고리 관리 목록 렌더링
+        renderCategoryManageList();
+    }
+
+    function renderCategoryManageList() {
+        const container = document.getElementById('categoryManageList');
+        if (!container) return;
+
+        if (categories.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #6c757d;">등록된 카테고리가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = categories.map(category => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 20px; height: 20px; border-radius: 50%; background: ${category.colorCode}"></div>
+                        <div>
+                            <div style="font-weight: 600;">${escapeHtml(category.name)}</div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">${escapeHtml(category.description || '')}</div>
+                            <div style="font-size: 0.75rem; color: #adb5bd; margin-top: 4px;">순서: ${category.displayOrder} | 작업: ${category.taskCount || 0}개</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-icon btn-edit" onclick="openCategoryEditModal(${category.id})">✏️ 수정</button>
+                        <button class="btn-icon ${category.isActive ? 'btn-edit' : 'btn-complete'}"
+                                onclick="toggleCategoryStatus(${category.id}, ${category.isActive})">
+                            ${category.isActive ? '비활성화' : '활성화'}
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="deleteCategory(${category.id})">🗑️ 삭제</button>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function renderCategorySelector() {
+        const container = document.getElementById('categorySelectorModal');
+        if (!container) return;
+
+        const activeCategories = categories.filter(c => c.isActive);
+
+        if (activeCategories.length === 0) {
+            container.innerHTML = '<p style="color: #6c757d; font-size: 0.9rem;">등록된 카테고리가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = activeCategories.map(category => `
+                <label class="category-checkbox">
+                    <input type="checkbox" value="${category.id}" onchange="toggleCategorySelection(this)">
+                    <div class="category-color" style="background: ${category.colorCode}"></div>
+                    <span>${escapeHtml(category.name)}</span>
+                </label>
+            `).join('');
+    }
+
+    async function renderTasks() {
+        const container = document.getElementById('tasksContainer');
+
+        let filteredTasks = [...tasks];
+
+        // 카테고리 필터
+        if (selectedCategoryId) {
+            const categoryTasksResponse = await fetch(`${API_BASE_URL}/tasks/by-category/${selectedCategoryId}`);
+            const categoryTasks = await categoryTasksResponse.json();
+            const categoryTaskIds = categoryTasks.map(t => t.id);
+            filteredTasks = filteredTasks.filter(t => categoryTaskIds.includes(t.id));
+        }
+
+        // 상태 필터
+        const statusFilter = document.getElementById('statusFilter').value;
+        if (statusFilter) {
+            filteredTasks = filteredTasks.filter(t => t.status === statusFilter);
+        }
+
+        // 우선순위 필터
+        const priorityFilter = document.getElementById('priorityFilter').value;
+        if (priorityFilter) {
+            filteredTasks = filteredTasks.filter(t => t.priority === priorityFilter);
+        }
+
+        // 정렬
+        const sortBy = document.getElementById('sortSelect').value;
+        filteredTasks = sortTasks(filteredTasks, sortBy);
+
+        if (filteredTasks.length === 0) {
+            container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">등록된 작업이 없습니다</div>
+                        <p style="color: #adb5bd; margin-top: 10px;">새 작업을 추가해보세요!</p>
+                    </div>
+                `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="tasks-grid">
+                ${filteredTasks.map(task => renderTaskCard(task)).join('')}
+            </div>
+        `;
+    }
+
+    function renderTaskCard(task) {
+        const categoriesHtml = task.categories && task.categories.length > 0
+            ? task.categories.map(cat =>
+                `<span class="task-category-badge" style="background: ${cat.colorCode}">${escapeHtml(cat.name)}</span>`
+            ).join('')
+            : '';
+
+        return `
+                <div class="task-card priority-${task.priority} status-${task.status}">
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${escapeHtml(task.title)}</div>
+                            <div class="task-meta">
+                                <span class="badge badge-priority-${task.priority}">${getPriorityText(task.priority)}</span>
+                                <span class="badge badge-status">${getStatusText(task.status)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+
+                    <div class="task-dates">
+                        📅 ${formatDate(task.startDate)} ~ ${formatDate(task.endDate)}
+                        ${task.overdue ? '<span style="color: #dc3545; font-weight: 600;"> ⚠️ 기한 초과</span>' : ''}
+                    </div>
+
+                    ${categoriesHtml ? `<div class="task-categories">${categoriesHtml}</div>` : ''}
+
+                    <div class="task-actions">
+                        ${task.status !== 'COMPLETED' ? `
+                            <button class="btn-icon btn-complete" onclick="completeTask(${task.id})">✓ 완료</button>
+                        ` : ''}
+                        <button class="btn-icon btn-edit" onclick="editTask(${task.id})">✏️ 수정</button>
+                        <button class="btn-icon btn-delete" onclick="deleteTask(${task.id})">🗑️ 삭제</button>
+                    </div>
+                </div>
+            `;
+    }
+
+    // ==================== 유틸리티 함수 ====================
+
+    function sortTasks(tasks, sortBy) {
+        return [...tasks].sort((a, b) => {
+            if (sortBy === 'endDate') {
+                return new Date(a.endDate) - new Date(b.endDate);
+            } else if (sortBy === 'priority') {
+                const priorityOrder = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+                return priorityOrder[b.priority] - priorityOrder[a.priority];
+            } else if (sortBy === 'createdAt') {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+            return 0;
+        });
+    }
+
+    function filterByCategory(categoryId) {
+        selectedCategoryId = categoryId;
+
+        // 카테고리 항목 active 클래스 토글
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        event.target.closest('.category-item').classList.add('active');
+
+        renderTasks();
+    }
+
+    function filterTasks() {
+        renderTasks();
+    }
+
+    function updateTotalCount() {
+        const totalCount = document.getElementById('totalTaskCount');
+        if (totalCount) {
+            totalCount.textContent = tasks.length;
+        }
+    }
+
+    function getPriorityText(priority) {
+        const map = { LOW: '낮음', MEDIUM: '보통', HIGH: '높음', URGENT: '긴급' };
+        return map[priority] || priority;
+    }
+
+    function getStatusText(status) {
+        const map = { TODO: '할 일', IN_PROGRESS: '진행 중', COMPLETED: '완료' };
+        return map[status] || status;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // ==================== 모달 관련 함수 ====================
+
+    function openTaskModal() {
+        editingTaskId = null;
+        document.getElementById('modalTitle').textContent = '새 작업 추가';
+        document.getElementById('taskForm').reset();
+
+        // 기본 날짜 설정
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('taskStartDate').value = today;
+        document.getElementById('taskEndDate').value = today;
+
+        // 카테고리 체크박스 초기화
+        document.querySelectorAll('#categorySelectorModal input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+            cb.closest('.category-checkbox').classList.remove('selected');
+        });
+
+        document.getElementById('taskModal').style.display = 'block';
+    }
+
+    function closeTaskModal() {
+        document.getElementById('taskModal').style.display = 'none';
+        editingTaskId = null;
+    }
+
+    async function editTask(taskId) {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        editingTaskId = taskId;
+        document.getElementById('modalTitle').textContent = '작업 수정';
+
+        document.getElementById('taskTitle').value = task.title;
+        document.getElementById('taskDescription').value = task.description || '';
+        document.getElementById('taskStartDate').value = task.startDate;
+        document.getElementById('taskEndDate').value = task.endDate;
+        document.getElementById('taskPriority').value = task.priority;
+        document.getElementById('taskStatus').value = task.status;
+
+        // 작업의 카테고리 로드 및 체크
+        const taskCategories = task.categories || [];
+        const categoryIds = taskCategories.map(c => c.id);
+
+        document.querySelectorAll('#categorySelectorModal input[type="checkbox"]').forEach(cb => {
+            const categoryId = parseInt(cb.value);
+            cb.checked = categoryIds.includes(categoryId);
+            if (cb.checked) {
+                cb.closest('.category-checkbox').classList.add('selected');
+            } else {
+                cb.closest('.category-checkbox').classList.remove('selected');
+            }
+        });
+
+        document.getElementById('taskModal').style.display = 'block';
+    }
+
+    function saveTask(event) {
+        event.preventDefault();
+
+        const selectedCategories = Array.from(
+            document.querySelectorAll('#categorySelectorModal input[type="checkbox"]:checked')
+        ).map(cb => parseInt(cb.value));
+
+        const taskData = {
+            title: document.getElementById('taskTitle').value,
+            description: document.getElementById('taskDescription').value,
+            startDate: document.getElementById('taskStartDate').value,
+            endDate: document.getElementById('taskEndDate').value,
+            priority: document.getElementById('taskPriority').value,
+            status: document.getElementById('taskStatus').value,
+            categoryIds: selectedCategories
+        };
+
+        if (new Date(taskData.endDate) < new Date(taskData.startDate)) {
+            showNotification('종료일은 시작일보다 이후여야 합니다.', 'error');
+            return;
+        }
+
+        if (editingTaskId) {
+            updateTask(editingTaskId, taskData);
+        } else {
+            createTask(taskData);
+        }
+    }
+
+    function completeTask(taskId) {
+        updateTaskStatus(taskId, 'COMPLETED');
+    }
+
+    function toggleCategorySelection(checkbox) {
+        const label = checkbox.closest('.category-checkbox');
+        if (checkbox.checked) {
+            label.classList.add('selected');
+        } else {
+            label.classList.remove('selected');
+        }
+    }
+
+    // 카테고리 관리 모달
+    function openCategoryModal() {
+        loadCategories();
+        document.getElementById('categoryModal').style.display = 'block';
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('categoryModal').style.display = 'none';
+    }
+
+    // 카테고리 추가 모달
+    function openCategoryAddModal() {
+        closeCategoryModal();
+
+        document.getElementById('categoryAddForm').reset();
+        document.getElementById('categoryAddColor').value = '#667eea';
+        document.getElementById('categoryAddOrder').value = '0';
+        document.getElementById('categoryAddModal').style.display = 'block';
+    }
+
+    function closeCategoryAddModal() {
+        document.getElementById('categoryAddModal').style.display = 'none';
+    }
+
+    function addCategory(event) {
+        event.preventDefault();
+
+        const categoryData = {
+            name: document.getElementById('categoryAddName').value,
+            description: document.getElementById('categoryAddDescription').value,
+            colorCode: document.getElementById('categoryAddColor').value,
+            displayOrder: parseInt(document.getElementById('categoryAddOrder').value)
+        };
+
+        createCategory(categoryData);
+    }
+
+    // 카테고리 수정 모달
+    function openCategoryEditModal(categoryId) {
+        const category = categories.find(c => c.id === categoryId);
+        if (!category) return;
+
+        editingCategoryId = categoryId;
+
+        document.getElementById('categoryEditName').value = category.name;
+        document.getElementById('categoryEditDescription').value = category.description || '';
+        document.getElementById('categoryEditColor').value = category.colorCode;
+        document.getElementById('categoryEditOrder').value = category.displayOrder;
+
+        document.getElementById('categoryEditModal').style.display = 'block';
+    }
+
+    function closeCategoryEditModal() {
+        document.getElementById('categoryEditModal').style.display = 'none';
+        editingCategoryId = null;
+    }
+
+    function updateCategorySubmit(event) {
+        event.preventDefault();
+
+        const categoryData = {
+            name: document.getElementById('categoryEditName').value,
+            description: document.getElementById('categoryEditDescription').value,
+            colorCode: document.getElementById('categoryEditColor').value,
+            displayOrder: parseInt(document.getElementById('categoryEditOrder').value)
+        };
+
+        updateCategory(editingCategoryId, categoryData);
+    }
+
+    // // 모달 외부 클릭 시 닫기
+    // window.onclick = function(event) {
+    //     if (event.target.classList.contains('modal')) {
+    //         event.target.style.display = 'none';
+    //     }
+    // }
+</script>
+</body>
+</html>

@@ -13,4 +13,9 @@ public class TaskViewController {
         return "task/tasks";
     }
 
+    @GetMapping("/category")
+    public String categoryPage() {
+        return "task/task-categories";
+    }
+
 }

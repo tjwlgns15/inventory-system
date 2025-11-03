@@ -531,6 +531,31 @@
             font-size: 0.9rem;
         }
 
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(45deg, #7f8c8d, #6c7a7b);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
         .btn-primary {
             background: linear-gradient(45deg, #4ecdc4, #44a08d);
             color: white;
@@ -920,7 +945,7 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 9999; /* 1000에서 9999로 변경 */
             left: 0;
             top: 0;
             width: 100%;
@@ -932,14 +957,16 @@
         .modal-content {
             background-color: white;
             margin: 5% auto;
-            padding: 30px 25px; /* 좌우 padding 약간 줄임 */
+            padding: 30px 25px;
             border-radius: 20px;
             width: 90%;
             max-width: 900px;
             max-height: 85vh;
-            overflow-y: visible;
+            overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             animation: modalSlideIn 0.3s ease;
+            position: relative; /* 추가 */
+            z-index: 10000; /* 추가 */
         }
 
         .modal-form-container {
@@ -1047,6 +1074,126 @@
         .form-textarea {
             resize: vertical;
             min-height: 100px;
+        }
+
+        .category-dropdown-container {
+            position: relative;
+        }
+
+        .category-dropdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .category-dropdown-header:hover {
+            border-color: #4ecdc4;
+            background: #f8f9fa;
+        }
+
+        .category-dropdown-header.active {
+            border-color: #4ecdc4;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .category-selected-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            color: #6c757d;
+        }
+
+        .category-selected-count {
+            background: #4ecdc4;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .category-dropdown-arrow {
+            transition: transform 0.3s ease;
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        .category-dropdown-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .category-checkbox-container {
+            display: none; /* 기본적으로 숨김 */
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border: 2px solid #4ecdc4;
+            border-top: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            position: absolute;
+            width: 100%;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-checkbox-container.open {
+            display: flex; /* 열릴 때만 표시 */
+        }
+
+        .category-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8f9fa;
+        }
+
+        .category-checkbox-item:hover {
+            background: #e9ecef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .category-checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .category-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .category-color-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-checkbox-item.selected {
+            background: rgba(78, 205, 196, 0.15);
+            border-left: 3px solid #4ecdc4;
         }
 
         .loading {
@@ -1409,7 +1556,10 @@
     <div class="tasks-section">
         <div class="tasks-header">
             <h2 class="tasks-title">📋 작업 목록</h2>
-            <button class="btn btn-primary" onclick="openTaskModal()">➕ 새 작업</button>
+            <div>
+                <button class="btn btn-secondary" onclick="location.href='/tasks/category'">🏷️ 카테고리 관리</button>
+                <button class="btn btn-primary" onclick="openTaskModal()">➕ 새 작업</button>
+            </div>
         </div>
 
         <div class="task-controls">
@@ -1494,6 +1644,23 @@
                             <option value="COMPLETED">완료</option>
                         </select>
                     </div>
+
+                    <!-- 카테고리 선택 추가 -->
+                    <div class="form-group">
+                        <label class="form-label">카테고리</label>
+                        <div class="category-dropdown-container">
+                            <div class="category-dropdown-header" onclick="toggleCategoryDropdown()">
+                                <div class="category-selected-display">
+                                    <span id="categorySelectedText">선택된 카테고리 없음</span>
+                                    <span id="categorySelectedCount" class="category-selected-count" style="display: none;">0</span>
+                                </div>
+                                <span class="category-dropdown-arrow">▼</span>
+                            </div>
+                            <div id="categoryCheckboxList" class="category-checkbox-container">
+                                <!-- 카테고리 체크박스가 동적으로 렌더링됩니다 -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-right-column">
@@ -1533,6 +1700,7 @@
 <script>
     // 전역 변수
     let tasks = [];
+    let categories = [];
     let currentDate = new Date();
     let currentView = 'month';
     let editingTaskId = null;
@@ -1546,6 +1714,7 @@
 
     // 페이지 로드 시 초기화
     document.addEventListener('DOMContentLoaded', function () {
+        loadCategories();
         loadTasks();
         renderCalendar();
         setDefaultDates();
@@ -1592,35 +1761,40 @@
         }
     }
 
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/task-categories');
+            const data = await response.json();
+            categories = data.categories || [];
+        } catch (error) {
+            console.error('카테고리 로드 실패:', error);
+        }
+    }
+
+
     async function loadTasks() {
         try {
             showLoading(true);
-
-            // showAllTasks에서 호출된 경우 전체 작업 로드, 아니면 현재 뷰 기간에 맞는 작업 로드
             let response;
-            if (selectedDate || (currentView !== 'month' && currentView !== 'week' && currentView !== 'year')) {
-                // 전체 작업 로드 (페이지네이션 포함)
-                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=${PAGE_SIZE}`);
+
+            if (currentView === 'month') {
+                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=${PAGE_SIZE * 3}`);
+            } else if (currentView === 'week') {
+                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=${PAGE_SIZE * 2}`);
             } else {
-                // 전체 작업을 먼저 로드한 후 클라이언트에서 필터링
-                response = await apiRequest(`${API_BASE_URL}?page=0&size=1000`); // 충분히 큰 사이즈로 모든 작업 가져오기
+                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=1000`);
             }
 
             if (response) {
                 tasks = response.tasks || [];
                 totalPages = Math.ceil((response.totalCount || 0) / PAGE_SIZE);
+
+                await renderCalendar(); // renderTasks() 대신 renderCalendar() 호출
                 renderTasks();
-
-                // 전체 작업을 로드한 경우에만 페이지네이션 표시
-                if (selectedDate || (currentView !== 'month' && currentView !== 'week' && currentView !== 'year')) {
-                    renderPagination();
-                }
+                renderPagination();
             }
-
-            renderCalendar();
         } catch (error) {
-            showNotification('작업 목록을 불러오는데 실패했습니다.', 'error');
-            tasks = [];
+            showNotification('작업 로드에 실패했습니다.', 'error');
         } finally {
             showLoading(false);
         }
@@ -1743,18 +1917,29 @@
     }
 
     // 달력 렌더링
-    function renderCalendar() {
+    async function renderCalendar() {
         if (currentView === 'month') {
-            renderMonthCalendar();
+            await renderMonthCalendar();
         } else if (currentView === 'week') {
-            renderWeekCalendar();
+            await renderWeekCalendar();
         } else if (currentView === 'year') {
-            renderYearCalendar();
+            await renderYearCalendar();
         }
         updateCalendarTitle();
     }
 
-    function renderMonthCalendar() {
+    // async function loadTaskWithCategories(task) {
+    //     try {
+    //         const response = await fetch(`/api/tasks/${task.id}/categories`);
+    //         const taskCategories = await response.json();
+    //         return { ...task, categories: taskCategories };
+    //     } catch (error) {
+    //         console.error('작업 카테고리 로드 실패:', error);
+    //         return { ...task, categories: [] };
+    //     }
+    // }
+
+    async function renderMonthCalendar() {
         const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         const startDate = new Date(firstDay);
@@ -1765,6 +1950,12 @@
 
         let currentWeek = startDate;
 
+        // 모든 작업의 카테고리 정보를 미리 로드
+        // const tasksWithCategories = await Promise.all(
+        //     tasks.map(task => loadTaskWithCategories(task))
+        // );
+        const tasksWithCategories = tasks;
+
         for (let week = 0; week < 6; week++) {
             const tr = document.createElement('tr');
 
@@ -1773,14 +1964,36 @@
                 const dateNum = currentWeek.getDate();
                 const isCurrentMonth = currentWeek.getMonth() === currentDate.getMonth();
                 const isToday = isDateToday(currentWeek);
-                const dayTasks = getTasksForDate(currentWeek);
+                const dateStr = formatDateForInput(currentWeek);
+
+                // 해당 날짜의 작업 필터링
+                const dayTasks = tasksWithCategories.filter(task =>
+                    task.startDate <= dateStr && task.endDate >= dateStr
+                );
+
                 const currentDateCopy = new Date(currentWeek);
 
-                // 완료된 작업과 미완료 작업을 구분하여 표시
+                // 카테고리 색상 기반 인디케이터 생성
                 const taskIndicators = dayTasks.map(task => {
                     const isCompleted = task.status === 'COMPLETED';
-                    const completedClass = isCompleted ? ' completed' : '';
-                    return `<span class="task-indicator priority-${task.priority.toLowerCase()}${completedClass}"></span>`;
+                    const opacity = isCompleted ? '0.3' : '1';
+
+                    // 작업의 첫 번째 카테고리 색상 사용 (없으면 우선순위 색상)
+                    let color = '';
+                    if (task.categories && task.categories.length > 0) {
+                        color = task.categories[0].colorCode;
+                    } else {
+                        // 카테고리가 없으면 우선순위 색상 사용
+                        const priorityColors = {
+                            'LOW': '#28a745',
+                            'MEDIUM': '#ffc107',
+                            'HIGH': '#fd7e14',
+                            'URGENT': '#dc3545'
+                        };
+                        color = priorityColors[task.priority] || '#6c757d';
+                    }
+
+                    return `<span class="task-indicator" style="background: ${color}; opacity: ${opacity};"></span>`;
                 }).join('');
 
                 td.innerHTML = `
@@ -1796,6 +2009,12 @@
                 }
                 if (dayTasks.length > 0) {
                     td.classList.add('has-tasks');
+
+                    // 완료되지 않은 작업 중 첫 번째 카테고리 색상으로 보더 설정
+                    const incompleteTasks = dayTasks.filter(t => t.status !== 'COMPLETED');
+                    if (incompleteTasks.length > 0 && incompleteTasks[0].categories && incompleteTasks[0].categories.length > 0) {
+                        td.style.borderLeft = `4px solid ${incompleteTasks[0].categories[0].colorCode}`;
+                    }
                 }
 
                 td.addEventListener('click', () => selectDateForView(new Date(currentDateCopy)));
@@ -1809,11 +2028,18 @@
         }
     }
 
+
     // 주간 달력 렌더링 함수 수정
-    function renderWeekCalendar() {
+    async function renderWeekCalendar() {
         const weekStart = getWeekStart(currentDate);
         const weekBody = document.getElementById('weekCalendarBody');
         weekBody.innerHTML = '';
+
+        // 모든 작업의 카테고리 정보를 미리 로드
+        // const tasksWithCategories = await Promise.all(
+        //     tasks.map(task => loadTaskWithCategories(task))
+        // );
+        const tasksWithCategories = tasks;
 
         for (let hour = 9; hour <= 18; hour++) {
             const timeSlot = document.createElement('div');
@@ -1832,12 +2058,32 @@
                     dayColumn.classList.add('today');
                 }
 
-                const dayTasks = getTasksForDate(currentDay);
+                const dateStr = formatDateForInput(currentDay);
+                const dayTasks = tasksWithCategories.filter(task =>
+                    task.startDate <= dateStr && task.endDate >= dateStr
+                );
+
                 const taskEvents = dayTasks.map(task => {
                     const isCompleted = task.status === 'COMPLETED';
-                    const completedClass = isCompleted ? ' completed' : '';
-                    return `<div class="task-event priority-${task.priority.toLowerCase()}${completedClass}"
-                              onclick="selectTask(${task.id})">${escapeHtml(task.title)}</div>`;
+                    const opacity = isCompleted ? '0.3' : '1';
+
+                    // 카테고리 색상 또는 우선순위 색상
+                    let borderColor = '';
+                    if (task.categories && task.categories.length > 0) {
+                        borderColor = task.categories[0].colorCode;
+                    } else {
+                        const priorityColors = {
+                            'LOW': '#28a745',
+                            'MEDIUM': '#ffc107',
+                            'HIGH': '#fd7e14',
+                            'URGENT': '#dc3545'
+                        };
+                        borderColor = priorityColors[task.priority] || '#6c757d';
+                    }
+
+                    return `<div class="task-event"
+                             style="border-left: 3px solid ${borderColor}; opacity: ${opacity};"
+                             onclick="selectTask(${task.id})">${escapeHtml(task.title)}</div>`;
                 }).join('');
 
                 dayColumn.innerHTML = taskEvents;
@@ -2599,6 +2845,13 @@
         document.getElementById('priority').value = task.priority;
         document.getElementById('status').value = task.status;
 
+        // 카테고리 체크박스 렌더링 및 선택
+        renderCategoryCheckboxes();
+        if (task.categories && task.categories.length > 0) {
+            const categoryIds = task.categories.map(cat => cat.id);
+            setSelectedCategories(categoryIds);
+        }
+
         document.getElementById('taskModal').style.display = 'block';
 
         setTimeout(() => {
@@ -2711,6 +2964,10 @@
             setDefaultDates();
         }
 
+        // 카테고리 체크박스 렌더링
+        renderCategoryCheckboxes();
+        resetCategoryCheckboxes();
+
         document.getElementById('taskModal').style.display = 'block';
 
         setTimeout(() => {
@@ -2721,6 +2978,17 @@
     function closeTaskModal() {
         document.getElementById('taskModal').style.display = 'none';
         editingTaskId = null;
+
+        // 드롭다운 닫기 추가
+        const container = document.getElementById('categoryCheckboxList');
+        const header = document.querySelector('.category-dropdown-header');
+        const arrow = document.querySelector('.category-dropdown-arrow');
+
+        if (container.classList.contains('open')) {
+            container.classList.remove('open');
+            header.classList.remove('active');
+            arrow.classList.remove('open');
+        }
     }
 
     function setDefaultDates() {
@@ -2741,7 +3009,8 @@
             startDate: document.getElementById('startDate').value,
             endDate: document.getElementById('endDate').value,
             priority: document.getElementById('priority').value,
-            status: document.getElementById('status').value
+            status: document.getElementById('status').value,
+            categoryIds: getSelectedCategoryIds()  // 카테고리 ID 추가
         };
 
         const errors = validateTaskData(taskData);
@@ -2756,6 +3025,123 @@
             createTask(taskData);
         }
     }
+
+    function renderCategoryCheckboxes() {
+        const container = document.getElementById('categoryCheckboxList');
+
+        if (!categories || categories.length === 0) {
+            container.innerHTML = '<p style="color: #6c757d; font-size: 0.9rem;">등록된 카테고리가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = categories
+            .filter(cat => cat.isActive)  // 활성화된 카테고리만 표시
+            .map(category => `
+            <div class="category-checkbox-item" data-category-id="${category.id}">
+                <input
+                    type="checkbox"
+                    id="category-${category.id}"
+                    value="${category.id}"
+                    onchange="toggleCategorySelection(${category.id})"
+                >
+                <label for="category-${category.id}" class="category-checkbox-label">
+                    <span class="category-color-indicator" style="background-color: ${category.colorCode || '#6c757d'}"></span>
+                    <span>${escapeHtml(category.name)}</span>
+                </label>
+            </div>
+        `).join('');
+    }
+
+    function toggleCategoryDropdown() {
+        const container = document.getElementById('categoryCheckboxList');
+        const header = document.querySelector('.category-dropdown-header');
+        const arrow = document.querySelector('.category-dropdown-arrow');
+
+        container.classList.toggle('open');
+        header.classList.toggle('active');
+        arrow.classList.toggle('open');
+    }
+
+    // 카테고리 선택 표시 업데이트 함수 (추가)
+    function updateCategoryDisplay() {
+        const checkboxes = document.querySelectorAll('#categoryCheckboxList input[type="checkbox"]:checked');
+        const count = checkboxes.length;
+        const textElement = document.getElementById('categorySelectedText');
+        const countElement = document.getElementById('categorySelectedCount');
+
+        if (count === 0) {
+            textElement.textContent = '선택된 카테고리 없음';
+            countElement.style.display = 'none';
+        } else if (count === 1) {
+            const label = checkboxes[0].nextElementSibling.querySelector('span:last-child').textContent;
+            textElement.textContent = label;
+            countElement.style.display = 'none';
+        } else {
+            textElement.textContent = '카테고리 선택됨';
+            countElement.textContent = count;
+            countElement.style.display = 'inline-block';
+        }
+    }
+
+    // 기존 toggleCategorySelection 함수 수정
+    function toggleCategorySelection(categoryId) {
+        const item = document.querySelector(`.category-checkbox-item[data-category-id="${categoryId}"]`);
+        const checkbox = document.getElementById(`category-${categoryId}`);
+
+        if (checkbox.checked) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+
+        // 선택 표시 업데이트 추가
+        updateCategoryDisplay();
+    }
+
+    // 선택된 카테고리 ID 목록 가져오기
+    function getSelectedCategoryIds() {
+        const checkboxes = document.querySelectorAll('#categoryCheckboxList input[type="checkbox"]:checked');
+        return Array.from(checkboxes).map(cb => parseInt(cb.value));
+    }
+
+    // 카테고리 체크박스 초기화
+    function resetCategoryCheckboxes() {
+        const checkboxes = document.querySelectorAll('#categoryCheckboxList input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            const item = checkbox.closest('.category-checkbox-item');
+            if (item) {
+                item.classList.remove('selected');
+            }
+        });
+
+        // 선택 표시 업데이트 추가
+        updateCategoryDisplay();
+    }
+
+    // 기존 setSelectedCategories 함수 수정
+    function setSelectedCategories(categoryIds) {
+        resetCategoryCheckboxes();
+
+        if (!categoryIds || categoryIds.length === 0) {
+            return;
+        }
+
+        categoryIds.forEach(categoryId => {
+            const checkbox = document.getElementById(`category-${categoryId}`);
+            if (checkbox) {
+                checkbox.checked = true;
+                const item = checkbox.closest('.category-checkbox-item');
+                if (item) {
+                    item.classList.add('selected');
+                }
+            }
+        });
+
+        // 선택 표시 업데이트 추가
+        updateCategoryDisplay();
+    }
+
 
     // 유틸리티 함수들
     function escapeHtml(text) {

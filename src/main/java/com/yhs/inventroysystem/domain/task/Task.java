@@ -3,10 +3,14 @@ package com.yhs.inventroysystem.domain.task;
 import com.yhs.inventroysystem.infrastructure.model.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "tasks", indexes = {
@@ -19,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor
+@Slf4j
 public class Task extends BaseTimeEntity {
 
     @Id
@@ -49,6 +54,10 @@ public class Task extends BaseTimeEntity {
     @Column(name = "priority", nullable = false)
     private Priority priority = Priority.MEDIUM;
 
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaskCategoryMapping> categoryMappings = new ArrayList<>();
+
+
     public Task(String title, String description, String authorName, LocalDate startDate, LocalDate endDate, TaskStatus status, Priority priority) {
         this.title = title;
         this.description = description;
@@ -77,6 +86,39 @@ public class Task extends BaseTimeEntity {
 
     public void updatePriority(Priority priority) {
         this.priority = priority;
+    }
+
+    public void addCategory(TaskCategory category) {
+        if (hasCategory(category)) {
+            log.info("Task {} already has category {}. Skipping.", id, category.getId());
+            return;
+        }
+
+        TaskCategoryMapping mapping = new TaskCategoryMapping(this, category);
+        categoryMappings.add(mapping);
+    }
+
+    public void removeCategory(TaskCategory category) {
+        categoryMappings.removeIf(mapping -> mapping.isMappedTo(category));
+    }
+
+    public void clearCategories() {
+        categoryMappings.clear();
+    }
+
+    public boolean hasCategory(TaskCategory category) {
+        return categoryMappings.stream()
+                .anyMatch(mapping -> mapping.isMappedTo(category));
+    }
+
+    public List<TaskCategory> getCategories() {
+        return categoryMappings.stream()
+                .map(TaskCategoryMapping::getCategory)
+                .collect(Collectors.toList());
+    }
+
+    public int getCategoryCount() {
+        return categoryMappings.size();
     }
 
     public boolean isInProgress() {

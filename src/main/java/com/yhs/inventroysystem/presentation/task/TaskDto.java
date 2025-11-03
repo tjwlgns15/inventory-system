@@ -4,10 +4,9 @@ package com.yhs.inventroysystem.presentation.task;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yhs.inventroysystem.domain.task.Priority;
 import com.yhs.inventroysystem.domain.task.Task;
+import com.yhs.inventroysystem.domain.task.TaskCategory;
 import com.yhs.inventroysystem.domain.task.TaskStatus;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +15,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static com.yhs.inventroysystem.presentation.task.TaskCategoryDto.*;
 
 public class TaskDto {
 
@@ -36,9 +37,10 @@ public class TaskDto {
             TaskStatus status,
 
             @NotNull(message = "우선순위는 필수입니다")
-            Priority priority
+            Priority priority,
+
+            List<Long> categoryIds
     ) {
-        // 기본값 설정을 위한 생성자
         public TaskCreateRequest {
             if (status == null) {
                 status = TaskStatus.TODO;
@@ -69,7 +71,9 @@ public class TaskDto {
             TaskStatus status,
 
             @NotNull(message = "우선순위는 필수입니다")
-            Priority priority
+            Priority priority,
+
+            List<Long> categoryIds
     ) {}
 
     public record TaskResponse(
@@ -100,7 +104,9 @@ public class TaskDto {
             long durationDays,
             boolean overdue,
             boolean highPriority,
-            boolean urgent
+            boolean urgent,
+
+            List<TaskCategorySimpleResponse> categories
     ) {
         public static TaskResponse from(Task task) {
             return new TaskResponse(
@@ -120,7 +126,33 @@ public class TaskDto {
                     task.getDurationDays(),
                     task.isOverdue(),
                     task.isHighPriority(),
-                    task.isUrgent()
+                    task.isUrgent(),
+                    List.of()  // 기본값
+            );
+        }
+
+        public static TaskResponse from(Task task, List<TaskCategory> categories) {
+            return new TaskResponse(
+                    task.getId(),
+                    task.getTitle(),
+                    task.getDescription(),
+                    task.getAuthorName(),
+                    task.getStartDate(),
+                    task.getEndDate(),
+                    task.getStatus(),
+                    task.getStatus().getDisplayName(),
+                    task.getPriority(),
+                    task.getPriority().getDisplayName(),
+                    task.getPriority().getColorCode(),
+                    task.getCreatedAt(),
+                    task.getLastModifiedAt(),
+                    task.getDurationDays(),
+                    task.isOverdue(),
+                    task.isHighPriority(),
+                    task.isUrgent(),
+                    categories.stream()
+                            .map(TaskCategorySimpleResponse::from)
+                            .toList()
             );
         }
     }
@@ -132,5 +164,11 @@ public class TaskDto {
             int size,
             boolean hasNext,
             boolean hasPrevious
+    ) {}
+
+
+    public record TaskCategoryUpdateRequest(
+            @NotEmpty(message = "카테고리 ID 목록은 필수입니다")
+            List<@NotNull @Min(1) Long> categoryIds
     ) {}
 }

@@ -4,17 +4,13 @@ package com.yhs.inventroysystem.application.task;
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.task.TaskCommands.TaskCreateCommand;
 import com.yhs.inventroysystem.application.task.TaskCommands.TaskUpdateCommand;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
-import com.yhs.inventroysystem.domain.task.TaskRepository;
+import com.yhs.inventroysystem.domain.task.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -52,25 +48,37 @@ public class TaskService {
     }
 
     public Task getTask(Long taskId) {
-        return findTaskById(taskId);
+        return findTaskByIdWithCategories(taskId);
     }
 
+    /**
+     * 페이징 조회 - 카테고리 정보 포함 (Fetch Join)
+     */
     public Page<Task> getAllTasks(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return taskRepository.findAllByOrderByPriorityDescCreatedAtDesc(pageable);
+        return taskRepository.findAllWithCategories(pageable);
     }
 
+    /**
+     * 상태별 조회 - 카테고리 정보 포함 (Fetch Join)
+     */
     public List<Task> getTasksByStatus(TaskStatus status) {
-        return taskRepository.findByStatusOrderByPriorityDescCreatedAtDesc(status);
+        return taskRepository.findByStatusWithCategories(status);
     }
 
+    /**
+     * 우선순위별 조회 - 카테고리 정보 포함 (Fetch Join)
+     */
     public List<Task> getTasksByPriority(Priority priority) {
-        return taskRepository.findByPriorityOrderByCreatedAtDesc(priority);
+        return taskRepository.findByPriorityWithCategories(priority);
     }
 
+    /**
+     * 높은 우선순위 작업 조회 - 카테고리 정보 포함 (Fetch Join)
+     */
     public List<Task> getHighPriorityTasks() {
         List<Priority> highPriorities = Arrays.asList(Priority.HIGH, Priority.URGENT);
-        return taskRepository.findHighPriorityTasks(highPriorities, TaskStatus.COMPLETED);
+        return taskRepository.findHighPriorityTasksWithCategories(highPriorities, TaskStatus.COMPLETED);
     }
 
     public List<Task> searchTasksByTitle(String title) {
@@ -81,15 +89,21 @@ public class TaskService {
         return taskRepository.findByAuthorNameContainingIgnoreCaseOrderByPriorityDescCreatedAtDesc(authorName);
     }
 
+    /**
+     * 지연된 작업 조회 - 카테고리 정보 포함 (Fetch Join)
+     */
     public List<Task> getOverdueTasks() {
-        return taskRepository.findOverdueTasks(LocalDate.now(), TaskStatus.COMPLETED);
+        return taskRepository.findOverdueTasksWithCategories(LocalDate.now(), TaskStatus.COMPLETED);
     }
 
+    /**
+     * 복합 검색 - 카테고리 정보 포함 (Fetch Join)
+     */
     public Page<Task> searchTasks(String title, String authorName, List<TaskStatus> statusList,
                                   Priority priority, LocalDate startDate, LocalDate endDate,
                                   int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return taskRepository.findTasksWithFilters(
+        return taskRepository.findTasksWithFiltersAndCategories(
                 title, authorName, statusList, priority, startDate, endDate, pageable);
     }
 
@@ -97,7 +111,7 @@ public class TaskService {
     public Task updateTask(Long taskId, TaskUpdateCommand command) {
         validateDateRange(command.startDate(), command.endDate());
 
-        Task task = findTaskById(taskId);
+        Task task = findTaskByIdWithCategories(taskId);
 
         task.updateTaskInfo(command.title(), command.description(), command.priority());
         task.updatePeriod(command.startDate(), command.endDate());
@@ -111,7 +125,7 @@ public class TaskService {
 
     @Transactional
     public Task updateTaskStatus(Long taskId, TaskStatus status) {
-        Task task = findTaskById(taskId);
+        Task task = findTaskByIdWithCategories(taskId);
         task.updateStatus(status);
 
         log.info("작업 상태가 변경되었습니다. ID: {}, 상태: {}", task.getId(), status);
@@ -121,7 +135,7 @@ public class TaskService {
 
     @Transactional
     public Task updateTaskPriority(Long taskId, Priority priority) {
-        Task task = findTaskById(taskId);
+        Task task = findTaskByIdWithCategories(taskId);
         task.updatePriority(priority);
 
         log.info("작업 우선순위가 변경되었습니다. ID: {}, 우선순위: {}", task.getId(), priority);
@@ -169,5 +183,12 @@ public class TaskService {
                             endDate, startDate)
             );
         }
+    }
+
+
+    private Task findTaskByIdWithCategories(Long taskId) {
+        return taskRepository.findByIdWithCategories(taskId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        String.format("작업을 찾을 수 없습니다. [id: %d]", taskId)));
     }
 }

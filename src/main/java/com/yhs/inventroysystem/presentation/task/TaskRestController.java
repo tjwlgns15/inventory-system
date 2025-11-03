@@ -2,12 +2,15 @@ package com.yhs.inventroysystem.presentation.task;
 
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
+import com.yhs.inventroysystem.application.task.TaskCategoryMappingService;
 import com.yhs.inventroysystem.application.task.TaskCommands;
 import com.yhs.inventroysystem.application.task.TaskCommands.*;
 import com.yhs.inventroysystem.domain.task.Priority;
 import com.yhs.inventroysystem.domain.task.Task;
+import com.yhs.inventroysystem.domain.task.TaskCategory;
 import com.yhs.inventroysystem.domain.task.TaskStatus;
 import com.yhs.inventroysystem.application.task.TaskService;
+import com.yhs.inventroysystem.presentation.task.TaskCategoryDto.TaskCategorySimpleResponse;
 import com.yhs.inventroysystem.presentation.task.TaskDto.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -30,10 +33,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
-@Validated  // @Min, @Max 등의 유효성 검사를 위해 필요
+@Validated
 public class TaskRestController {
 
     private final TaskService taskService;
+    private final TaskCategoryMappingService taskCategoryMappingService;
+
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
@@ -50,14 +55,23 @@ public class TaskRestController {
         );
 
         Task task = taskService.createTask(command, currentUser);
+
+        // 카테고리 있으면 등록
+        if (request.categoryIds() != null && !request.categoryIds().isEmpty()) {
+            taskCategoryMappingService.updateTaskCategories(task.getId(), request.categoryIds());
+        }
+
+        // Task 엔티티에서 직접 카테고리 조회 (이미 Fetch Join으로 로드됨)
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(TaskResponse.from(task));
+                .body(TaskResponse.from(task, task.getCategories()));
     }
 
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable @Min(1) Long taskId) {
         Task task = taskService.getTask(taskId);
-        return ResponseEntity.ok(TaskResponse.from(task));
+
+        // Task 엔티티에서 직접 카테고리 조회
+        return ResponseEntity.ok(TaskResponse.from(task, task.getCategories()));
     }
 
     @GetMapping
@@ -65,11 +79,13 @@ public class TaskRestController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(1000) int size) {
 
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         Page<Task> taskPage = taskService.getAllTasks(page, size);
 
+        // Task에서 직접 카테고리 정보를 가져옴 (별도 조회 불필요)
         List<TaskResponse> taskResponses = taskPage.getContent().stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
 
         TaskListResponse response = new TaskListResponse(
                 taskResponses,
@@ -85,28 +101,37 @@ public class TaskRestController {
 
     @GetMapping("/status/{status}")
     public ResponseEntity<List<TaskResponse>> getTasksByStatus(@PathVariable TaskStatus status) {
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         List<Task> tasks = taskService.getTasksByStatus(status);
+
         List<TaskResponse> response = tasks.stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/priority/{priority}")
     public ResponseEntity<List<TaskResponse>> getTasksByPriority(@PathVariable Priority priority) {
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         List<Task> tasks = taskService.getTasksByPriority(priority);
+
         List<TaskResponse> response = tasks.stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/high-priority")
     public ResponseEntity<List<TaskResponse>> getHighPriorityTasks() {
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         List<Task> tasks = taskService.getHighPriorityTasks();
+
         List<TaskResponse> response = tasks.stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
+
         return ResponseEntity.ok(response);
     }
 
@@ -115,7 +140,8 @@ public class TaskRestController {
             @PathVariable @Min(1) Long taskId,
             @RequestParam Priority priority) {
         Task task = taskService.updateTaskPriority(taskId, priority);
-        return ResponseEntity.ok(TaskResponse.from(task));
+
+        return ResponseEntity.ok(TaskResponse.from(task, task.getCategories()));
     }
 
     @GetMapping("/search")
@@ -129,13 +155,14 @@ public class TaskRestController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
 
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         Page<Task> taskPage = taskService.searchTasks(
                 title, authorName, status, priority, startDate, endDate, page, size
         );
 
         List<TaskResponse> taskResponses = taskPage.getContent().stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
 
         TaskListResponse response = new TaskListResponse(
                 taskResponses,
@@ -151,16 +178,20 @@ public class TaskRestController {
 
     @GetMapping("/overdue")
     public ResponseEntity<List<TaskResponse>> getOverdueTasks() {
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         List<Task> tasks = taskService.getOverdueTasks();
+
         List<TaskResponse> response = tasks.stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
+
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/statistics")
     public ResponseEntity<Map<String, Object>> getTaskStatistics() {
         Map<String, Object> response = taskService.getTaskStatistics();
+
         return ResponseEntity.ok(response);
     }
 
@@ -179,21 +210,96 @@ public class TaskRestController {
         );
 
         Task task = taskService.updateTask(taskId, command);
-        return ResponseEntity.ok(TaskResponse.from(task));
+
+        if (request.categoryIds() != null) {
+            taskCategoryMappingService.updateTaskCategories(taskId, request.categoryIds());
+        }
+
+        return ResponseEntity.ok(TaskResponse.from(task, task.getCategories()));
     }
 
     @PatchMapping("/{taskId}/status")
     public ResponseEntity<TaskResponse> updateTaskStatus(
             @PathVariable @Min(1) Long taskId,
             @RequestParam TaskStatus status) {
+
         Task task = taskService.updateTaskStatus(taskId, status);
-        return ResponseEntity.ok(TaskResponse.from(task));
+
+        return ResponseEntity.ok(TaskResponse.from(task, task.getCategories()));
     }
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable @Min(1) Long taskId) {
         taskService.deleteTask(taskId);
+
+        return ResponseEntity.ok().build();
+    }
+
+
+    // ====================== 일정 카테고리 API ======================
+
+    @GetMapping("/{taskId}/categories")
+    public ResponseEntity<List<TaskCategorySimpleResponse>> getTaskCategories(@PathVariable Long taskId) {
+        List<TaskCategory> taskCategories = taskCategoryMappingService.getTaskCategories(taskId);
+
+        List<TaskCategorySimpleResponse> responses = taskCategories.stream()
+                .map(TaskCategorySimpleResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/{taskId}/categories/{categoryId}")
+    public ResponseEntity<Void> addTaskCategoryToTask(
+            @PathVariable Long taskId,
+            @PathVariable Long categoryId) {
+
+        taskCategoryMappingService.addTaskCategoryToTask(taskId, categoryId);
+
+        return ResponseEntity.ok().build();
+
+    }
+
+    @DeleteMapping("/{taskId}/categories/{categoryId}")
+    public ResponseEntity<Void> removeCategoryFromTask(
+            @PathVariable Long taskId,
+            @PathVariable Long categoryId) {
+
+        taskCategoryMappingService.removeCategoryFromTask(taskId, categoryId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{taskId}/categories")
+    public ResponseEntity<List<TaskCategorySimpleResponse>> updateTaskCategories(
+            @PathVariable Long taskId,
+            @Valid @RequestBody TaskCategoryUpdateRequest request) {
+
+        taskCategoryMappingService.updateTaskCategories(taskId, request.categoryIds());
+        List<TaskCategory> taskCategories = taskCategoryMappingService.getTaskCategories(taskId);
+
+        List<TaskCategorySimpleResponse> responses = taskCategories.stream()
+                .map(TaskCategorySimpleResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/by-category/{categoryId}")
+    public ResponseEntity<List<TaskResponse>> getTasksByCategory(@PathVariable Long categoryId) {
+        // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
+        List<Task> tasks = taskCategoryMappingService.getTasksByCategory(categoryId);
+
+        List<TaskResponse> responses = tasks.stream()
+                .map(task -> TaskResponse.from(task, task.getCategories()))
+                .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/mapping-all-task")
+    public ResponseEntity<Void> mappingAllTasks() {
+        taskCategoryMappingService.mappingAllTasks();
         return ResponseEntity.ok().build();
     }
 }
-
