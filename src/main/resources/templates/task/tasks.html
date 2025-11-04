@@ -1775,21 +1775,55 @@
     async function loadTasks() {
         try {
             showLoading(true);
-            let response;
 
+            // 현재 뷰에 따른 날짜 범위 계산
+            const dateRange = getCurrentViewDateRange();
+            const startDateStr = formatDateForApi(dateRange.start);
+            const endDateStr = formatDateForApi(dateRange.end);
+
+            // 필터 값 가져오기
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+
+            // 현재 뷰에 따른 size 결정
+            let size;
             if (currentView === 'month') {
-                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=${PAGE_SIZE * 3}`);
+                size = 100; // 월간은 최대 100개
             } else if (currentView === 'week') {
-                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=${PAGE_SIZE * 2}`);
+                size = 50; // 주간은 최대 50개
             } else {
-                response = await apiRequest(`${API_BASE_URL}?page=${currentPage}&size=1000`);
+                size = 1000; // 년간은 최대 1000개
             }
+
+            // URL 구성
+            let url = `${API_BASE_URL}/search?startDate=${startDateStr}&endDate=${endDateStr}&page=${currentPage}&size=${size}`;
+
+            // 상태 필터 추가
+            if (statusFilter) {
+                if (statusFilter.includes(',')) {
+                    // 여러 상태인 경우 각각 status 파라미터로 추가
+                    const statuses = statusFilter.split(',');
+                    statuses.forEach(status => {
+                        url += `&status=${status.trim()}`;
+                    });
+                } else {
+                    // 단일 상태인 경우
+                    url += `&status=${statusFilter}`;
+                }
+            }
+
+            // 우선순위 필터 추가
+            if (priorityFilter) {
+                url += `&priority=${priorityFilter}`;
+            }
+
+            const response = await apiRequest(url);
 
             if (response) {
                 tasks = response.tasks || [];
-                totalPages = Math.ceil((response.totalCount || 0) / PAGE_SIZE);
+                totalPages = Math.ceil((response.totalCount || 0) / size);
 
-                await renderCalendar(); // renderTasks() 대신 renderCalendar() 호출
+                await renderCalendar();
                 renderTasks();
                 renderPagination();
             }
@@ -1798,6 +1832,39 @@
         } finally {
             showLoading(false);
         }
+    }
+
+    // 현재 뷰의 날짜 범위를 반환하는 헬퍼 함수
+    function getCurrentViewDateRange() {
+        const start = new Date(currentDate);
+        const end = new Date(currentDate);
+
+        if (currentView === 'month') {
+            // 월간: 해당 월의 첫날 ~ 마지막날
+            start.setDate(1);
+            end.setMonth(end.getMonth() + 1);
+            end.setDate(0);
+        } else if (currentView === 'week') {
+            // 주간: 해당 주의 일요일 ~ 토요일
+            const weekStart = getWeekStart(currentDate);
+            start.setTime(weekStart.getTime());
+            end.setTime(weekStart.getTime());
+            end.setDate(end.getDate() + 6);
+        } else if (currentView === 'year') {
+            // 년간: 해당 년의 1월 1일 ~ 12월 31일
+            start.setMonth(0, 1);
+            end.setMonth(11, 31);
+        }
+
+        return { start, end };
+    }
+
+    // API 요청용 날짜 포맷 (yyyy-MM-dd)
+    function formatDateForApi(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     async function createTask(taskData) {
@@ -1878,42 +1945,8 @@
     }
 
     async function searchTasks() {
-        try {
-            showLoading(true);
-            const statusFilter = document.getElementById('statusFilter').value;
-            const priorityFilter = document.getElementById('priorityFilter').value;
-
-            let url = `${API_BASE_URL}/search?page=${currentPage}&size=${PAGE_SIZE}`;
-
-            // 상태 파라미터 처리
-            if (statusFilter) {
-                if (statusFilter.includes(',')) {
-                    // 여러 상태인 경우 각각 status 파라미터로 추가
-                    const statuses = statusFilter.split(',');
-                    statuses.forEach(status => {
-                        url += `&status=${status.trim()}`;
-                    });
-                } else {
-                    // 단일 상태인 경우
-                    url += `&status=${statusFilter}`;
-                }
-            }
-
-            if (priorityFilter) url += `&priority=${priorityFilter}`;
-
-            const response = await apiRequest(url);
-
-            if (response) {
-                tasks = response.tasks || [];
-                totalPages = Math.ceil((response.totalCount || 0) / PAGE_SIZE);
-                renderTasks();
-                renderPagination();
-            }
-        } catch (error) {
-            showNotification('작업 검색에 실패했습니다.', 'error');
-        } finally {
-            showLoading(false);
-        }
+        // loadTasks가 이미 필터와 날짜 범위를 모두 처리하므로 단순히 호출
+        await loadTasks();
     }
 
     // 달력 렌더링
@@ -2422,10 +2455,10 @@
         const tableHtml = `
             <div class="period-header">
                 <h3>📅 ${date.toLocaleDateString('ko-KR', {
-                month: 'short',
-                day: 'numeric',
-                weekday: 'short'
-            })} (총 ${filteredTasks.length}개)</h3>
+            month: 'short',
+            day: 'numeric',
+            weekday: 'short'
+        })} (총 ${filteredTasks.length}개)</h3>
             </div>
             <div class="task-table-container">
                 <table class="task-table">
@@ -2473,7 +2506,7 @@
     }
 
     // 달력 네비게이션
-    function navigateCalendar(direction) {
+    async function navigateCalendar(direction) {
         const newDate = new Date(currentDate);
 
         if (currentView === 'month') {
@@ -2492,12 +2525,12 @@
             td.classList.remove('selected-date');
         });
 
-        renderCalendar();
-        renderTasks(); // 기간 변경 시 작업 목록도 다시 렌더링
+        // API 요청하여 새로운 기간의 데이터 로드
+        await loadTasks();
     }
 
 
-    function goToToday() {
+    async function goToToday() {
         currentDate = new Date();
 
         // 선택된 날짜 초기화
@@ -2506,11 +2539,11 @@
             td.classList.remove('selected-date');
         });
 
-        renderCalendar();
-        renderTasks(); // 오늘로 이동 시 작업 목록도 다시 렌더링
+        // API 요청하여 오늘 날짜 기준 데이터 로드
+        await loadTasks();
     }
 
-    function changeView(view) {
+    async function changeView(view) {
         currentView = view;
 
         document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
@@ -2530,8 +2563,8 @@
             td.classList.remove('selected-date');
         });
 
-        renderCalendar();
-        renderTasks(); // 뷰 변경 시 작업 목록도 다시 렌더링
+        // API 요청하여 새로운 뷰의 데이터 로드
+        await loadTasks();
     }
 
 
@@ -2550,39 +2583,18 @@
         const emptyState = document.getElementById('emptyState');
         const pagination = document.getElementById('pagination');
 
-        // 선택된 날짜가 있으면 해당 날짜의 작업, 없으면 현재 뷰 기간의 작업 표시
-        let periodTasks;
+        // 선택된 날짜가 있으면 클라이언트 사이드 필터링, 없으면 서버에서 받은 데이터 그대로 사용
+        let displayTasks;
         if (selectedDate) {
-            periodTasks = getTasksForDate(selectedDate);
+            displayTasks = getTasksForDate(selectedDate);
         } else {
-            periodTasks = getTasksForCurrentPeriod();
+            // 서버에서 이미 날짜 범위와 필터가 적용된 데이터를 받았으므로 그대로 사용
+            displayTasks = tasks;
         }
 
-        // 필터 적용
-        let filteredTasks = periodTasks.filter(task => {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const priorityFilter = document.getElementById('priorityFilter').value;
+        displayTasks = getSortedTasks(displayTasks);
 
-            // 상태 필터 처리
-            let matchesStatus = true;
-            if (statusFilter) {
-                if (statusFilter.includes(',')) {
-                    // 여러 상태를 포함하는 경우 (예: "TODO,IN_PROGRESS")
-                    const allowedStatuses = statusFilter.split(',');
-                    matchesStatus = allowedStatuses.includes(task.status);
-                } else {
-                    // 단일 상태인 경우
-                    matchesStatus = task.status === statusFilter;
-                }
-            }
-
-            const matchesPriority = !priorityFilter || task.priority === priorityFilter;
-            return matchesStatus && matchesPriority;
-        });
-
-        filteredTasks = getSortedTasks(filteredTasks);
-
-        if (filteredTasks.length === 0) {
+        if (displayTasks.length === 0) {
             taskList.style.display = 'none';
             emptyState.style.display = 'block';
             pagination.style.display = 'none';
@@ -2622,7 +2634,7 @@
                 month: 'short',
                 day: 'numeric',
                 weekday: 'short'
-            })} (총 ${filteredTasks.length}개)</h3>
+            })} (총 ${displayTasks.length}개)</h3>
             </div>
         `;
         } else {
@@ -2645,7 +2657,7 @@
 
             headerHtml = `
             <div class="period-header">
-                <h3>${icon} ${periodInfo} (총 ${filteredTasks.length}개)</h3>
+                <h3>${icon} ${periodInfo} (총 ${displayTasks.length}개)</h3>
             </div>
         `;
         }
@@ -2667,7 +2679,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    ${filteredTasks.map(task => createTaskElement(task)).join('')}
+                    ${displayTasks.map(task => createTaskElement(task)).join('')}
                 </tbody>
             </table>
         </div>
@@ -2790,8 +2802,15 @@
         const statusClass = task.status.toLowerCase().replace('_', '-');
         const isCompleted = task.status === 'COMPLETED';
 
+        // categories가 있으면 첫 번째 카테고리의 colorCode 사용, 없으면 기본 priority 색상 사용
+        const borderColor = task.categories && task.categories.length > 0
+            ? task.categories[0].colorCode
+            : null;
+
+        const borderStyle = borderColor ? `style="border-left: 3px solid ${borderColor};"` : "";
+
         return `
-            <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''} ${isCompleted ? 'completed' : ''}"
+            <tr class="task-row priority-${priorityClass} ${isOverdue ? 'overdue' : ''} ${isCompleted ? 'completed' : ''}" ${borderStyle}
                 onclick="editTask(${task.id})">
                 <td class="task-title-cell">
                     <div class="task-title-content">
@@ -2822,9 +2841,9 @@
                     <div class="task-actions">
                         <button class="btn-small btn-delete" onclick="deleteTask(${task.id})" title="삭제">🗑️</button>
                         ${task.status !== 'COMPLETED' ?
-                `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
-                ''
-            }
+            `<button class="btn-small btn-complete" onclick="completeTask(${task.id})" title="완료">✅</button>` :
+            ''
+        }
                     </div>
                 </td>
             </tr>

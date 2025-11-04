@@ -626,8 +626,6 @@
         }
     }
 
-    // renderChart 함수의 options 부분만 수정
-
     function renderChart(products) {
         const ctx = document.getElementById('stockChart').getContext('2d');
 
@@ -981,7 +979,7 @@
                                 // 값에 따라 색상 결정
                                 if (stock < required) {
                                     ctx.fillStyle = '#dc2626';
-                                } else if (stock < required * 2) {
+                                } else if (stock < required * 100) {
                                     ctx.fillStyle = '#d97706';
                                 } else {
                                     ctx.fillStyle = '#059669';

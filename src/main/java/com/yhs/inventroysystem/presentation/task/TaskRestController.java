@@ -153,7 +153,7 @@ public class TaskRestController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) {
+            @RequestParam(defaultValue = "10") @Min(1) @Max(1000) int size) {
 
         // Fetch Join으로 카테고리 정보가 이미 포함된 Task 조회
         Page<Task> taskPage = taskService.searchTasks(
