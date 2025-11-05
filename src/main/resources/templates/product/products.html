@@ -1085,6 +1085,11 @@
                     </div>
 
                     <div class="form-group">
+                        <label class="form-label" for="updateStockQuantity">재고 수량 *</label>
+                        <input type="number" id="updateStockQuantity" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label" for="updateDefaultUnitPrice">기본 단가</label>
                         <input type="number" id="updateDefaultUnitPrice" class="form-input" step="0.01" min="0" placeholder="0.00">
                     </div>
@@ -1643,9 +1648,10 @@
             const product = await response.json();
 
             document.getElementById('updateProductId').value = productId;
-            document.getElementById('updateProductCategory').value = product.productCategory;  // 추가
-            document.getElementById('updateProductLineId').value = product.productLine ? product.productLine.id : '';  // 추가
+            document.getElementById('updateProductCategory').value = product.productCategory;
+            document.getElementById('updateProductLineId').value = product.productLine ? product.productLine.id : '';
             document.getElementById('updateName').value = product.name;
+            document.getElementById('updateStockQuantity').value = product.stockQuantity;
             document.getElementById('updateDefaultUnitPrice').value = product.defaultUnitPrice || '';
             document.getElementById('updateDescription').value = product.description || '';
 
@@ -1886,6 +1892,7 @@
             productCategory: document.getElementById('updateProductCategory').value,  // 추가
             productLineId: document.getElementById('updateProductLineId').value || null,  // 추가
             name: document.getElementById('updateName').value,
+            stockQuantity: document.getElementById('updateStockQuantity').value || null,
             defaultUnitPrice: document.getElementById('updateDefaultUnitPrice').value ?
                 parseFloat(document.getElementById('updateDefaultUnitPrice').value) : null,
             description: document.getElementById('updateDescription').value,

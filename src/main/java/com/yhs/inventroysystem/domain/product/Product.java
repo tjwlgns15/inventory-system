@@ -105,9 +105,10 @@ public class Product extends BaseTimeEntity {
         this.stockQuantity += quantity;
     }
 
-    public void updateInfo(String name, BigDecimal defaultUnitPrice, String description) {
+    public void updateInfo(String name, Integer stockQuantity, BigDecimal defaultUnitPrice, String description) {
         ensureNotDeleted();
         this.name = name;
+        this.stockQuantity = stockQuantity;
         this.defaultUnitPrice = defaultUnitPrice;
         this.description = description;
     }

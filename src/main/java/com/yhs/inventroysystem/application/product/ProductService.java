@@ -38,8 +38,7 @@ public class ProductService {
         validateProductCodeDuplication(command.productCode());
         validateProductNameDuplication(command.name());
 
-        ProductLine productLine = productLineRepository.findById(command.productLineId())
-                .orElseThrow(() -> ResourceNotFoundException.productLine(command.productLineId()));
+        ProductLine productLine = findProductLineIfPresent(command.productLineId());
 
         Product product = new Product(
                 command.productCategory(),
@@ -144,10 +143,13 @@ public class ProductService {
         Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
                 .orElseThrow(() -> ResourceNotFoundException.product(productId));
 
+        Integer beforeStock = product.getStockQuantity();
+
         validateProductNameDuplicationForUpdate(productId, command.name());
 
         product.updateInfo(
                 command.name(),
+                command.stockQuantity(),
                 command.defaultUnitPrice(),
                 command.description()
         );
@@ -181,6 +183,17 @@ public class ProductService {
                 );
                 product.addPartMapping(mapping);
             }
+        }
+
+        Integer afterStock = product.getStockQuantity();
+        if (!beforeStock.equals(afterStock)) {
+            Integer changeQuantity = afterStock - beforeStock;
+            productStockTransactionService.recordTransaction(
+                    product,
+                    ProductTransactionType.ADJUSTMENT,
+                    beforeStock,
+                    changeQuantity
+            );
         }
 
         return product;
@@ -288,6 +301,14 @@ public class ProductService {
         if (productRepository.existsByNameAndNotDeleted(productName)) {
             throw DuplicateResourceException.productName(productName);
         }
+    }
+
+    private ProductLine findProductLineIfPresent(Long productLineId) {
+        if (productLineId == null) {
+            return null;
+        }
+        return productLineRepository.findById(productLineId)
+                .orElseThrow(() -> ResourceNotFoundException.productLine(productLineId));
     }
 
     private void validateProductCodeDuplicationForUpdate(Long productId, String productCode) {

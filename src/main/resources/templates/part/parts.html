@@ -705,6 +705,11 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label" for="updateStockQuantity">재고 수량 *</label>
+                <input type="number" id="updateStockQuantity" class="form-input" required>
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">단위</label>
                 <div class="unit-input-group">
                     <input type="text" id="updateUnit" class="form-input" placeholder="직접 입력">
@@ -982,6 +987,7 @@
         document.getElementById('updatePartId').value = part.id;
         document.getElementById('updateName').value = part.name;
         document.getElementById('updateSpecification').value = part.specification || '';
+        document.getElementById('updateStockQuantity').value = part.stockQuantity;
         document.getElementById('updateUnit').value = part.unit;
 
         // 기존 이미지 표시
@@ -1027,7 +1033,8 @@
         const updateData = {
             name: document.getElementById('updateName').value,
             specification: document.getElementById('updateSpecification').value,
-            unit: document.getElementById('updateUnit').value
+            unit: document.getElementById('updateUnit').value,
+            stockQuantity: document.getElementById('updateStockQuantity').value
         };
 
         // JSON을 Blob으로 변환하여 추가

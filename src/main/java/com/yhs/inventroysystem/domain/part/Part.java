@@ -56,10 +56,11 @@ public class Part extends BaseTimeEntity {
         this.stockQuantity += quantity;
     }
 
-    public void updateInfo(String name, String specification, String unit) {
+    public void updateInfo(String name, String specification, Integer stockQuantity, String unit) {
         ensureNotDeleted();
         this.name = name;
         this.specification = specification;
+        this.stockQuantity = stockQuantity;
         this.unit = unit;
     }
 

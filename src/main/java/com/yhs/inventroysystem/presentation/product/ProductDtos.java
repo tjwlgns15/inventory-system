@@ -30,7 +30,6 @@ public class ProductDtos {
             String description,
 
             @NotNull(message = "초기 재고는 필수입니다")
-            @Positive(message = "초기 재고는 0보다 커야 합니다")
             Integer initialStock,
 
             List<PartMappingRequest> partMappings
@@ -159,6 +158,9 @@ public class ProductDtos {
 
             @NotBlank(message = "제품명은 필수입니다")
             String name,
+
+            @NotNull(message = "재고 수량은 필수입니다")
+            Integer stockQuantity,
 
             BigDecimal defaultUnitPrice,
 

@@ -1,4 +1,4 @@
-package com.yhs.inventroysystem.infrastructure.listener;//package com.solmitech.insolholter.common.listener;
+package com.yhs.inventroysystem.infrastructure.listener;
 
 import com.yhs.inventroysystem.domain.auth.User;
 import com.yhs.inventroysystem.domain.auth.UserRepository;

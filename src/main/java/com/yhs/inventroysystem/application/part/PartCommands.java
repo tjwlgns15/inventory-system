@@ -20,6 +20,7 @@ public class PartCommands {
     public record PartUpdateCommand(
             String name,
             String specification,
+            Integer stockQuantity,
             String unit,
             MultipartFile imageFile
     ) {}

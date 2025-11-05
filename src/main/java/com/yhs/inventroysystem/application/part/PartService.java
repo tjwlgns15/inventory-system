@@ -6,6 +6,7 @@ import com.yhs.inventroysystem.domain.exception.PartInUseException;
 import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
 import com.yhs.inventroysystem.domain.part.*;
 import com.yhs.inventroysystem.domain.product.ProductPartRepository;
+import com.yhs.inventroysystem.domain.product.ProductTransactionType;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,6 @@ public class PartService {
     @Transactional
     public Part registerPart(PartRegisterCommand command) {
         validatePartCodeDuplication(command.partCode());
-        validatePartNameDuplication(command.name());
 
         Part part = new Part(
                 command.partCode(),
@@ -62,12 +62,12 @@ public class PartService {
     @Transactional
     public Part updatePart(Long partId, PartUpdateCommand command) {
         Part part = findPartById(partId);
-
-        validatePartNameDuplicationForUpdate(partId, command.name());
+        Integer beforeStock = part.getStockQuantity();
 
         part.updateInfo(
                 command.name(),
                 command.specification(),
+                command.stockQuantity(),
                 command.unit()
         );
 
@@ -82,6 +82,17 @@ public class PartService {
             // 새 이미지 저장
             String storedFileName = fileStorageService.storeFile(imageFile);
             part.updateImage(storedFileName, imageFile.getOriginalFilename());
+        }
+
+        Integer afterStock = part.getStockQuantity();
+        if (!beforeStock.equals(afterStock)) {
+            Integer changeQuantity = afterStock - beforeStock;
+            partStockTransactionService.recordTransaction(
+                    part,
+                    TransactionType.ADJUSTMENT,
+                    beforeStock,
+                    changeQuantity
+            );
         }
 
         return partRepository.save(part);

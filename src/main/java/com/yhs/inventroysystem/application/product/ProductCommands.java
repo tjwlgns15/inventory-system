@@ -33,6 +33,7 @@ public class ProductCommands {
             ProductCategory productCategory,
             Long productLineId,
             String name,
+            Integer stockQuantity,
             BigDecimal defaultUnitPrice,
             String description,
             List<PartMappingInfo> partMappings

@@ -167,6 +167,7 @@ public class ProductRestController {
                 request.productCategory(),
                 request.productLineId(),
                 request.name(),
+                request.stockQuantity(),
                 request.defaultUnitPrice(),
                 request.description(),
                 request.partMappings().stream()

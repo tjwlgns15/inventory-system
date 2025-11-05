@@ -18,7 +18,6 @@ public class PartDtos {
             String specification,
 
             @NotNull(message = "초기 재고는 필수입니다")
-            @PositiveOrZero(message = "초기 재고는 0 이상이어야 합니다")
             Integer initialStock,
 
             @NotBlank(message = "단위는 필수입니다")
@@ -58,6 +57,7 @@ public class PartDtos {
     public record PartUpdateRequest(
             String name,
             String specification,
+            Integer stockQuantity,
             String unit
     ) {}
 }

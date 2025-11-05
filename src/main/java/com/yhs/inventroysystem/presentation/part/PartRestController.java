@@ -79,6 +79,7 @@ public class PartRestController {
         PartUpdateCommand command = new PartUpdateCommand(
                 request.name(),
                 request.specification(),
+                request.stockQuantity(),
                 request.unit(),
                 imageFile
         );
