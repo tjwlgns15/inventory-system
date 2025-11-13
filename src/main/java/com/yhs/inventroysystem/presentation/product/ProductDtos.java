@@ -3,9 +3,11 @@ package com.yhs.inventroysystem.presentation.product;
 import com.yhs.inventroysystem.domain.product.Product;
 import com.yhs.inventroysystem.domain.product.ProductCategory;
 import com.yhs.inventroysystem.domain.product.ProductPart;
+import com.yhs.inventroysystem.presentation.part.PartDtos;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,7 +58,8 @@ public class ProductDtos {
             String description,
             Integer stockQuantity,
             boolean isFeatured,
-            boolean isFeatured2
+            boolean isFeatured2,
+            Integer displayOrder
     ) {
         public static ProductResponse from(Product product) {
             return new ProductResponse(
@@ -74,11 +77,39 @@ public class ProductDtos {
                     product.getDescription(),
                     product.getStockQuantity(),
                     product.getIsFeatured(),
-                    product.getIsFeatured2()
+                    product.getIsFeatured2(),
+                    product.getDisplayOrder()
             );
         }
     }
 
+    public record PageProductResponse(
+            List<ProductResponse> content,
+            int pageNumber,
+            int pageSize,
+            long totalElements,
+            int totalPages,
+            boolean first,
+            boolean last,
+            boolean empty
+    ) {
+        public static PageProductResponse from(Page<Product> page) {
+            List<ProductResponse> content = page.getContent().stream()
+                    .map(ProductResponse::from)
+                    .toList();
+
+            return new PageProductResponse(
+                    content,
+                    page.getNumber(),
+                    page.getSize(),
+                    page.getTotalElements(),
+                    page.getTotalPages(),
+                    page.isFirst(),
+                    page.isLast(),
+                    page.isEmpty()
+            );
+        }
+    }
     public record ProductLineInfo(
             Long id,
             String name
@@ -95,7 +126,9 @@ public class ProductDtos {
             Integer stockQuantity,
             List<PartMappingResponse> partMappings,
             boolean isFeatured,
-            boolean isFeatured2
+            boolean isFeatured2,
+            Integer displayOrder
+
     ) {
         public static ProductDetailResponse from(Product product) {
             return new ProductDetailResponse(
@@ -116,7 +149,8 @@ public class ProductDtos {
                             .map(PartMappingResponse::from)
                             .collect(Collectors.toList()),
                     product.getIsFeatured(),
-                    product.getIsFeatured2()
+                    product.getIsFeatured2(),
+                    product.getDisplayOrder()
             );
         }
     }
@@ -169,9 +203,34 @@ public class ProductDtos {
             List<PartMappingRequest> partMappings
     ) {}
 
-    public record MaxProducibleResponse(Long productId, Integer maxProducibleQuantity) {}
+    // 순서 변경 요청 DTO
+    public record DisplayOrderUpdateRequest(
+            @NotNull(message = "표시 순서는 필수입니다")
+            Integer displayOrder
+    ) {}
 
-    public record ProductionValidationRequest(Integer quantity) {}
+    // 여러 제품 순서 일괄 변경 요청 DTO
+    public record BulkDisplayOrderUpdateRequest(
+            @NotNull(message = "제품 순서 목록은 필수입니다")
+            List<ProductOrderInfo> orders
+    ) {}
+
+    public record ProductOrderInfo(
+            @NotNull(message = "제품 ID는 필수입니다")
+            Long productId,
+
+            @NotNull(message = "표시 순서는 필수입니다")
+            Integer displayOrder
+    ) {}
+
+    public record MaxProducibleResponse(
+            Long productId,
+            Integer maxProducibleQuantity
+    ) {}
+
+    public record ProductionValidationRequest(
+            Integer quantity
+    ) {}
 
     public record ProductionValidationResponse(
             boolean canProduce,

@@ -1,5 +1,8 @@
 package com.yhs.inventroysystem.domain.part;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -40,9 +43,15 @@ public interface PartRepository extends JpaRepository<Part, Long> {
     /**
      * 삭제되지 않은 모든 부품들 조회
      */
-    @Query("SELECT p FROM Part p WHERE p.deletedAt IS NULL ORDER BY p.createdAt DESC")
-    List<Part> findAllActive();
+    @Query("SELECT p FROM Part p WHERE p.deletedAt IS NULL")
+    List<Part> findAllActive(Sort sort);
+    @Query("SELECT p FROM Part p WHERE p.deletedAt IS NULL")
+    Page<Part> findAllActive(Pageable pageable);
 
+    @Query("SELECT p FROM Part p WHERE p.deletedAt IS NULL " +
+            "AND (LOWER(p.partCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Part> searchByKeyword(String keyword, Pageable pageable);
     /**
      * 삭제되지 않은 부품 단건 조회
      */

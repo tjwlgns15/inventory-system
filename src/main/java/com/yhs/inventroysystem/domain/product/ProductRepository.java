@@ -1,5 +1,8 @@
 package com.yhs.inventroysystem.domain.product;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -55,6 +58,15 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL ORDER BY p.createdAt DESC")
     List<Product> findAllActive();
+    @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL")
+    List<Product> findAllActive(Sort sort);
+    @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL")
+    Page<Product> findAllActive(Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.deletedAt IS NULL " +
+            "AND (LOWER(p.productCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Product> searchByKeyword(String keyword, Pageable pageable);
 
     /**
      * 모든 제품과 부품 매핑 정보를 함께 조회
@@ -64,8 +76,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "LEFT JOIN FETCH p.partMappings pm " +
             "LEFT JOIN FETCH pm.part " +
             "WHERE p.deletedAt IS NULL " +
-            "ORDER BY p.createdAt DESC")
-    List<Product> findAllActiveWithPart();
+            "ORDER BY p.displayOrder ASC, p.createdAt DESC")
+    List<Product> findAllActiveWithPartOrderByDisplayOrder();
 
     @Query("""
         SELECT p FROM Product p
@@ -73,5 +85,4 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
     """)
     List<Product> findByNameContainingIgnoreCase(@Param("keyword") String keyword);
-
 }

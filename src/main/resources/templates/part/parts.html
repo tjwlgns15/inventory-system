@@ -170,13 +170,15 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        .search-bar {
-            margin-bottom: 24px;
+        .search-container {
+            display: flex;
+            margin-bottom: 23px;
+            gap: 10px;
         }
 
         .search-input {
-            width: 100%;
-            max-width: 420px;
+            flex: 1;
+            max-width: 400px;
             padding: 12px 20px;
             border: 2px solid rgba(102, 126, 234, 0.2);
             border-radius: 12px;
@@ -551,6 +553,175 @@
             background: #e2e6ea;
             transform: translateY(-1px);
         }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding: 20px 0;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .page-button {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            color: #667eea;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .page-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #9ca3af;
+        }
+
+        .page-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-size-selector label {
+            font-size: 0.875rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .page-size-select {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .page-size-select:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .page-size-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .sort-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+        }
+
+        .sort-select {
+            padding: 12px 36px 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+        }
+
+        .sort-select:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .sort-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .sort-select:active {
+            transform: translateY(0);
+        }
+
+        .sort-select option {
+            padding: 10px;
+            background: white;
+            color: #1a202c;
+        }
+
+        /* 정렬 관련 반응형 */
+        @media (max-width: 768px) {
+            .sort-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .sort-label {
+                text-align: center;
+            }
+
+            .sort-select {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sort-select {
+                font-size: 0.8125rem;
+                padding: 8px 32px 8px 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -572,12 +743,31 @@
         </div>
 
         <div class="content-card">
-            <div class="search-bar">
+            <div class="search-container">
+                <div class="sort-controls">
+                    <span class="sort-label">정렬 기준:</span>
+                    <select id="sortBy" class="sort-select" onchange="changeSortOption()">
+                        <option value="createdAt">등록일순</option>
+                        <option value="partCode">부품 코드순</option>
+                        <option value="name">부품명순</option>
+                        <option value="stockQuantity">재고 수량순</option>
+                    </select>
+
+                    <select id="sortDirection" class="sort-select" onchange="changeSortOption()">
+                        <option value="desc">내림차순</option>
+                        <option value="asc">오름차순</option>
+                    </select>
+                </div>
+
                 <input type="text"
                        class="search-input"
                        id="searchInput"
                        placeholder="부품 코드 또는 부품명으로 검색..."
-                       oninput="filterParts()">
+                       onkeypress="handleSearchKeypress(event)">
+
+                <button class="btn btn-primary" onclick="searchParts()">
+                    <span>검색</span>
+                </button>
             </div>
 
             <div class="table-container">
@@ -597,6 +787,22 @@
                     <tbody id="partsTableBody">
                     </tbody>
                 </table>
+            </div>
+
+            <div class="pagination-container">
+                <div class="page-info" id="pageInfo"></div>
+
+                <div class="pagination" id="pagination"></div>
+
+                <div class="page-size-selector">
+                    <label for="pageSize">페이지당 항목:</label>
+                    <select id="pageSize" class="page-size-select" onchange="changePageSize()">
+                        <option value="10">10개</option>
+                        <option value="20">20개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
             </div>
 
             <div class="empty-state" id="emptyState" style="display: none;">
@@ -779,8 +985,15 @@
 </script>
 
 <script>
+
     const API_BASE_URL = '/api/parts';
-    let allParts = [];
+    let currentPage = 0;
+    let currentPageSize = 10;
+    let currentSortBy = 'createdAt';
+    let currentSortDirection = 'desc';
+    let currentKeyword = '';
+    let totalPages = 0;
+    let totalElements = 0;
     let deleteTargetId = null;
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -789,75 +1002,188 @@
 
     async function loadParts() {
         try {
-            const response = await fetch(API_BASE_URL);
-            if (!response.ok) throw new Error('부품 목록을 불러오는데 실패했습니다');
-            allParts = await response.json();
-            renderParts(allParts);
+            const params = new URLSearchParams({
+                page: currentPage,
+                size: currentPageSize,
+                sortBy: currentSortBy,
+                direction: currentSortDirection
+            });
+
+            if (currentKeyword && currentKeyword.trim()) {
+                params.append('keyword', currentKeyword.trim());
+            }
+
+            params.forEach(param => {
+                console.log(param);
+            })
+            const response = await fetch(`${API_BASE_URL}?${params}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch parts');
+            }
+
+            const data = await response.json();
+            renderParts(data);
+            renderPagination(data);
         } catch (error) {
             console.error('Error:', error);
             showNotification('부품 목록을 불러오는데 실패했습니다', 'error');
         }
     }
 
-    function renderParts(parts) {
+    function handleSearchKeypress(event) {
+        if (event.key === 'Enter') {
+            searchParts();
+        }
+    }
+
+    function searchParts() {
+        currentKeyword = document.getElementById('searchInput').value;
+        currentPage = 0;
+        loadParts();
+    }
+
+    function changeSortOption() {
+        currentSortBy = document.getElementById('sortBy').value;
+        currentSortDirection = document.getElementById('sortDirection').value;
+        currentPage = 0;
+        loadParts();
+    }
+
+    function changePageSize() {
+        currentPageSize = parseInt(document.getElementById('pageSize').value);
+        currentPage = 0;
+        loadParts();
+    }
+
+    function goToPage(page) {
+        if (page >= 0 && page < totalPages) {
+            currentPage = page;
+            loadParts();
+        }
+    }
+
+    function renderParts(data) {
         const tbody = document.getElementById('partsTableBody');
         const emptyState = document.getElementById('emptyState');
         const table = document.getElementById('partsTable');
+        const paginationContainer = document.querySelector('.pagination-container');
 
-        if (parts.length === 0) {
+        if (data.empty) {
             table.style.display = 'none';
+            paginationContainer.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
 
         table.style.display = 'table';
+        paginationContainer.style.display = 'flex';
         emptyState.style.display = 'none';
 
-        tbody.innerHTML = parts.map(part => `
-        <tr>
-            <td>
-                <div class="part-image-cell">
-                    ${part.imagePath
-            ? `<img src="${API_BASE_URL}/${part.id}/image"
-                                alt="${escapeHtml(part.name)}"
-                                onclick="viewPartImage(${part.id})">`
-            : '<div class="no-image-placeholder">이미지<br>없음</div>'
-        }
-                </div>
-            </td>
-            <td><strong>${escapeHtml(part.partCode)}</strong></td>
-            <td>${escapeHtml(part.name)}</td>
-            <td>${escapeHtml(part.specification || '-')}</td>
-            <td>
-                <span class="stock-badge ${getStockClass(part.stockQuantity)}">
-                    ${part.stockQuantity}
-                </span>
-            </td>
-            <td>${escapeHtml(part.unit)}</td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
-                    <button class="btn btn-danger" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
-                </div>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
-                    <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
-                    <button class="btn btn-danger" onclick="openDeleteModal(${part.id})">삭제</button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+        totalPages = data.totalPages;
+        totalElements = data.totalElements;
+
+        tbody.innerHTML = data.content.map(part => `
+            <tr>
+                <td>
+                    <div class="part-image-cell">
+                        ${part.imagePath
+                ? `<img src="${API_BASE_URL}/${part.id}/image"
+                                    alt="${escapeHtml(part.name)}"
+                                    class="part-thumbnail"
+                                    onclick="viewPartImage(${part.id})">`
+                : '<div class="no-image">이미지<br>없음</div>'
+            }
+                    </div>
+                </td>
+                <td><strong>${escapeHtml(part.partCode)}</strong></td>
+                <td>${escapeHtml(part.name)}</td>
+                <td>${escapeHtml(part.specification || '-')}</td>
+                <td>
+                    <span class="stock-badge ${getStockClass(part.stockQuantity)}">
+                        ${part.stockQuantity}
+                    </span>
+                </td>
+                <td>${escapeHtml(part.unit)}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
+                        <button class="btn btn-warning" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
+                        <button class="btn btn-info" onclick="openUpdateModal(${part.id})">수정</button>
+                        <button class="btn btn-danger" onclick="openDeleteModal(${part.id})">삭제</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
     }
 
-    function filterParts() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredParts = allParts.filter(part =>
-            part.partCode.toLowerCase().includes(searchTerm) ||
-            part.name.toLowerCase().includes(searchTerm)
-        );
-        renderParts(filteredParts);
+    function renderPagination(data) {
+        const pageInfo = document.getElementById('pageInfo');
+        const pagination = document.getElementById('pagination');
+
+        const startItem = data.empty ? 0 : (currentPage * currentPageSize + 1);
+        const endItem = Math.min((currentPage + 1) * currentPageSize, totalElements);
+        pageInfo.textContent = `전체 ${totalElements}개 중 ${startItem}-${endItem}`;
+
+        const buttons = [];
+
+        buttons.push(`
+            <button class="page-button"
+                    onclick="goToPage(${currentPage - 1})"
+                    ${data.first ? 'disabled' : ''}>
+                ◀
+            </button>
+        `);
+
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 0) {
+            buttons.push(`
+                <button class="page-button" onclick="goToPage(0)">1</button>
+            `);
+            if (startPage > 1) {
+                buttons.push(`<span style="padding: 0 8px;">...</span>`);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            buttons.push(`
+                <button class="page-button ${i === currentPage ? 'active' : ''}"
+                        onclick="goToPage(${i})">
+                    ${i + 1}
+                </button>
+            `);
+        }
+
+        if (endPage < totalPages - 1) {
+            if (endPage < totalPages - 2) {
+                buttons.push(`<span style="padding: 0 8px;">...</span>`);
+            }
+            buttons.push(`
+                <button class="page-button" onclick="goToPage(${totalPages - 1})">${totalPages}</button>
+            `);
+        }
+
+        buttons.push(`
+            <button class="page-button"
+                    onclick="goToPage(${currentPage + 1})"
+                    ${data.last ? 'disabled' : ''}>
+                ▶
+            </button>
+        `);
+
+        pagination.innerHTML = buttons.join('');
     }
 
     function getStockClass(quantity) {
@@ -892,12 +1218,10 @@
             unit: document.getElementById('unit').value
         };
 
-        // JSON을 Blob으로 변환하여 추가
         formData.append('data', new Blob([JSON.stringify(partData)], {
             type: 'application/json'
         }));
 
-        // 이미지 파일 추가 (있는 경우)
         const imageFile = document.getElementById('partImage').files[0];
         if (imageFile) {
             formData.append('image', imageFile);
@@ -977,46 +1301,49 @@
         }
     }
 
-    function openUpdateModal(partId) {
-        const part = allParts.find(p => p.id === partId);
-        if (!part) {
-            showNotification('부품을 찾을 수 없습니다', 'error');
-            return;
+    async function openUpdateModal(partId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}`);
+            if (!response.ok) {
+                throw new Error('부품 정보를 불러올 수 없습니다');
+            }
+
+            const part = await response.json();
+
+            document.getElementById('updatePartId').value = part.id;
+            document.getElementById('updateName').value = part.name;
+            document.getElementById('updateSpecification').value = part.specification || '';
+            document.getElementById('updateStockQuantity').value = part.stockQuantity;
+            document.getElementById('updateUnit').value = part.unit;
+
+            const currentImageDiv = document.getElementById('currentImage');
+            if (part.imagePath) {
+                currentImageDiv.innerHTML = `
+                <img src="${API_BASE_URL}/${part.id}/image" alt="${escapeHtml(part.name)}">
+                <button type="button"
+                        class="remove-image-btn"
+                        onclick="deletePartImage(${part.id})">
+                    이미지 삭제
+                </button>
+            `;
+            } else {
+                currentImageDiv.innerHTML = '<p style="color: #9ca3af; font-size: 0.875rem;">등록된 이미지가 없습니다</p>';
+            }
+
+            document.getElementById('updateImagePreview').style.display = 'none';
+            document.getElementById('updatePartImage').value = '';
+
+            document.getElementById('updateModal').style.display = 'block';
+
+            setTimeout(() => {
+                document.getElementById('updateName').focus();
+                document.getElementById('updateName').select();
+            }, 100);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
         }
-
-        document.getElementById('updatePartId').value = part.id;
-        document.getElementById('updateName').value = part.name;
-        document.getElementById('updateSpecification').value = part.specification || '';
-        document.getElementById('updateStockQuantity').value = part.stockQuantity;
-        document.getElementById('updateUnit').value = part.unit;
-
-        // 기존 이미지 표시
-        const currentImageDiv = document.getElementById('currentImage');
-        if (part.imagePath) {
-            currentImageDiv.innerHTML = `
-            <img src="${API_BASE_URL}/${part.id}/image" alt="${escapeHtml(part.name)}">
-            <button type="button"
-                    class="remove-image-btn"
-                    onclick="deletePartImage(${part.id})">
-                이미지 삭제
-            </button>
-        `;
-        } else {
-            currentImageDiv.innerHTML = '<p style="color: #9ca3af; font-size: 0.875rem;">등록된 이미지가 없습니다</p>';
-        }
-
-        // 미리보기 초기화
-        document.getElementById('updateImagePreview').style.display = 'none';
-        document.getElementById('updatePartImage').value = '';
-
-        document.getElementById('updateModal').style.display = 'block';
-
-        setTimeout(() => {
-            document.getElementById('updateName').focus();
-            document.getElementById('updateName').select();
-        }, 100);
     }
-
 
     // 부품 수정 모달 닫기
     function closeUpdateModal() {
@@ -1037,12 +1364,10 @@
             stockQuantity: document.getElementById('updateStockQuantity').value
         };
 
-        // JSON을 Blob으로 변환하여 추가
         formData.append('data', new Blob([JSON.stringify(updateData)], {
             type: 'application/json'
         }));
 
-        // 이미지 파일 추가 (있는 경우)
         const imageFile = document.getElementById('updatePartImage').files[0];
         if (imageFile) {
             formData.append('image', imageFile);
@@ -1075,20 +1400,26 @@
         }
     }
 
-    function openDeleteModal(partId) {
-        const part = allParts.find(p => p.id === partId);
-        if (!part) {
-            showNotification('부품을 찾을 수 없습니다', 'error');
-            return;
-        }
+    async function openDeleteModal(partId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}`);
+            if (!response.ok) {
+                throw new Error('부품 정보를 불러올 수 없습니다');
+            }
 
-        deleteTargetId = partId;
-        document.getElementById('deletePartInfo').innerHTML = `
-            <strong>부품 코드:</strong> ${escapeHtml(part.partCode)}<br>
-            <strong>부품명:</strong> ${escapeHtml(part.name)}<br>
-            <strong>현재 재고:</strong> ${part.stockQuantity} ${escapeHtml(part.unit)}
-        `;
-        document.getElementById('deleteModal').style.display = 'block';
+            const part = await response.json();
+
+            deleteTargetId = partId;
+            document.getElementById('deletePartInfo').innerHTML = `
+                <strong>부품 코드:</strong> ${escapeHtml(part.partCode)}<br>
+                <strong>부품명:</strong> ${escapeHtml(part.name)}<br>
+                <strong>현재 재고:</strong> ${part.stockQuantity} ${escapeHtml(part.unit)}
+            `;
+            document.getElementById('deleteModal').style.display = 'block';
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
     }
 
     function closeDeleteModal() {
@@ -1180,30 +1511,41 @@
         }
     }
 
-    function viewPartImage(partId) {
-        const part = allParts.find(p => p.id === partId);
-        if (!part || !part.imagePath) return;
-
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.style.display = 'block';
-        modal.innerHTML = `
-        <div class="modal-content" style="max-width: 800px;">
-            <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
-            <h2 class="modal-header">${escapeHtml(part.name)}</h2>
-            <img src="${API_BASE_URL}/${partId}/image"
-                 alt="${escapeHtml(part.name)}"
-                 style="width: 100%; border-radius: 12px;">
-        </div>
-    `;
-        document.body.appendChild(modal);
-
-        modal.onclick = function(event) {
-            if (event.target === modal) {
-                modal.remove();
+    async function viewPartImage(partId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}`);
+            if (!response.ok) {
+                throw new Error('부품 정보를 불러올 수 없습니다');
             }
-        };
+
+            const part = await response.json();
+            if (!part.imagePath) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 800px;">
+                    <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    <h2 class="modal-header">${escapeHtml(part.name)}</h2>
+                    <img src="${API_BASE_URL}/${partId}/image"
+                         alt="${escapeHtml(part.name)}"
+                         style="width: 100%; border-radius: 12px;">
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    modal.remove();
+                }
+            };
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('이미지를 불러올 수 없습니다', 'error');
+        }
     }
+
 
     function viewTransactions(partId) {
         window.location.href = `/parts/transactions?partId=${partId}`;
@@ -1227,18 +1569,6 @@
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
-
-    // window.onclick = function(event) {
-    //     const registerModal = document.getElementById('registerModal');
-    //     const stockModal = document.getElementById('stockModal');
-    //     const updateModal = document.getElementById('updateModal');
-    //     const deleteModal = document.getElementById('deleteModal');
-    //
-    //     if (event.target === registerModal) closeRegisterModal();
-    //     if (event.target === stockModal) closeStockModal();
-    //     if (event.target === updateModal) closeUpdateModal();
-    //     if (event.target === deleteModal) closeDeleteModal();
-    // }
 
     // ESC 키로 모달 닫기
     document.addEventListener('keydown', function(event) {

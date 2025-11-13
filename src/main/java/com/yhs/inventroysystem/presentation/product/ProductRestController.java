@@ -7,6 +7,7 @@ import com.yhs.inventroysystem.domain.product.ProductStockTransaction;
 import com.yhs.inventroysystem.presentation.product.ProductDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -60,13 +61,35 @@ public class ProductRestController {
     /**
      * 모든 제품 조회
      */
-    @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        List<Product> products = productService.findAllProduct();
+    @GetMapping("/all")
+    public ResponseEntity<List<ProductResponse>> getAllProducts(
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String direction) {
+
+        List<Product> products = productService.findAllProduct(sortBy, direction);
+
         List<ProductResponse> responses = products.stream()
                 .map(ProductResponse::from)
                 .toList();
         return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping
+    public ResponseEntity<PageProductResponse> getProductPaged(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "15") int size,
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String direction,
+            @RequestParam(required = false) String keyword) {
+
+        Page<Product> productPage;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            productPage = productService.searchProducts(keyword, page, size, sortBy, direction);
+        } else {
+            productPage = productService.findAllProductPaged(page, size, sortBy, direction);
+        }
+
+        return ResponseEntity.ok(PageProductResponse.from(productPage));
     }
 
     @GetMapping("/with-parts")
@@ -76,6 +99,26 @@ public class ProductRestController {
                 .map(ProductDetailResponse::from)
                 .toList();
         return ResponseEntity.ok(responses);
+    }
+
+    @PatchMapping("/{productId}/display-order")
+    public ResponseEntity<ProductResponse> updateDisplayOrder(
+            @PathVariable Long productId,
+            @RequestBody @Valid DisplayOrderUpdateRequest request) {
+
+        DisplayOrderUpdateCommand command = new DisplayOrderUpdateCommand(request.displayOrder());
+        Product product = productService.updateDisplayOrder(productId, command);
+        return ResponseEntity.ok(ProductResponse.from(product));
+    }
+
+    @PatchMapping("/display-orders")
+    public ResponseEntity<Void> updateDisplayOrders(@Valid @RequestBody BulkDisplayOrderUpdateRequest request) {
+        List<ProductOrderUpdate> updates = request.orders().stream()
+                .map(info -> new ProductOrderUpdate(info.productId(), info.displayOrder()))
+                .toList();
+
+        productService.updateDisplayOrders(updates);
+        return ResponseEntity.ok().build();
     }
 
     /**

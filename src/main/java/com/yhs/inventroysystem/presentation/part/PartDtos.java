@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 public class PartDtos {
 
@@ -44,6 +47,34 @@ public class PartDtos {
                     part.getUnit(),
                     part.getImagePath(),
                     part.getOriginalImageName()
+            );
+        }
+    }
+
+    public record PagedPartResponse(
+            List<PartResponse> content,
+            int pageNumber,
+            int pageSize,
+            long totalElements,
+            int totalPages,
+            boolean first,
+            boolean last,
+            boolean empty
+    ) {
+        public static PagedPartResponse from(Page<Part> page) {
+            List<PartResponse> content = page.getContent().stream()
+                    .map(PartResponse::from)
+                    .toList();
+
+            return new PagedPartResponse(
+                    content,
+                    page.getNumber(),
+                    page.getSize(),
+                    page.getTotalElements(),
+                    page.getTotalPages(),
+                    page.isFirst(),
+                    page.isLast(),
+                    page.isEmpty()
             );
         }
     }

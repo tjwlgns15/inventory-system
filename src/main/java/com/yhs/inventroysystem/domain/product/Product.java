@@ -48,6 +48,7 @@ public class Product extends BaseTimeEntity {
     @Column(nullable = false)
     private Boolean isFeatured2 = false;  // 제품 현황
 
+    private Integer displayOrder = 0;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPart> partMappings = new ArrayList<>();
 
@@ -67,6 +68,7 @@ public class Product extends BaseTimeEntity {
         this.stockQuantity = initialStock;
         this.isFeatured = false;
         this.isFeatured2 = false;
+        this.displayOrder = 0;
     }
 
     private void validateProductCategory(ProductCategory productCategory) {
@@ -85,6 +87,14 @@ public class Product extends BaseTimeEntity {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("제품명은 필수입니다.");
         }
+    }
+
+    public void changeDisplayOrder(Integer order) {
+        ensureNotDeleted();
+        if (order == null || order < 0) {
+            throw new IllegalArgumentException("표시 순서는 0 이상이어야 합니다.");
+        }
+        this.displayOrder = order;
     }
 
     public void addPartMapping(ProductPart mapping) {

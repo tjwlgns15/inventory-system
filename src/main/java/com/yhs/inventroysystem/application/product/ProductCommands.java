@@ -39,6 +39,15 @@ public class ProductCommands {
             List<PartMappingInfo> partMappings
     ) {}
 
+    public record DisplayOrderUpdateCommand(
+            Integer displayOrder
+    ) {}
+
+    public record ProductOrderUpdate(
+            Long productId,
+            Integer displayOrder
+    ) {}
+
 
     public record InsufficientPartDetail(
             Long partId,

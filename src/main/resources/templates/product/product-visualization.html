@@ -521,6 +521,191 @@
             font-style: italic;
         }
 
+        /* 토글 버튼 스타일 */
+        .toggle-parts-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+
+        .toggle-parts-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        .toggle-parts-btn .arrow {
+            transition: transform 0.3s;
+            font-size: 1rem;
+        }
+
+        .toggle-parts-btn.collapsed .arrow {
+            transform: rotate(-90deg);
+        }
+
+        /* 부품 테이블만 토글 */
+        .parts-table-wrapper {
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .parts-table-wrapper.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0 !important;
+        }
+
+        /* 순서 변경 버튼 스타일 */
+        .btn-order {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-order:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(139, 92, 246, 0.4);
+        }
+
+        /* 순서 변경 모달 */
+        .order-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .order-modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 36px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .order-modal-header {
+            margin-bottom: 28px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a202c;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .order-modal-close {
+            color: #9ca3af;
+            float: right;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .order-modal-close:hover {
+            color: #667eea;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            font-family: inherit;
+            background: white;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-hint {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 28px;
+        }
+
+        .order-info-box {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .order-info-box p {
+            margin: 8px 0;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .order-info-box strong {
+            color: #1a202c;
+        }
+
+        .current-order-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
         @keyframes modalSlideIn {
             from {
                 opacity: 0;
@@ -574,6 +759,40 @@
         <div class="product-list-modal-body" id="productListModalBody">
             <!-- 제품 목록이 여기에 렌더링됩니다 -->
         </div>
+    </div>
+</div>
+
+<!-- 순서 변경 모달 -->
+<div id="orderModal" class="order-modal">
+    <div class="order-modal-content">
+        <span class="order-modal-close" onclick="closeOrderModal()">&times;</span>
+        <h2 class="order-modal-header">제품 순서 변경</h2>
+
+        <div id="orderInfoBox" class="order-info-box">
+            <!-- 제품 정보가 여기에 표시됩니다 -->
+        </div>
+
+        <form id="orderForm" onsubmit="updateProductOrder(event)">
+            <input type="hidden" id="orderProductId">
+
+            <div class="form-group">
+                <label class="form-label" for="displayOrder">표시 순서 *</label>
+                <input type="number"
+                       id="displayOrder"
+                       class="form-input"
+                       min="0"
+                       required
+                       placeholder="0">
+                <p class="form-hint">
+                    * 숫자가 작을수록 먼저 표시됩니다. (0이 가장 먼저)
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeOrderModal()">취소</button>
+                <button type="submit" class="btn btn-primary">변경</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -770,29 +989,42 @@
             const chartId = `partChart_${product.id}`;
 
             return `
-                <div class="content-card">
-                    <div class="product-section">
-                        <div class="product-header">
-                            <div>
-                                <div class="product-name">${escapeHtml(product.name)}</div>
-                                <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
-                                    ${escapeHtml(product.productCode)}
-                                </div>
+            <div class="content-card">
+                <div class="product-section">
+                    <div class="product-header">
+                        <div>
+                            <div class="product-name">${escapeHtml(product.name)}</div>
+                            <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
+                                ${escapeHtml(product.productCode)}
                             </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
                             <div style="text-align: right;">
                                 <div class="product-stock">현재 재고: ${product.stockQuantity}개</div>
                                 <div style="font-size: 0.875rem; opacity: 0.9; margin-top: 4px;">
                                     생산 가능: ${possibleCount}개
                                 </div>
                             </div>
+                            <button class="btn-order" onclick="openOrderModal(${product.id}, ${product.displayOrder}, '${escapeHtml(product.name)}')">
+                                📋 순서 변경
+                            </button>
+                            ${product.partMappings.length > 0 ? `
+                                <button class="toggle-parts-btn collapsed" onclick="togglePartsTable(${product.id})">
+                                    <span class="arrow">▼</span>
+                                    <span>부품 테이블</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    ${product.partMappings.length > 0 ? `
+                        <div class="parts-chart-container">
+                            <div class="parts-chart-wrapper">
+                                <canvas id="${chartId}"></canvas>
+                            </div>
                         </div>
 
-                        ${product.partMappings.length > 0 ? `
-                            <div class="parts-chart-container">
-                                <div class="parts-chart-wrapper">
-                                    <canvas id="${chartId}"></canvas>
-                                </div>
-                            </div>
+                        <div id="partsTableWrapper_${product.id}" class="parts-table-wrapper collapsed">
                             <table class="parts-table">
                                 <thead>
                                     <tr>
@@ -806,43 +1038,44 @@
                                 </thead>
                                 <tbody>
                                     ${product.partMappings.map(pm => {
-                    const possibleProduction = Math.floor(pm.partStockQuantity / pm.requiredQuantity);
-                    const stockClass = getStockClass(pm.partStockQuantity, pm.requiredQuantity);
+                const possibleProduction = Math.floor(pm.partStockQuantity / pm.requiredQuantity);
+                const stockClass = getStockClass(pm.partStockQuantity, pm.requiredQuantity);
 
-                    // 이미지 HTML 생성
-                    const imageHtml = pm.imagePath
-                        ? `<img src="${PARTS_API_URL}/${pm.partId}/image"
-                                                    alt="${escapeHtml(pm.partName)}"
-                                                    class="part-image-thumb"
-                                                    onclick="viewPartImageModal(${pm.partId}, '${escapeHtml(pm.partName)}')">`
-                        : '<div class="no-part-image">이미지<br>없음</div>';
+                // 이미지 HTML 생성
+                const imageHtml = pm.imagePath
+                    ? `<img src="${PARTS_API_URL}/${pm.partId}/image"
+                                                alt="${escapeHtml(pm.partName)}"
+                                                class="part-image-thumb"
+                                                onclick="viewPartImageModal(${pm.partId}, '${escapeHtml(pm.partName)}')">`
+                    : '<div class="no-part-image">이미지<br>없음</div>';
 
-                    return `
-                                            <tr>
-                                                <td>${imageHtml}</td>
-                                                <td><strong>${escapeHtml(pm.partCode)}</strong></td>
-                                                <td>${escapeHtml(pm.partName)}</td>
-                                                <td>${pm.requiredQuantity}</td>
-                                                <td>
-                                                    <span class="stock-badge ${stockClass}">
-                                                        ${pm.partStockQuantity}
-                                                    </span>
-                                                </td>
-                                                <td><strong>${possibleProduction}개</strong></td>
-                                            </tr>
-                                        `;
-                }).join('')}
+                return `
+                                        <tr>
+                                            <td>${imageHtml}</td>
+                                            <td><strong>${escapeHtml(pm.partCode)}</strong></td>
+                                            <td>${escapeHtml(pm.partName)}</td>
+                                            <td>${pm.requiredQuantity}</td>
+                                            <td>
+                                                <span class="stock-badge ${stockClass}">
+                                                    ${pm.partStockQuantity}
+                                                </span>
+                                            </td>
+                                            <td><strong>${possibleProduction}개</strong></td>
+                                        </tr>
+                                    `;
+            }).join('')}
                                 </tbody>
                             </table>
-                        ` : `
-                            <div style="padding: 40px; text-align: center; color: #9ca3af;">
-                                등록된 부품이 없습니다
-                            </div>
-                        `}
-                    </div>
+                        </div>
+                    ` : `
+                        <div style="padding: 40px; text-align: center; color: #9ca3af;">
+                            등록된 부품이 없습니다
+                        </div>
+                    `}
                 </div>
-            `;
-            }).join('');
+            </div>
+        `;
+        }).join('');
 
         // 모든 제품 차트 렌더링
         products.forEach(product => {
@@ -850,6 +1083,22 @@
                 renderPartChart(product);
             }
         });
+    }
+
+    // 부품 테이블 토글 함수
+    function togglePartsTable(productId) {
+        const wrapper = document.getElementById(`partsTableWrapper_${productId}`);
+        const button = event.currentTarget;
+
+        if (wrapper.classList.contains('collapsed')) {
+            // 펼치기
+            wrapper.classList.remove('collapsed');
+            button.classList.remove('collapsed');
+        } else {
+            // 접기
+            wrapper.classList.add('collapsed');
+            button.classList.add('collapsed');
+        }
     }
 
     function renderPartChart(product) {
@@ -1062,20 +1311,6 @@
         window.location.href = '/products';
     }
 
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' || event.key === 'Esc') {
-            const partImageModal = document.getElementById('partImageModal');
-            if (partImageModal && partImageModal.style.display === 'block') {
-                closePartImageModal();
-            }
-
-            const productModal = document.getElementById('productListModal');
-            if (productModal && productModal.style.display === 'block') {
-                closeProductListModal();
-            }
-        }
-    });
-
     // 제품 목록 모달 열기
     async function openProductListModal() {
         const modal = document.getElementById('productListModal');
@@ -1232,6 +1467,59 @@
         }
     }
 
+    function openOrderModal(productId, currentOrder, productName) {
+        document.getElementById('orderProductId').value = productId;
+        document.getElementById('displayOrder').value = currentOrder;
+
+        // 제품 정보 표시
+        document.getElementById('orderInfoBox').innerHTML = `
+        <p><strong>제품명:</strong> ${productName}</p>
+        <p><strong>현재 순서:</strong> <span class="current-order-badge">${currentOrder}</span></p>
+    `;
+
+        document.getElementById('orderModal').style.display = 'block';
+
+        setTimeout(() => {
+            document.getElementById('displayOrder').focus();
+            document.getElementById('displayOrder').select();
+        }, 100);
+    }
+
+    // 순서 변경 모달 닫기
+    function closeOrderModal() {
+        document.getElementById('orderModal').style.display = 'none';
+    }
+
+    // 제품 순서 변경
+    async function updateProductOrder(event) {
+        event.preventDefault();
+
+        const productId = document.getElementById('orderProductId').value;
+        const displayOrder = parseInt(document.getElementById('displayOrder').value);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${productId}/display-order`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ displayOrder })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '순서 변경에 실패했습니다');
+            }
+
+            showNotification('제품 순서가 변경되었습니다', 'success');
+            closeOrderModal();
+
+            // 페이지 새로고침
+            await loadProductsData();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
     // 모달 외부 클릭 시 닫기
     window.onclick = function(event) {
         const productModal = document.getElementById('productListModal');
@@ -1239,6 +1527,22 @@
             closeProductListModal();
         }
     };
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' || event.key === 'Esc') {
+            const partImageModal = document.getElementById('partImageModal');
+            const productModal = document.getElementById('productListModal');
+            const orderModal = document.getElementById('orderModal');
+
+            if (partImageModal && partImageModal.style.display === 'block') {
+                closePartImageModal();
+            } else if (productModal && productModal.style.display === 'block') {
+                closeProductListModal();
+            } else if (orderModal && orderModal.style.display === 'block') {
+                closeOrderModal();
+            }
+        }
+    });
 </script>
 </body>
 </html>

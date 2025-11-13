@@ -8,7 +8,12 @@ import com.yhs.inventroysystem.domain.part.*;
 import com.yhs.inventroysystem.domain.product.ProductPartRepository;
 import com.yhs.inventroysystem.domain.product.ProductTransactionType;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
+import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,8 +60,19 @@ public class PartService {
         return savedPart;
     }
 
-    public List<Part> findAllPart() {
-        return partRepository.findAllActive();
+    public List<Part> findAllPart(String sortBy, String direction) {
+        Sort sort = PageableUtils.createSort(sortBy, direction);
+        return partRepository.findAllActive(sort);
+    }
+
+    public Page<Part> searchParts(String keyword, int page, int size, String sortBy, String direction) {
+        Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
+        return partRepository.searchByKeyword(keyword, pageable);
+    }
+
+    public Page<Part> findAllPartPaged(int page, int size, String sortBy, String direction) {
+        Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
+        return partRepository.findAllActive(pageable);
     }
 
     @Transactional
@@ -160,24 +176,14 @@ public class PartService {
                 .orElseThrow(() -> ResourceNotFoundException.part(partId));
     }
 
+
+    /*
+        Private Method
+     */
+
     private void validatePartCodeDuplication(String partCode) {
         if (partRepository.existsByPartCodeAndNotDeleted(partCode)) {
             throw DuplicateResourceException.partCode(partCode);
         }
-    }
-
-    private void validatePartNameDuplication(String name) {
-        if (partRepository.existsByNameAndNotDeleted(name)) {
-            throw DuplicateResourceException.partName(name);
-        }
-    }
-
-    private void validatePartNameDuplicationForUpdate(Long partId, String name) {
-        partRepository.findByNameAndNotDeleted(name)
-                .ifPresent(existingPart -> {
-                    if (!existingPart.getId().equals(partId)) {
-                        throw DuplicateResourceException.partName(name);
-                    }
-                });
     }
 }

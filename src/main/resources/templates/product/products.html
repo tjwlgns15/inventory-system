@@ -172,8 +172,10 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        .search-bar {
-            margin-bottom: 24px;
+        .search-container {
+            display: flex;
+            margin-bottom: 23px;
+            gap: 10px;
         }
 
         .search-input {
@@ -847,6 +849,175 @@
             opacity: 0.6;
         }
 
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding: 20px 0;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .page-button {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            color: #667eea;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .page-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #9ca3af;
+        }
+
+        .page-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-size-selector label {
+            font-size: 0.875rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .page-size-select {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .page-size-select:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .page-size-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .sort-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+        }
+
+        .sort-select {
+            padding: 12px 36px 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+        }
+
+        .sort-select:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .sort-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .sort-select:active {
+            transform: translateY(0);
+        }
+
+        .sort-select option {
+            padding: 10px;
+            background: white;
+            color: #1a202c;
+        }
+
+        /* 정렬 관련 반응형 */
+        @media (max-width: 480px) {
+            .sort-select {
+                font-size: 0.8125rem;
+                padding: 8px 32px 8px 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sort-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .sort-label {
+                text-align: center;
+            }
+
+            .sort-select {
+                width: 100%;
+            }
+        }
+
         /* 반응형 */
         @media (max-width: 1024px) {
             .product-form-container {
@@ -882,13 +1053,33 @@
         </div>
 
         <div class="content-card">
-            <div class="search-bar">
+            <div class="search-container">
+                <div class="sort-controls">
+                    <span class="sort-label">정렬 기준:</span>
+                    <select id="sortBy" class="sort-select" onchange="changeSortOption()">
+                        <option value="createdAt">등록일순</option>
+                        <option value="productCode">제품 코드순</option>
+                        <option value="name">제품명순</option>
+                        <option value="stockQuantity">재고 수량순</option>
+                    </select>
+
+                    <select id="sortDirection" class="sort-select" onchange="changeSortOption()">
+                        <option value="desc">내림차순</option>
+                        <option value="asc">오름차순</option>
+                    </select>
+                </div>
+
                 <input type="text"
                        class="search-input"
                        id="searchInput"
                        placeholder="제품 코드 또는 제품명으로 검색..."
-                       oninput="filterProducts()">
+                       onkeypress="handleSearchKeypress(event)">
+
+                <button class="btn btn-primary" onclick="searchProducts()">
+                    <span>검색</span>
+                </button>
             </div>
+
 
             <div class="table-container">
                 <table id="productsTable">
@@ -897,18 +1088,33 @@
                             <th style="width: 12%;">제품 코드</th>
                             <th style="width: 12%;">제품명</th>
                             <th style="width: 6%;">카테고리</th>
-                            <th style="width: 6%;">제품라인</th>
+                            <th style="width: 8%;">제품라인</th>
                             <th style="width: 8%;">기본 단가</th>
+                            <th style="width: 6%;">재고</th>
                             <th style="width: 20%;">설명</th>
-                            <th style="width: 8%;">사용 부품</th>
-                            <th style="width: 5%;">재고</th>
-                            <th style="width: 8%;">생산</th>
-                            <th style="width: 15%;">작업</th>
+                            <th style="width: 12%;">생산</th>
+                            <th style="width: 16%;">작업</th>
                         </tr>
                     </thead>
                     <tbody id="productsTableBody">
                     </tbody>
                 </table>
+            </div>
+
+            <div class="pagination-container">
+                <div class="page-info" id="pageInfo"></div>
+
+                <div class="pagination" id="pagination"></div>
+
+                <div class="page-size-selector">
+                    <label for="pageSize">페이지당 항목:</label>
+                    <select id="pageSize" class="page-size-select" onchange="changePageSize()">
+                        <option value="15">15개</option>
+                        <option value="30">30개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
             </div>
 
             <div class="empty-state" id="emptyState" style="display: none;">
@@ -1225,11 +1431,18 @@
     const PRODUCT_LINES_API_URL = '/api/product-lines';
     let allProducts = [];
     let allParts = [];
-    let deleteTargetId = null;
     let originalParts = [];
     let partCheckedStates = new Map();
     let updatePartCheckedStates = new Map();
+    let currentPage = 0;
+    let currentPageSize = 15;
+    let currentSortBy = 'createdAt';
+    let currentSortDirection = 'desc';
+    let currentKeyword = '';
+    let totalPages = 0;
+    let totalElements = 0;
     let productLines = [];
+    let deleteTargetId = null;
 
     document.addEventListener('DOMContentLoaded', async function() {
         await loadProducts();
@@ -1239,8 +1452,10 @@
 
     async function loadParts() {
         try {
-            const response = await fetch(PARTS_API_URL);
+            const response = await fetch(`${PARTS_API_URL}/all`);
             if (!response.ok) throw new Error('부품 목록을 불러오는데 실패했습니다');
+
+            // PartResponse 배열로 받음
             allParts = await response.json();
         } catch (error) {
             console.error('Error:', error);
@@ -1250,71 +1465,184 @@
 
     async function loadProducts() {
         try {
-            const response = await fetch(API_BASE_URL);
-            if (!response.ok) throw new Error('제품 목록을 불러오는데 실패했습니다');
-            allProducts = await response.json();
-            renderProducts(allProducts);
+            const params = new URLSearchParams({
+                page: currentPage,
+                size: currentPageSize,
+                sortBy: currentSortBy,
+                direction: currentSortDirection,
+            });
+
+            if (currentKeyword && currentKeyword.trim()) {
+                params.append('keyword', currentKeyword);
+            }
+
+            const response = await fetch(`${API_BASE_URL}?${params}`);
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch products');
+            }
+
+            const data = await response.json();
+            renderProducts(data);
+            renderPagination(data);
         } catch (error) {
             console.error('Error:', error);
             showNotification('제품 목록을 불러오는데 실패했습니다', 'error');
         }
     }
 
-    function renderProducts(products) {
+    function handleSearchKeypress(event) {
+        if (event.key === 'Enter') {
+            searchProducts();
+        }
+    }
+
+    function searchProducts() {
+        currentKeyword = document.getElementById('searchInput').value;
+        currentPage = 0;
+        loadProducts();
+    }
+
+    function changeSortOption() {
+        currentSortBy = document.getElementById('sortBy').value;
+        currentSortDirection = document.getElementById('sortDirection').value;
+        currentPage = 0;
+        loadProducts();
+    }
+
+    function changePageSize() {
+        currentPageSize = parseInt(document.getElementById('pageSize').value);
+        currentPage = 0;
+        loadProducts();
+    }
+
+    function goToPage(page) {
+        if (page >= 0 && page < totalPages) {
+            currentPage = page;
+            loadProducts();
+        }
+    }
+
+    function renderProducts(data) {
         const tbody = document.getElementById('productsTableBody');
         const emptyState = document.getElementById('emptyState');
         const table = document.getElementById('productsTable');
+        const paginationContainer = document.querySelector('.pagination-container');
 
-        if (products.length === 0) {
+        if (data.empty) {
             table.style.display = 'none';
+            paginationContainer.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
 
         table.style.display = 'table';
+        paginationContainer.style.display = 'flex';
         emptyState.style.display = 'none';
 
-        tbody.innerHTML = products.map(product => `
+        totalPages = data.totalPages;
+        totalElements = data.totalElements;
+
+        tbody.innerHTML = data.content.map(product => {
+            // 재고 클래스 결정
+            let stockClass = 'stock-high';
+            if (product.stockQuantity < 10) {
+                stockClass = 'stock-low';
+            } else if (product.stockQuantity < 50) {
+                stockClass = 'stock-medium';
+            }
+
+            return `
             <tr>
-                <td><strong>${escapeHtml(product.productCode)}</strong></td>
-                <td>${escapeHtml(product.name)}</td>
+                <td>${escapeHtml(product.productCode)}</td>
+                <td><strong>${escapeHtml(product.name)}</strong></td>
                 <td>${getCategoryDisplayName(product.productCategory)}</td>
                 <td>${product.productLine ? escapeHtml(product.productLine.name) : '-'}</td>
                 <td class="price-badge">${product.defaultUnitPrice ? formatPrice(product.defaultUnitPrice) : '-'}</td>
-                <td>${escapeHtml(product.description || '-')}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-info" onclick="viewProductDetail(${product.id})">상세</button>
-                    </div>
-                </td>
-                <td>
-                    <span class="stock-badge ${getStockClass(product.stockQuantity)}">
-                        ${product.stockQuantity}
-                    </span>
+                <td><span class="stock-badge ${stockClass}">${product.stockQuantity}</span></td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${escapeHtml(product.description) || '-'}
                 </td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn btn-success" onclick="openProductionModal(${product.id})">생산</button>
+                        <button class="btn btn-info" onclick="viewTransactions(${product.id})">기록</button>
                     </div>
                 </td>
-                 <td>
+                <td>
                     <div class="action-buttons">
-                        <button class="btn btn-info" onclick="viewTransactions(${product.id})">기록</button>
+                        <button class="btn btn-info" onclick="viewProductDetail(${product.id})">상세</button>
                         <button class="btn btn-warning" onclick="openUpdateModal(${product.id})">수정</button>
                         <button class="btn btn-danger" onclick="openDeleteModal(${product.id})">삭제</button>
                     </div>
                 </td>
             </tr>
-        `).join('');
+        `;
+        }).join('');
     }
 
-    function filterProducts() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredProducts = allProducts.filter(product =>
-            product.productCode.toLowerCase().includes(searchTerm) ||
-            product.name.toLowerCase().includes(searchTerm)
-        );
-        renderProducts(filteredProducts);
+    function renderPagination(data) {
+        const pageInfo = document.getElementById('pageInfo');
+        const pagination = document.getElementById('pagination');
+
+        const startItem = data.empty ? 0 : (currentPage * currentPageSize + 1);
+        const endItem = Math.min((currentPage + 1) * currentPageSize, totalElements);
+        pageInfo.textContent = `전체 ${totalElements}개 중 ${startItem}-${endItem}`;
+
+        const buttons = [];
+
+        buttons.push(`
+        <button class="page-button"
+                onclick="goToPage(${currentPage - 1})"
+                ${data.first ? 'disabled' : ''}>
+            ◀
+        </button>
+    `);
+
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 0) {
+            buttons.push(`
+                <button class="page-button" onclick="goToPage(0)">1</button>
+            `);
+            if (startPage > 1) {
+                buttons.push(`<span style="padding: 0 8px;">...</span>`);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            buttons.push(`
+                <button class="page-button ${i === currentPage ? 'active' : ''}"
+                        onclick="goToPage(${i})">
+                    ${i + 1}
+                </button>
+            `);
+        }
+
+        if (endPage < totalPages - 1) {
+            if (endPage < totalPages - 2) {
+                buttons.push(`<span style="padding: 0 8px;">...</span>`);
+            }
+            buttons.push(`
+                <button class="page-button" onclick="goToPage(${totalPages - 1})">${totalPages}</button>
+            `);
+        }
+
+        buttons.push(`
+        <button class="page-button"
+                onclick="goToPage(${currentPage + 1})"
+                ${data.last ? 'disabled' : ''}>
+            ▶
+        </button>
+    `);
+
+        pagination.innerHTML = buttons.join('');
     }
 
     function getStockClass(quantity) {

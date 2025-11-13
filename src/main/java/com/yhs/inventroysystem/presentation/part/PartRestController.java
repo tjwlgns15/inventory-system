@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,14 +55,41 @@ public class PartRestController {
                 .body(PartResponse.from(part));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PartResponse>> getAllParts() {
-        List<Part> parts = partService.findAllPart();
+    /**
+     * 전체 부품 조회
+     */
+    @GetMapping("/all")
+    public ResponseEntity<List<PartResponse>> getAllParts(
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String direction) {
+
+        List<Part> parts = partService.findAllPart(sortBy, direction);
 
         List<PartResponse> responses = parts.stream()
                 .map(PartResponse::from)
                 .toList();
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * 부품 목록 조회 (페이지네이션)
+     */
+    @GetMapping
+    public ResponseEntity<PagedPartResponse> getPartsPaged(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size,
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String direction,
+            @RequestParam(required = false) String keyword) {
+
+        Page<Part> partPage;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            partPage = partService.searchParts(keyword, page, size, sortBy, direction);
+        } else {
+            partPage = partService.findAllPartPaged(page, size, sortBy, direction);
+        }
+
+        return ResponseEntity.ok(PagedPartResponse.from(partPage));
     }
 
     @GetMapping("/{partId}")
@@ -85,7 +113,6 @@ public class PartRestController {
         );
 
         Part part = partService.updatePart(partId, command);
-
         return ResponseEntity.ok(PartResponse.from(part));
     }
 

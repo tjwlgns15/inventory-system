@@ -10,7 +10,12 @@ import com.yhs.inventroysystem.domain.part.PartRepository;
 import com.yhs.inventroysystem.domain.part.TransactionType;
 import com.yhs.inventroysystem.domain.product.*;
 import com.yhs.inventroysystem.domain.task.*;
+import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +37,7 @@ public class ProductService {
 
     private final ProductStockTransactionService productStockTransactionService;
     private final PartStockTransactionService partStockTransactionService;
+
 
     @Transactional
     public Product registerProduct(ProductRegisterCommand command) {
@@ -72,12 +78,24 @@ public class ProductService {
         return savedProduct;
     }
 
-    public List<Product> findAllProduct() {
-        return productRepository.findAllActive();
+    public List<Product> findAllProduct(String sortBy, String direction) {
+        Sort sort = PageableUtils.createSort(sortBy, direction);
+        return productRepository.findAllActive(sort);
+    }
+
+
+    public Page<Product> searchProducts(String keyword, int page, int size, String sortBy, String direction) {
+        Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
+        return productRepository.searchByKeyword(keyword, pageable);
+    }
+
+    public Page<Product> findAllProductPaged(int page, int size, String sortBy, String direction) {
+        Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
+        return productRepository.findAllActive(pageable);
     }
 
     public List<Product> findAllProductWithParts() {
-        return productRepository.findAllActiveWithPart();
+        return productRepository.findAllActiveWithPartOrderByDisplayOrder();
     }
 
     public Product findProductWithParts(Long productId) {
@@ -200,6 +218,23 @@ public class ProductService {
     }
 
     @Transactional
+    public Product updateDisplayOrder(Long productId, DisplayOrderUpdateCommand command) {
+        Product product = findProductById(productId);
+        product.changeDisplayOrder(command.displayOrder());
+        return product;
+    }
+
+    @Transactional
+    public void updateDisplayOrders(List<ProductOrderUpdate> updates) {
+        updates.forEach(update -> {
+            Product product = productRepository.findById(update.productId())
+                    .orElseThrow(() -> ResourceNotFoundException.product(update.productId()));
+
+            product.changeDisplayOrder(update.displayOrder());
+        });
+    }
+
+    @Transactional
     public void deleteProduct(Long productId) {
         Product product = findProductById(productId);
         product.markAsDeleted();
@@ -292,11 +327,16 @@ public class ProductService {
         return insufficientParts;
     }
 
+
+    /*
+        Private Method
+     */
     private void validateProductCodeDuplication(String productCode) {
         if (productRepository.existsByProductCodeAndNotDeleted(productCode)) {
             throw DuplicateResourceException.productCode(productCode);
         }
     }
+
     private void validateProductNameDuplication(String productName) {
         if (productRepository.existsByNameAndNotDeleted(productName)) {
             throw DuplicateResourceException.productName(productName);
@@ -310,7 +350,6 @@ public class ProductService {
         return productLineRepository.findById(productLineId)
                 .orElseThrow(() -> ResourceNotFoundException.productLine(productLineId));
     }
-
     private void validateProductCodeDuplicationForUpdate(Long productId, String productCode) {
         productRepository.findByProductCodeAndNotDeleted(productCode)
                 .ifPresent(existingProduct -> {
@@ -319,6 +358,7 @@ public class ProductService {
                     }
                 });
     }
+
     private void validateProductNameDuplicationForUpdate(Long productId, String productName) {
         productRepository.findByNameAndNotDeleted(productName)
                 .ifPresent(existingProduct -> {
@@ -348,12 +388,12 @@ public class ProductService {
         task.addCategory(productionCategory);
         taskRepository.save(task);
     }
-
     private String generateTaskTitle(Product product, Integer quantity) {
         return String.format("[생산] %s - %s",
                 product.getName(),
                 quantity);
     }
+
     private String generateTaskDescription(Product product, Integer quantity) {
         return "생산 정보:\n" +
                 String.format("- %s: %d개 생산, 재고: %d\n",
@@ -361,5 +401,4 @@ public class ProductService {
                         quantity,
                         product.getStockQuantity());
     }
-
 }
