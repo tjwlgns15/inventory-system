@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -28,8 +31,18 @@ public class DeliveryExcelService {
     /**
      * 모든 납품 데이터를 엑셀로 내보내는 메서드
      */
-    public byte[] exportAllDeliveriesToExcel() {
-        List<Delivery> deliveries = deliveryRepository.findAllWithClientAndItem();
+    public byte[] exportAllDeliveriesToExcel(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null) {
+            startDate = LocalDate.now().minusYears(1);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
+
+        List<Delivery> deliveries = deliveryRepository.findCompletedDeliveriesByPeriod(startDateTime, endDateTime);
+
         return generateExcel(deliveries);
     }
 

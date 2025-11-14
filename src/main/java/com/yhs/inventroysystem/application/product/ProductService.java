@@ -83,7 +83,6 @@ public class ProductService {
         return productRepository.findAllActive(sort);
     }
 
-
     public Page<Product> searchProducts(String keyword, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
         return productRepository.searchByKeyword(keyword, pageable);

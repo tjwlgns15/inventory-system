@@ -1,5 +1,9 @@
 package com.yhs.inventroysystem.domain.delivery;
 
+import com.yhs.inventroysystem.domain.product.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,12 +30,25 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
             "WHERE d.id = :deliveryId")
     Optional<Delivery> findById(@Param("deliveryId") Long deliveryId);
 
-    @Query("SELECT d FROM Delivery d " +
-            "JOIN FETCH d.client " +
+
+    @Query(value = "SELECT DISTINCT d FROM Delivery d " +
+            "JOIN FETCH d.client c " +
+            "JOIN FETCH d.items di " +
+            "JOIN FETCH di.product",
+            countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d")
+    Page<Delivery> findAllPaged(Pageable pageable);
+
+    @Query(value = "SELECT DISTINCT d FROM Delivery d " +
+            "JOIN FETCH d.client c " +
             "JOIN FETCH d.items di " +
             "JOIN FETCH di.product " +
-            "ORDER BY d.createdAt DESC")
-    List<Delivery> findAllWithClientAndItem();
+            "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))",
+            countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d " +
+                    "JOIN d.client c " +
+                    "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Delivery> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Query("""
         SELECT d

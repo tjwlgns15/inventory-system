@@ -4,8 +4,11 @@ import com.yhs.inventroysystem.domain.delivery.Delivery;
 import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
 import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
 import com.yhs.inventroysystem.domain.exchange.Currency;
+import com.yhs.inventroysystem.domain.product.Product;
+import com.yhs.inventroysystem.presentation.product.ProductDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -145,6 +148,34 @@ public class DeliveryDtos {
                     item.getTotalPrice(),
                     item.getIsFreeItem(),
                     item.isDiscounted()
+            );
+        }
+    }
+
+    public record PageDeliveryResponse(
+            List<DeliveryResponse> content,
+            int pageNumber,
+            int pageSize,
+            long totalElements,
+            int totalPages,
+            boolean first,
+            boolean last,
+            boolean empty
+    ) {
+        public static PageDeliveryResponse from(Page<Delivery> page) {
+            List<DeliveryResponse> content = page.getContent().stream()
+                    .map(DeliveryResponse::from)
+                    .toList();
+
+            return new PageDeliveryResponse(
+                    content,
+                    page.getNumber(),
+                    page.getSize(),
+                    page.getTotalElements(),
+                    page.getTotalPages(),
+                    page.isFirst(),
+                    page.isLast(),
+                    page.isEmpty()
             );
         }
     }

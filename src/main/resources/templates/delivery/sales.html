@@ -844,7 +844,7 @@
 
     async function loadProducts() {
         try {
-            const response = await fetch(PRODUCTS_API_URL);
+            const response = await fetch(`${PRODUCTS_API_URL}/all`);
             if (!response.ok) throw new Error('제품 목록을 불러오는데 실패했습니다');
             allProducts = await response.json();
         } catch (error) {

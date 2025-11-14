@@ -390,7 +390,7 @@
 
     async function loadParts() {
         try {
-            const response = await fetch(API_BASE_URL);
+            const response = await fetch(`${API_BASE_URL}/all`);
             if (!response.ok) throw new Error('부품 목록을 불러오는데 실패했습니다');
 
             allParts = await response.json();

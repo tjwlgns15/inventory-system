@@ -171,7 +171,7 @@
 
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
+            transform: translateY(4px);
         }
 
         .btn-info {
@@ -979,6 +979,238 @@
             padding: 10px 12px;
             font-size: 0.9rem;
         }
+
+        /* 페이지네이션 스타일 */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding: 20px 0;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .page-button {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            color: #667eea;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .page-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #9ca3af;
+        }
+
+        .page-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-size-selector label {
+            font-size: 0.875rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .page-size-select {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .page-size-select:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .page-size-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .sort-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .sort-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+        }
+
+        .sort-select {
+            padding: 12px 36px 12px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            color: #1a202c;
+        }
+
+        .sort-select:hover {
+            border-color: rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .sort-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .sort-select option {
+            padding: 10px;
+            background: white;
+            color: #1a202c;
+        }
+
+        /* Excel 다운로드 드롭다운 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            z-index: 1;
+            padding: 8px 0;
+            margin-top: 5px;
+        }
+
+        .dropdown-content a,
+        .dropdown-content .dropdown-item {
+            color: #1a202c;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .dropdown-content a:hover,
+        .dropdown-content .dropdown-item:hover {
+            background-color: #f3f4f6;
+            color: #667eea;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .date-range-inputs {
+            padding: 12px 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .date-range-inputs label {
+            display: block;
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 4px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .date-range-inputs label:first-child {
+            margin-top: 0;
+        }
+
+        .date-range-inputs input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .date-range-inputs button {
+            margin-top: 12px;
+            width: 100%;
+            padding: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .date-range-inputs button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -993,12 +1225,25 @@
                 <button class="btn btn-sales" onclick="location.href='/sales'">
                     <span>📈 판매량</span>
                 </button>
-<!--                <button class="btn btn-secondary" onclick="exportAllToCSV()">-->
-<!--                    <span>📥 CSV 다운로드</span>-->
-<!--                </button>-->
-                <button class="btn btn-secondary" onclick="exportAllToEXCEL()">
-                    <span>📥 Excel 다운로드</span>
-                </button>
+                <div class="dropdown">
+                    <button class="btn btn-secondary">
+                        <span>📥 Excel 다운로드</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('thisYear')">올해 전체</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('12months')">최근 12개월</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('6months')">최근 6개월</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('3months')">최근 3개월</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('1month')">최근 1개월</div>
+                        <div class="date-range-inputs">
+                            <label>시작일</label>
+                            <input type="date" id="customStartDate">
+                            <label>종료일</label>
+                            <input type="date" id="customEndDate">
+                            <button onclick="exportExcelCustomRange()">다운로드</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1009,6 +1254,23 @@
                        id="searchInput"
                        placeholder="영업접수번호 또는 거래처명으로 검색..."
                        oninput="filterDeliveries()">
+            </div>
+
+            <!-- 정렬 옵션 -->
+            <div class="sort-controls">
+                <span class="sort-label">정렬:</span>
+                <select id="sortBy" class="sort-select" onchange="loadDeliveries()">
+                    <option value="createdAt">생성일</option>
+                    <option value="deliveryNumber">납품번호</option>
+                    <option value="clientName">거래처명</option>
+                    <option value="orderedAt">주문일</option>
+                    <option value="requestedAt">요청일</option>
+                    <option value="totalAmount">총액</option>
+                </select>
+                <select id="sortDirection" class="sort-select" onchange="loadDeliveries()">
+                    <option value="desc">내림차순</option>
+                    <option value="asc">오름차순</option>
+                </select>
             </div>
 
             <div class="table-container">
@@ -1033,6 +1295,25 @@
                     <tbody id="deliveriesTableBody">
                     </tbody>
                 </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination-container">
+                <div class="page-size-selector">
+                    <label>표시 개수:</label>
+                    <select id="pageSize" class="page-size-select" onchange="changePageSize()">
+                        <option value="10">10개</option>
+                        <option value="25" selected>25개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
+                <div class="page-info" id="pageInfo">
+                    <!-- 페이지 정보가 여기에 표시됩니다 -->
+                </div>
+                <div class="pagination" id="paginationControls">
+                    <!-- 페이지 버튼이 여기에 동적으로 추가됩니다 -->
+                </div>
             </div>
 
             <div class="empty-state" id="emptyState" style="display: none;">
@@ -1178,8 +1459,13 @@
     const CLIENTS_API_URL = '/api/clients';
     const PRODUCTS_API_URL = '/api/products';
     let allDeliveries = [];
+    let currentPage = 0;
+    let currentPageSize = 25;
+    let currentKeyword = '';
+    let totalPages = 0;
+    let totalElements = 0;
+
     let allClients = [];
-    let allProducts = [];
     let cancelTargetId = null;
     let memoTargetId = null;
     let originalProducts = [];
@@ -1188,7 +1474,6 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         loadClients();
-        loadProducts();
         loadDeliveries();
 
         const memoText = document.getElementById('memoText');
@@ -1246,17 +1531,6 @@
         } catch (error) {
             console.error('Error:', error);
             showNotification('거래처 목록을 불러오는데 실패했습니다', 'error');
-        }
-    }
-
-    async function loadProducts() {
-        try {
-            const response = await fetch(PRODUCTS_API_URL);
-            if (!response.ok) throw new Error('제품 목록을 불러오는데 실패했습니다');
-            allProducts = await response.json();
-        } catch (error) {
-            console.error('Error:', error);
-            showNotification('제품 목록을 불러오는데 실패했습니다', 'error');
         }
     }
 
@@ -1568,16 +1842,36 @@
 
     async function loadDeliveries() {
         try {
-            const response = await fetch(API_BASE_URL);
+            const sortBy = document.getElementById('sortBy').value;
+            const direction = document.getElementById('sortDirection').value;
+            const pageSize = document.getElementById('pageSize').value;
+            const searchTerm = document.getElementById('searchInput').value;
+
+            let url = `${API_BASE_URL}?page=${currentPage}&size=${pageSize}&sortBy=${sortBy}&direction=${direction}`;
+
+            if (searchTerm && searchTerm.trim() !== '') {
+                url += `&keyword=${encodeURIComponent(searchTerm.trim())}`;
+            }
+
+            const response = await fetch(url);
             if (!response.ok) throw new Error('수주 목록을 불러오는데 실패했습니다');
 
-            allDeliveries = await response.json();
+            const data = await response.json();
+
+            totalPages = data.totalPages;
+            totalElements = data.totalElements;
+            currentPageSize = data.pageSize;
+            currentPage = data.pageNumber;
+
+            allDeliveries = data.content;
             renderDeliveries(allDeliveries);
+            renderPagination();
         } catch (error) {
             console.error('Error:', error);
             showNotification('수주 목록을 불러오는데 실패했습니다', 'error');
         }
     }
+
 
     function renderDeliveries(deliveries) {
         const tbody = document.getElementById('deliveriesTableBody');
@@ -1674,12 +1968,8 @@
     }
 
     function filterDeliveries() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const filteredDeliveries = allDeliveries.filter(delivery =>
-            delivery.deliveryNumber.toLowerCase().includes(searchTerm) ||
-            delivery.clientName.toLowerCase().includes(searchTerm)
-        );
-        renderDeliveries(filteredDeliveries);
+        currentPage = 0; // 검색 시 첫 페이지로
+        loadDeliveries();
     }
 
     function getStatusClass(status) {
@@ -2185,50 +2475,144 @@
         }
     });
 
-    // 전체 수주 데이터 CSV 다운로드
-    async function exportAllToCSV() {
+    // 페이지네이션 렌더링
+    function renderPagination() {
+        const paginationControls = document.getElementById('paginationControls');
+        const pageInfo = document.getElementById('pageInfo');
+
+        // 페이지 정보 표시
+        const start = totalElements === 0 ? 0 : currentPage * currentPageSize + 1;
+        const end = Math.min((currentPage + 1) * currentPageSize, totalElements);
+        pageInfo.textContent = `${start}-${end} / 전체 ${totalElements}개`;
+
+        // 페이지 버튼 생성
+        paginationControls.innerHTML = '';
+
+        // 이전 버튼
+        const prevButton = document.createElement('button');
+        prevButton.className = 'page-button';
+        prevButton.textContent = '‹';
+        prevButton.disabled = currentPage === 0;
+        prevButton.onclick = () => goToPage(currentPage - 1);
+        paginationControls.appendChild(prevButton);
+
+        // 페이지 번호 버튼
+        const maxVisiblePages = 5;
+        let startPage = Math.max(0, currentPage - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage < maxVisiblePages - 1) {
+            startPage = Math.max(0, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.className = 'page-button' + (i === currentPage ? ' active' : '');
+            pageButton.textContent = i + 1;
+            pageButton.onclick = () => goToPage(i);
+            paginationControls.appendChild(pageButton);
+        }
+
+        // 다음 버튼
+        const nextButton = document.createElement('button');
+        nextButton.className = 'page-button';
+        nextButton.textContent = '›';
+        nextButton.disabled = currentPage >= totalPages - 1;
+        nextButton.onclick = () => goToPage(currentPage + 1);
+        paginationControls.appendChild(nextButton);
+    }
+
+    function goToPage(page) {
+        if (page < 0 || page >= totalPages) return;
+        currentPage = page;
+        loadDeliveries();
+    }
+
+    function changePageSize() {
+        currentPage = 0; // 페이지 크기 변경 시 첫 페이지로
+        loadDeliveries();
+    }
+
+    // Excel 다운로드 기간별
+    function exportExcelByPeriod(period) {
+        const today = new Date();
+        let startDate, endDate;
+
+        switch(period) {
+            case 'thisYear':
+                startDate = new Date(today.getFullYear(), 0, 1);
+                endDate = new Date(today.getFullYear(), 11, 31);
+                break;
+            case '12months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+                endDate = today;
+                break;
+            case '6months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+                endDate = today;
+                break;
+            case '3months':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+                endDate = today;
+                break;
+            case '1month':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = today;
+                break;
+        }
+
+        downloadExcel(formatDateForAPI(startDate), formatDateForAPI(endDate));
+    }
+
+    // Excel 다운로드 사용자 지정 범위
+    function exportExcelCustomRange() {
+        const startDate = document.getElementById('customStartDate').value;
+        const endDate = document.getElementById('customEndDate').value;
+
+        if (!startDate || !endDate) {
+            showNotification('시작일과 종료일을 모두 선택해주세요', 'error');
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            showNotification('시작일이 종료일보다 늦을 수 없습니다', 'error');
+            return;
+        }
+
+        downloadExcel(startDate, endDate);
+    }
+
+    // Excel 다운로드 실행
+    async function downloadExcel(startDate, endDate) {
         try {
-            const response = await fetch(`${API_BASE_URL}/export/csv`);
-            if (!response.ok) throw new Error('CSV 다운로드에 실패했습니다');
+            const url = `${API_BASE_URL}/export/excel?startDate=${startDate}&endDate=${endDate}`;
+            const response = await fetch(url);
+
+            if (!response.ok) throw new Error('Excel 다운로드에 실패했습니다');
 
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            const downloadUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `deliveries_${new Date().toISOString().split('T')[0]}.csv`;
+            a.href = downloadUrl;
+            a.download = `deliveries_${startDate}_${endDate}.xlsx`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(downloadUrl);
 
-            showNotification('CSV 파일이 다운로드되었습니다', 'success');
+            showNotification('Excel 파일이 다운로드되었습니다', 'success');
         } catch (error) {
             console.error('Error:', error);
-            showNotification('CSV 다운로드에 실패했습니다', 'error');
+            showNotification('Excel 다운로드에 실패했습니다', 'error');
         }
     }
 
-    // 전체 수주 데이터 Excel 다운로드
-    async function exportAllToEXCEL() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/export/excel`);
-            if (!response.ok) throw new Error('EXCEL 다운로드에 실패했습니다');
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `deliveries_${new Date().toISOString().split('T')[0]}.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-
-            showNotification('EXCEL 파일이 다운로드되었습니다', 'success');
-        } catch (error) {
-            console.error('Error:', error);
-            showNotification('EXCEL 다운로드에 실패했습니다', 'error');
-        }
+    // 날짜 포맷 헬퍼 함수
+    function formatDateForAPI(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 </script>
 </body>

@@ -14,8 +14,12 @@ import com.yhs.inventroysystem.domain.client.ClientRepository;
 import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
 import com.yhs.inventroysystem.domain.product.ProductRepository;
 import com.yhs.inventroysystem.domain.task.*;
+import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,8 +103,14 @@ public class DeliveryService {
         return savedDelivery;
     }
 
-    public List<Delivery> findAllDelivery() {
-        return deliveryRepository.findAllWithClientAndItem();
+    public Page<Delivery> searchDeliveries(String keyword, int page, int size, String sortBy, String direction) {
+        Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
+        return deliveryRepository.searchByKeyword(keyword, pageable);
+    }
+
+    public Page<Delivery> findAllDeliveriesPaged(int page, int size, String sortBy, String direction) {
+        Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
+        return deliveryRepository.findAllPaged(pageable);
     }
 
     @Transactional

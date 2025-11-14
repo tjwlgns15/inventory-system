@@ -7,6 +7,7 @@ import com.yhs.inventroysystem.domain.client.Client;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.cglib.core.Local;
 
 import java.math.BigDecimal;
