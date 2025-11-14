@@ -35,6 +35,7 @@ public class Delivery extends BaseTimeEntity {
     private Client client;
 
     @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     private List<DeliveryItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

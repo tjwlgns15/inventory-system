@@ -105,12 +105,30 @@ public class DeliveryService {
 
     public Page<Delivery> searchDeliveries(String keyword, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return deliveryRepository.searchByKeyword(keyword, pageable);
+        Page<Delivery> deliveryPage = deliveryRepository.searchByKeyword(keyword, pageable);
+
+        // items 초기화 (BatchSize 동작, LAZY 로딩 때문)
+        deliveryPage.getContent().forEach(delivery -> {
+            delivery.getItems().forEach(item -> {
+                item.getProduct().getName();
+            });
+        });
+
+        return deliveryPage;
     }
 
     public Page<Delivery> findAllDeliveriesPaged(int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return deliveryRepository.findAllPaged(pageable);
+        Page<Delivery> deliveryPage = deliveryRepository.findAllPaged(pageable);
+
+        // items 초기화 (BatchSize 동작, LAZY 로딩 때문)
+        deliveryPage.getContent().forEach(delivery -> {
+            delivery.getItems().forEach(item -> {
+                item.getProduct().getName();
+            });
+        });
+
+        return deliveryPage;
     }
 
     @Transactional

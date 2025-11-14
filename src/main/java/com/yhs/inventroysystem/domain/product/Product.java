@@ -5,6 +5,7 @@ import com.yhs.inventroysystem.infrastructure.model.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 @Table(name = "products")
 @Getter
 @NoArgsConstructor
+@BatchSize(size = 100)
 public class Product extends BaseTimeEntity {
 
     @Id

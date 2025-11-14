@@ -30,18 +30,17 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
             "WHERE d.id = :deliveryId")
     Optional<Delivery> findById(@Param("deliveryId") Long deliveryId);
 
-
+    /**
+     * 페이징 조회 - 컬렉션 페치 제거하여 경고 해결
+     * items는 @BatchSize로 N+1 문제 해결
+     */
     @Query(value = "SELECT DISTINCT d FROM Delivery d " +
-            "JOIN FETCH d.client c " +
-            "JOIN FETCH d.items di " +
-            "JOIN FETCH di.product",
+            "JOIN FETCH d.client c",
             countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d")
     Page<Delivery> findAllPaged(Pageable pageable);
 
     @Query(value = "SELECT DISTINCT d FROM Delivery d " +
             "JOIN FETCH d.client c " +
-            "JOIN FETCH d.items di " +
-            "JOIN FETCH di.product " +
             "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))",
             countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d " +
