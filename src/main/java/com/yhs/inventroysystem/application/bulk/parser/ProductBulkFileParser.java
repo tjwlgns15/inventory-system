@@ -57,7 +57,7 @@ public class ProductBulkFileParser {
                         .name(record.get("name"))
                         .defaultUnitPrice(parseBigDecimal(record.get("defaultUnitPrice")))
                         .description(record.get("description"))
-                        .stockQuantity(parseInteger(record.get("stockQuantity")))
+                        .stockQuantity(parseInteger(record.get("adjustmentQuantity")))
                         .build();
 
                 products.add(productData);
@@ -83,7 +83,7 @@ public class ProductBulkFileParser {
             int nameIdx = findColumnIndex(headerRow, "name");
             int defaultUnitPriceIdx = findColumnIndex(headerRow, "defaultUnitPrice");
             int descriptionIdx = findColumnIndex(headerRow, "description");
-            int stockQuantityIdx = findColumnIndex(headerRow, "stockQuantity");
+            int stockQuantityIdx = findColumnIndex(headerRow, "adjustmentQuantity");
 
             // 데이터 행 읽기 (헤더 다음부터)
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {

@@ -53,7 +53,7 @@ public class PartBulkFileParser {
                         .partCode(record.get("partCode"))
                         .name(record.get("name"))
                         .specification(record.get("specification"))
-                        .initialStock(parseInteger(record.get("stockQuantity")))
+                        .initialStock(parseInteger(record.get("adjustmentQuantity")))
                         .unit(record.get("unit"))
                         .build();
 
@@ -79,7 +79,7 @@ public class PartBulkFileParser {
             int partCodeIdx = findColumnIndex(headerRow, "partCode");
             int nameIdx = findColumnIndex(headerRow, "name");
             int specificationIdx = findColumnIndex(headerRow, "specification");
-            int stockQuantityIdx = findColumnIndex(headerRow, "stockQuantity");
+            int stockQuantityIdx = findColumnIndex(headerRow, "adjustmentQuantity");
             int unitIdx = findColumnIndex(headerRow, "unit");
 
             // 데이터 행 읽기 (헤더 다음부터)

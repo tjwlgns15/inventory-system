@@ -17,6 +17,7 @@ public class ProductTransactionDtos {
             Integer beforeStock,
             Integer changeQuantity,
             Integer afterStock,
+            String note,
             LocalDateTime createdAt
     ) {
         public static ProductTransactionResponse from(ProductStockTransaction productStockTransaction) {
@@ -30,6 +31,7 @@ public class ProductTransactionDtos {
                     productStockTransaction.getBeforeStock(),
                     productStockTransaction.getChangeQuantity(),
                     productStockTransaction.getAfterStock(),
+                    productStockTransaction.getNote(),
                     productStockTransaction.getCreatedAt()
             );
         }

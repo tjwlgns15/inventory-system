@@ -35,6 +35,21 @@ public class ProductStockTransactionService {
         productStockTransactionRepository.save(transaction);
     }
 
+    /**
+     * 사유를 포함한 트랜잭션 기록 (재고 조정용)
+     */
+    @Transactional
+    public void recordTransactionWithNote(Product product, ProductTransactionType type,
+                                          int beforeStock, int changeQuantity, String note) {
+        int afterStock = beforeStock + changeQuantity;
+
+        ProductStockTransaction transaction = ProductStockTransaction.createWithNote(
+                product, type, beforeStock, changeQuantity, afterStock, note
+        );
+
+        productStockTransactionRepository.save(transaction);
+    }
+
     public List<ProductStockTransaction> findByProductId(Long partId) {
         return productStockTransactionRepository.findByProductIdOrderByCreatedAtDesc(partId);
     }

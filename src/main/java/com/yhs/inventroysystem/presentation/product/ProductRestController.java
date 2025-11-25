@@ -210,7 +210,6 @@ public class ProductRestController {
                 request.productCategory(),
                 request.productLineId(),
                 request.name(),
-                request.stockQuantity(),
                 request.defaultUnitPrice(),
                 request.description(),
                 request.partMappings().stream()
@@ -222,6 +221,19 @@ public class ProductRestController {
         return ResponseEntity.ok(ProductResponse.from(product));
     }
 
+    @PostMapping("/{productId}/adjust-stock")
+    public ResponseEntity<ProductResponse> adjustProductStock(
+            @PathVariable Long productId,
+            @Valid @RequestBody StockQuantityUpdateRequest request) {
+
+        StockQuantityUpdateCommand stockQuantityUpdateCommand = new StockQuantityUpdateCommand(
+                request.adjustmentQuantity(),
+                request.note()
+        );
+
+        Product product = productService.adjustProductStock(productId, stockQuantityUpdateCommand);
+        return ResponseEntity.ok(ProductResponse.from(product));
+    }
     /**
      * 제품 삭제(소프트)
      */

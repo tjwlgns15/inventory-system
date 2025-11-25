@@ -13,7 +13,6 @@ import com.yhs.inventroysystem.domain.task.*;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -160,13 +159,10 @@ public class ProductService {
         Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
                 .orElseThrow(() -> ResourceNotFoundException.product(productId));
 
-        Integer beforeStock = product.getStockQuantity();
-
         validateProductNameDuplicationForUpdate(productId, command.name());
 
         product.updateInfo(
                 command.name(),
-                command.stockQuantity(),
                 command.defaultUnitPrice(),
                 command.description()
         );
@@ -202,16 +198,32 @@ public class ProductService {
             }
         }
 
-        Integer afterStock = product.getStockQuantity();
-        if (!beforeStock.equals(afterStock)) {
-            Integer changeQuantity = afterStock - beforeStock;
-            productStockTransactionService.recordTransaction(
-                    product,
-                    ProductTransactionType.ADJUSTMENT,
-                    beforeStock,
-                    changeQuantity
-            );
+        return product;
+    }
+
+    @Transactional
+    public Product adjustProductStock(Long productId, StockQuantityUpdateCommand command) {
+        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
+                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+
+        Integer beforeStock = product.getStockQuantity();
+        int afterStock = beforeStock + command.adjustmentQuantity();
+
+        // 재고가 음수가 되는 것 방지
+        if (afterStock < 0) {
+            throw new IllegalArgumentException("조정 후 재고가 0보다 작을 수 없습니다. (현재: " + beforeStock + ", 조정: " + command.adjustmentQuantity() + ")");
         }
+
+        product.updateStockQuantity(afterStock);
+
+        // 트랜잭션 기록 (사유 포함)
+        productStockTransactionService.recordTransactionWithNote(
+                product,
+                ProductTransactionType.ADJUSTMENT,
+                beforeStock,
+                command.adjustmentQuantity(),
+                command.note()
+        );
 
         return product;
     }

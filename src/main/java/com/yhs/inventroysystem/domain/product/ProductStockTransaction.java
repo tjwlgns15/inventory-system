@@ -35,6 +35,9 @@ public class ProductStockTransaction {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column
+    private String note = null;
+
 
     // 팩토리 메서드
     public static ProductStockTransaction create(Product product, ProductTransactionType type, int beforeStock, int changeQuantity, int afterStock) {
@@ -42,7 +45,36 @@ public class ProductStockTransaction {
         validateType(type);
         validateStockValues(beforeStock, changeQuantity, afterStock);
 
-        return new ProductStockTransaction(product, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
+        return new ProductStockTransaction(
+                product,
+                type,
+                beforeStock,
+                changeQuantity,
+                afterStock,
+                LocalDateTime.now()
+        );
+    }
+
+    /**
+     * 사유를 포함한 트랜잭션 생성 (재고 조정용)
+     */
+    public static ProductStockTransaction createWithNote(Product product, ProductTransactionType type,
+                                                         int beforeStock, int changeQuantity,
+                                                         int afterStock, String note) {
+        validatePart(product);
+        validateType(type);
+        validateStockValues(beforeStock, changeQuantity, afterStock);
+
+        ProductStockTransaction transaction = new ProductStockTransaction(
+                product,
+                type,
+                beforeStock,
+                changeQuantity,
+                afterStock,
+                LocalDateTime.now()
+        );
+        transaction.note = note;
+        return transaction;
     }
 
     public ProductStockTransaction(Product product, ProductTransactionType type, int beforeStock, int changeQuantity, int afterStock, LocalDateTime createdAt) {

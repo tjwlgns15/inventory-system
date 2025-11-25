@@ -3,7 +3,6 @@ package com.yhs.inventroysystem.presentation.product;
 import com.yhs.inventroysystem.domain.product.Product;
 import com.yhs.inventroysystem.domain.product.ProductCategory;
 import com.yhs.inventroysystem.domain.product.ProductPart;
-import com.yhs.inventroysystem.presentation.part.PartDtos;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -193,14 +192,17 @@ public class ProductDtos {
             @NotBlank(message = "제품명은 필수입니다")
             String name,
 
-            @NotNull(message = "재고 수량은 필수입니다")
-            Integer stockQuantity,
-
             BigDecimal defaultUnitPrice,
 
             String description,
 
             List<PartMappingRequest> partMappings
+    ) {}
+    public record StockQuantityUpdateRequest(
+            @NotNull(message = "재고 수량은 필수입니다")
+            Integer adjustmentQuantity,
+
+            String note
     ) {}
 
     // 순서 변경 요청 DTO

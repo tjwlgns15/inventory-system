@@ -426,13 +426,14 @@
                 <table id="transactionsTable">
                     <thead>
                     <tr>
-                        <th style="width: 12%;">거래 번호</th>
-                        <th style="width: 15%;">제품 코드</th>
-                        <th style="width: 15%;">제품명</th>
-                        <th style="width: 12%;">유형</th>
+                        <th style="width: 8%;">번호</th>
+                        <th style="width: 13%;">제품 코드</th>
+                        <th style="width: 13%;">제품명</th>
+                        <th style="width: 10%;">유형</th>
                         <th style="width: 10%;">변경 수량</th>
                         <th style="width: 10%;">이전 재고</th>
                         <th style="width: 10%;">이후 재고</th>
+                        <th style="width: 10%;">메모</th>
                         <th style="width: 16%;">일시</th>
                     </tr>
                     </thead>
@@ -580,6 +581,7 @@
                     </td>
                     <td>${transaction.beforeStock}</td>
                     <td><strong>${transaction.afterStock}</strong></td>
+                    <td>${transaction.note ? escapeHtml(transaction.note) : '-'}</td>
                     <td>${formatDateTime(transaction.createdAt)}</td>
                 </tr>
             `;
