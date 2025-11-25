@@ -279,23 +279,46 @@ public class DeliveryService {
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
     }
 
+//    private String generateDeliveryNumber(LocalDate orderedAt) {
+//        String year = orderedAt.format(DateTimeFormatter.ofPattern("yyyy"));
+//        String prefix = DELIVERY_PREFIX + year;
+//
+//        for (int attempt = 0; attempt < 10; attempt++) {
+//            Integer lastSequence = deliveryRepository.findLastSequenceByYear(year);
+//            int nextSequence = (lastSequence == null) ? 1 : lastSequence + 1;
+//
+//            String deliveryNumber = String.format("%s-%04d", prefix, nextSequence);
+//
+//            if (!deliveryRepository.existsByDeliveryNumber(deliveryNumber)) {
+//                return deliveryNumber;
+//            }
+//        }
+//
+//        return String.format("%s-%s", prefix,
+//                UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+//    }
+    /**
+     * 수주 번호 생성 (동시성 문제 해결)
+     */
     private String generateDeliveryNumber(LocalDate orderedAt) {
         String year = orderedAt.format(DateTimeFormatter.ofPattern("yyyy"));
         String prefix = DELIVERY_PREFIX + year;
 
-        for (int attempt = 0; attempt < 10; attempt++) {
+        // synchronized 블록으로 동시성 제어
+        synchronized (this) {
             Integer lastSequence = deliveryRepository.findLastSequenceByYear(year);
             int nextSequence = (lastSequence == null) ? 1 : lastSequence + 1;
 
             String deliveryNumber = String.format("%s-%04d", prefix, nextSequence);
 
-            if (!deliveryRepository.existsByDeliveryNumber(deliveryNumber)) {
-                return deliveryNumber;
+            // 중복 체크 (만약을 위해)
+            while (deliveryRepository.existsByDeliveryNumber(deliveryNumber)) {
+                nextSequence++;
+                deliveryNumber = String.format("%s-%04d", prefix, nextSequence);
             }
-        }
 
-        return String.format("%s-%s", prefix,
-                UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            return deliveryNumber;
+        }
     }
 
 
