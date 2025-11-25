@@ -135,6 +135,13 @@ public class Delivery extends BaseTimeEntity {
         this.status = DeliveryStatus.CANCELLED;
     }
 
+    public void cancelCompletedDelivery() {
+        if (this.status != DeliveryStatus.COMPLETED) {
+            throw new InvalidDeliveryStateException(this.status, "취소");
+        }
+        this.status = DeliveryStatus.CANCELLED;
+    }
+
     // 전체 할인 적용 (금액)
     public void applyDiscount(BigDecimal discountAmount, String note) {
         validatePendingStatus("할인 적용");

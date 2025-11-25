@@ -2,6 +2,9 @@ package com.yhs.inventroysystem.application.delivery;
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.exchange.ExchangeRateService;
+import com.yhs.inventroysystem.application.product.ProductStockTransactionService;
+import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
+import com.yhs.inventroysystem.domain.exception.InvalidDeliveryStateException;
 import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
 import com.yhs.inventroysystem.domain.exchange.ExchangeRate;
 import com.yhs.inventroysystem.domain.price.ClientProductPriceRepository;
@@ -13,21 +16,19 @@ import com.yhs.inventroysystem.domain.product.Product;
 import com.yhs.inventroysystem.domain.client.ClientRepository;
 import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
 import com.yhs.inventroysystem.domain.product.ProductRepository;
+import com.yhs.inventroysystem.domain.product.ProductTransactionType;
 import com.yhs.inventroysystem.domain.task.*;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.UUID;
 
 import static com.yhs.inventroysystem.application.delivery.DeliveryCommands.*;
@@ -46,6 +47,7 @@ public class DeliveryService {
     private final TaskRepository taskRepository;
     private final TaskCategoryRepository taskCategoryRepository;
     private final ExchangeRateService exchangeRateService;
+    private final ProductStockTransactionService productStockTransactionService;
 
     private static final String DELIVERY_PREFIX = "SOLM-PO-";
 
@@ -219,6 +221,55 @@ public class DeliveryService {
             Task shipmentTask = delivery.getShipmentTask();
             delivery.clearShipmentTask(); // 연관관계 제거
             taskRepository.delete(shipmentTask);
+        }
+    }
+
+    @Transactional
+    public void deleteDelivery(Long deliveryId) {
+        Delivery delivery = deliveryRepository.findByIdWithItems(deliveryId)
+                .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
+
+        validateDeliveryCompleted(delivery);
+
+        // 삭제
+        delivery.markAsDeleted();
+
+        // 제품 수량 복구
+        delivery.getItems().forEach(deliveryItem -> {
+            Product product = deliveryItem.getProduct();
+            Integer quantity = deliveryItem.getQuantity();
+
+            Integer beforeStock = product.getStockQuantity();
+            product.increaseStock(quantity);
+
+            productStockTransactionService.recordTransaction(product, ProductTransactionType.DELIVERY_CANCELLED, beforeStock, quantity);
+        });
+
+        LocalDate cancelDate = LocalDate.now();
+
+        // 주문 Task 취소 처리
+        if (delivery.getOrderTask() != null) {
+            Task orderTask = delivery.getOrderTask();
+            orderTask.updateTaskInfo(
+                    "[납품 취소] " + delivery.getDeliveryNumber(),
+                    orderTask.getDescription(),
+                    orderTask.getPriority()
+            );
+            orderTask.updatePeriod(orderTask.getStartDate(), orderTask.getStartDate());
+            orderTask.updateStatus(TaskStatus.COMPLETED);
+        }
+
+        // 출하 요청 Task 삭제
+        if (delivery.getShipmentTask() != null) {
+            Task shipmentTask = delivery.getShipmentTask();
+            delivery.clearShipmentTask(); // 연관관계 제거
+            taskRepository.delete(shipmentTask);
+        }
+    }
+
+    private void validateDeliveryCompleted(Delivery delivery) {
+        if (!delivery.getStatus().equals(DeliveryStatus.COMPLETED)) {
+            throw new InvalidDeliveryStateException(delivery.getStatus(), "납품 취소");
         }
     }
 

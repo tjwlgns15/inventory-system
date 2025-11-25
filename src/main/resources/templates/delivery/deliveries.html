@@ -227,11 +227,6 @@
             box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
         }
 
-        .status-cancelled {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            color: white;
-        }
-
         .confirm-text {
             background: #fff3cd;
             padding: 16px;
@@ -332,6 +327,10 @@
 
         .status-completed {
             color: #10b981;
+        }
+
+        .status-cancelled {
+            color: #c51f1f;
         }
 
         .action-buttons {
@@ -599,6 +598,7 @@
             grid-template-columns: 300px 1fr;
             gap: 30px;
             max-height: calc(85vh - 200px);
+            margin-bottom: 14px;
         }
 
         /* 좌측 컬럼 - 기본 정보 */
@@ -767,6 +767,11 @@
             padding-top: 20px;
             border-top: 1px solid #e5e7eb; /* 구분선 추가 */
             flex-shrink: 0;
+        }
+
+        .delivery-delete {
+            display: flex;
+            justify-content: flex-end;
         }
 
         /* 체크박스 방식 아이템 스타일 */
@@ -1467,6 +1472,7 @@
 
     let allClients = [];
     let cancelTargetId = null;
+    let deleteTargetId = null;
     let memoTargetId = null;
     let originalProducts = [];
     let checkedStates = new Map();
@@ -2212,6 +2218,7 @@
             const detailContent = document.getElementById('detailContent');
 
             detailContent.innerHTML = `
+                <input type="hidden" id="currentDeliveryId" value="${delivery.id}">
                 <div class="detail-form-container">
                     <div class="detail-left-column">
                         <div class="detail-info">
@@ -2266,6 +2273,11 @@
                         </div>
                     </div>
                 </div>
+                ${delivery.status === 'COMPLETED' ? `
+                    <div class="delivery-delete">
+                        <button class="btn btn-danger" onclick="deleteDelivery()">삭제</button>
+                    </div>
+                ` : ''}
             `;
 
             document.getElementById('detailModal').style.display = 'block';
@@ -2408,6 +2420,62 @@
 
             showNotification('수주가 성공적으로 취소되었습니다', 'success');
             closeCancelModal();
+            await loadDeliveries();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    // 삭제 확인 모달 열기
+    function deleteDelivery() {
+        const deliveryId = document.getElementById('currentDeliveryId').value;
+        deleteTargetId = deliveryId;
+
+        const confirmModal = document.createElement('div');
+        confirmModal.id = 'deleteConfirmModal';
+        confirmModal.className = 'modal';
+        confirmModal.style.display = 'block';
+        confirmModal.innerHTML = `
+        <div class="modal-content modal-content-small">
+            <h2 class="modal-header">수주 삭제 확인</h2>
+            <p class="modal-message">정말로 이 수주를 삭제하시겠습니까?</p>
+            <p class="modal-warning">삭제된 수주는 복구할 수 없습니다.</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">취소</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">삭제</button>
+            </div>
+        </div>
+    `;
+        document.body.appendChild(confirmModal);
+    }
+
+    // 삭제 확인 모달 닫기
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteConfirmModal');
+        if (modal) {
+            modal.remove();
+        }
+        deleteTargetId = null;
+    }
+
+    // 삭제 실행
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '수주 삭제에 실패했습니다');
+            }
+
+            showNotification('수주가 성공적으로 삭제되었습니다', 'success');
+            closeDeleteModal();
+            closeDetailModal(); // 상세 모달도 닫기
             await loadDeliveries();
         } catch (error) {
             console.error('Error:', error);

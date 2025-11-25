@@ -121,6 +121,12 @@ public class DeliveryRestController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{deliveryId}")
+    public ResponseEntity<Void> deleteDelivery(@PathVariable Long deliveryId) {
+        deliveryService.deleteDelivery(deliveryId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{deliveryId}")
     public ResponseEntity<DeliveryResponse> getDelivery(@PathVariable Long deliveryId) {
         Delivery delivery = deliveryService.findDeliveryById(deliveryId);

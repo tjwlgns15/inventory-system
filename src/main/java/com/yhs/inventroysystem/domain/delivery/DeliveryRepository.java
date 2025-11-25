@@ -20,14 +20,16 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
             "JOIN FETCH d.client c " +
             "LEFT JOIN FETCH d.items i " +
             "LEFT JOIN FETCH i.product " +
-            "WHERE d.id = :deliveryId")
+            "WHERE d.id = :deliveryId " +
+            "AND d.deletedAt IS NULL")
     Optional<Delivery> findByIdWithItems(@Param("deliveryId") Long deliveryId);
 
     @Query("SELECT d FROM Delivery d " +
             "JOIN FETCH d.client " +
             "JOIN FETCH d.items di " +
             "JOIN FETCH di.product " +
-            "WHERE d.id = :deliveryId")
+            "WHERE d.id = :deliveryId " +
+            "AND d.deletedAt IS NULL")
     Optional<Delivery> findById(@Param("deliveryId") Long deliveryId);
 
     /**
@@ -35,18 +37,22 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
      * items는 @BatchSize로 N+1 문제 해결
      */
     @Query(value = "SELECT DISTINCT d FROM Delivery d " +
-            "JOIN FETCH d.client c",
-            countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d")
+            "JOIN FETCH d.client c " +
+            "WHERE d.deletedAt IS NULL",
+            countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d " +
+                    "WHERE d.deletedAt IS NULL")
     Page<Delivery> findAllPaged(Pageable pageable);
 
     @Query(value = "SELECT DISTINCT d FROM Delivery d " +
             "JOIN FETCH d.client c " +
-            "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))",
+            "WHERE d.deletedAt IS NULL " +
+            "AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%')))",
             countQuery = "SELECT COUNT(DISTINCT d) FROM Delivery d " +
                     "JOIN d.client c " +
-                    "WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-                    "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+                    "WHERE d.deletedAt IS NULL " +
+                    "AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                    "OR LOWER(d.deliveryNumber) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Delivery> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Query("""
@@ -55,7 +61,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
         JOIN FETCH d.items di 
         JOIN FETCH di.product p
         JOIN FETCH d.client c
-        WHERE d.status = 'COMPLETED' 
+        WHERE d.deletedAt IS NULL
+        AND d.status = 'COMPLETED' 
         AND d.deliveredAt BETWEEN :startDate AND :endDate
         ORDER BY d.deliveredAt
     """)
@@ -70,7 +77,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     JOIN FETCH d.items di 
     JOIN FETCH di.product p
     JOIN FETCH d.client c
-    WHERE d.status = 'COMPLETED' 
+    WHERE d.deletedAt IS NULL
+    AND d.status = 'COMPLETED' 
     AND d.deliveredAt BETWEEN :startDate AND :endDate
     ORDER BY d.deliveredAt
     """)
@@ -86,7 +94,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
         LEFT JOIN FETCH c.parentClient 
         JOIN FETCH d.items di 
         JOIN FETCH di.product p 
-        WHERE d.status = 'COMPLETED' 
+        WHERE d.deletedAt IS NULL
+        AND d.status = 'COMPLETED' 
         AND YEAR(d.deliveredAt) = :year 
         ORDER BY c.name, d.deliveredAt
     """)
@@ -95,7 +104,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     @Query("""
         SELECT CAST(SUBSTRING(d.deliveryNumber, 15, 3) AS integer)
         FROM Delivery d
-        WHERE d.deliveryNumber LIKE CONCAT('SOLM-PO-', :yearMonth, '%')
+        WHERE d.deletedAt IS NULL
+        AND d.deliveryNumber LIKE CONCAT('SOLM-PO-', :yearMonth, '%')
         ORDER BY d.deliveryNumber DESC
         LIMIT 1
     """)
@@ -106,7 +116,8 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
 
     @Query("SELECT d FROM Delivery d " +
             "JOIN FETCH d.client " +
-            "WHERE d.deliveryNumber = :deliveryNumber")
+            "WHERE d.deletedAt IS NULL " +
+            "AND d.deliveryNumber = :deliveryNumber")
     Optional<Delivery> findByDeliveryNumber(@Param("deliveryNumber") String deliveryNumber);
 
     @Query(value = """
@@ -117,8 +128,9 @@ public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
         )
     )
     FROM deliveries
-    WHERE delivery_number LIKE CONCAT('SOLM-PO-', :year, '-%')
-      AND SUBSTRING_INDEX(delivery_number, '-', -1) REGEXP '^[0-9]+$'
+    WHERE deleted_at IS NULL
+    AND delivery_number LIKE CONCAT('SOLM-PO-', :year, '-%')
+    AND SUBSTRING_INDEX(delivery_number, '-', -1) REGEXP '^[0-9]+$'
     """, nativeQuery = true)
     Integer findLastSequenceByYear(@Param("year") String year);
 
