@@ -37,7 +37,7 @@ public class ProductCommands {
             String description,
             List<PartMappingInfo> partMappings
     ) {}
-    public record StockQuantityUpdateCommand(
+    public record ProductStockUpdateCommand(
             Integer adjustmentQuantity,
             String note
     ) {}

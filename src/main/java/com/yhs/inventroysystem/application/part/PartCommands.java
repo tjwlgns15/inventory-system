@@ -24,4 +24,9 @@ public class PartCommands {
             String unit,
             MultipartFile imageFile
     ) {}
+
+    public record PartStockUpdateCommand(
+            Integer adjustmentQuantity,
+            String note
+    ) {}
 }

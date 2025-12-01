@@ -40,7 +40,9 @@ public class ProductStockTransaction {
 
 
     // 팩토리 메서드
-    public static ProductStockTransaction create(Product product, ProductTransactionType type, int beforeStock, int changeQuantity, int afterStock) {
+    public static ProductStockTransaction create(Product product, ProductTransactionType type,
+                                                 int beforeStock, int changeQuantity,
+                                                 int afterStock) {
         validatePart(product);
         validateType(type);
         validateStockValues(beforeStock, changeQuantity, afterStock);

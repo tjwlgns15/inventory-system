@@ -202,7 +202,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Product adjustProductStock(Long productId, StockQuantityUpdateCommand command) {
+    public Product adjustProductStock(Long productId, ProductStockUpdateCommand command) {
         Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
                 .orElseThrow(() -> ResourceNotFoundException.product(productId));
 

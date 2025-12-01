@@ -21,7 +21,8 @@ public class ProductStockTransactionService {
 
 
     @Transactional
-    public void recordTransaction(Product product, ProductTransactionType type, int beforeStock, int changeQuantity) {
+    public void recordTransaction(Product product, ProductTransactionType type,
+                                  int beforeStock, int changeQuantity) {
         int afterStock = product.getStockQuantity();
 
         ProductStockTransaction transaction = ProductStockTransaction.create(

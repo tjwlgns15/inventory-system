@@ -35,15 +35,9 @@ public class PartStockTransaction {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column
+    private String note = null;
 
-    // 팩토리 메서드
-    public static PartStockTransaction create(Part part, TransactionType type, int beforeStock, int changeQuantity, int afterStock) {
-        validatePart(part);
-        validateType(type);
-        validateStockValues(beforeStock, changeQuantity, afterStock);
-
-        return new PartStockTransaction(part, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
-    }
 
     public PartStockTransaction(Part part, TransactionType type, int beforeStock, int changeQuantity, int afterStock, LocalDateTime createdAt) {
         this.part = part;
@@ -52,6 +46,29 @@ public class PartStockTransaction {
         this.changeQuantity = changeQuantity;
         this.afterStock = afterStock;
         this.createdAt = createdAt;
+    }
+
+    // 팩토리 메서드
+    public static PartStockTransaction create(Part part, TransactionType type,
+                                              int beforeStock, int changeQuantity,
+                                              int afterStock) {
+        validatePart(part);
+        validateType(type);
+        validateStockValues(beforeStock, changeQuantity, afterStock);
+
+        return new PartStockTransaction(part, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
+    }
+
+    public static PartStockTransaction createWithNote(Part part, TransactionType type,
+                                                      int beforeStock, int changeQuantity,
+                                                      int afterStock, String note) {
+        validatePart(part);
+        validateType(type);
+        validateStockValues(beforeStock, changeQuantity, afterStock);
+
+        PartStockTransaction transaction = new PartStockTransaction(part, type, beforeStock, changeQuantity, afterStock, LocalDateTime.now());
+        transaction.note = note;
+        return transaction;
     }
 
     // 검증 메서드

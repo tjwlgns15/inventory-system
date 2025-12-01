@@ -226,12 +226,12 @@ public class ProductRestController {
             @PathVariable Long productId,
             @Valid @RequestBody StockQuantityUpdateRequest request) {
 
-        StockQuantityUpdateCommand stockQuantityUpdateCommand = new StockQuantityUpdateCommand(
+        ProductStockUpdateCommand productStockUpdateCommand = new ProductStockUpdateCommand(
                 request.adjustmentQuantity(),
                 request.note()
         );
 
-        Product product = productService.adjustProductStock(productId, stockQuantityUpdateCommand);
+        Product product = productService.adjustProductStock(productId, productStockUpdateCommand);
         return ResponseEntity.ok(ProductResponse.from(product));
     }
     /**

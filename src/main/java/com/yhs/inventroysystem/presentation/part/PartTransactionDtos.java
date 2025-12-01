@@ -17,7 +17,8 @@ public class PartTransactionDtos {
             Integer beforeStock,
             Integer changeQuantity,
             Integer afterStock,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            String note
     ) {
         public static PartTransactionResponse from(PartStockTransaction transaction) {
             return new PartTransactionResponse(
@@ -30,7 +31,8 @@ public class PartTransactionDtos {
                     transaction.getBeforeStock(),
                     transaction.getChangeQuantity(),
                     transaction.getAfterStock(),
-                    transaction.getCreatedAt()
+                    transaction.getCreatedAt(),
+                    transaction.getNote()
             );
         }
     }

@@ -1,5 +1,7 @@
 package com.yhs.inventroysystem.presentation.part;
 
+import com.yhs.inventroysystem.application.part.PartCommands;
+import com.yhs.inventroysystem.application.part.PartCommands.PartStockUpdateCommand;
 import com.yhs.inventroysystem.application.part.PartService;
 import com.yhs.inventroysystem.domain.part.Part;
 import com.yhs.inventroysystem.domain.part.PartStockTransaction;
@@ -112,6 +114,20 @@ public class PartRestController {
         );
 
         Part part = partService.updatePart(partId, command);
+        return ResponseEntity.ok(PartResponse.from(part));
+    }
+
+    @PostMapping("/{partId}/adjust-stock")
+    public ResponseEntity<PartResponse> adjustPartStock(
+            @PathVariable Long partId,
+            @Valid @RequestBody StockQuantityUpdateRequest request) {
+
+        PartStockUpdateCommand command = new PartStockUpdateCommand(
+                request.adjustmentQuantity(),
+                request.note()
+        );
+
+        Part part = partService.adjustPartStock(partId, command);
         return ResponseEntity.ok(PartResponse.from(part));
     }
 

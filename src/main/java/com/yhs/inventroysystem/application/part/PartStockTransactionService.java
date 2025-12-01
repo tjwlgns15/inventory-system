@@ -20,7 +20,8 @@ public class PartStockTransactionService {
     private final PartStockTransactionRepository partStockTransactionRepository;
 
     @Transactional
-    public void recordTransaction(Part part, TransactionType type, int beforeStock, int changeQuantity) {
+    public void recordTransaction(Part part, TransactionType type,
+                                  int beforeStock, int changeQuantity) {
         int afterStock = part.getStockQuantity();
 
         PartStockTransaction transaction = PartStockTransaction.create(
@@ -40,5 +41,17 @@ public class PartStockTransactionService {
 
     public List<PartStockTransaction> findAll() {
         return partStockTransactionRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Transactional
+    public void recordTransactionWithNote(Part part, TransactionType type,
+                                          int beforeStock, int changeQuantity, String note) {
+        int afterStock = beforeStock + changeQuantity;
+
+        PartStockTransaction transaction = PartStockTransaction.createWithNote(
+                part, type, beforeStock, changeQuantity, afterStock, note
+        );
+
+        partStockTransactionRepository.save(transaction);
     }
 }

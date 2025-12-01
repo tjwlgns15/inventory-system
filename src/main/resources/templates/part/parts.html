@@ -775,12 +775,13 @@
                     <thead>
                         <tr>
                             <th style="width: 6%;">이미지</th>
-                            <th style="width: 12%;">부품 코드</th>
-                            <th style="width: 14%;">부품명</th>
-                            <th style="width: 16%;">규격</th>
-                            <th style="width: 12%;">재고 수량</th>
-                            <th style="width: 8%;">단위</th>
-                            <th style="width: 16%;">입/출고</th>
+                            <th style="width: 11%;">부품 코드</th>
+                            <th style="width: 12%;">부품명</th>
+                            <th style="width: 14%;">규격</th>
+                            <th style="width: 10%;">재고 수량</th>
+                            <th style="width: 7%;">단위</th>
+                            <th style="width: 10%;">재고 조정</th>
+                            <th style="width: 14%;">입/출고</th>
                             <th style="width: 16%;">작업</th>
                         </tr>
                     </thead>
@@ -950,6 +951,57 @@
     </div>
 </div>
 
+<div id="stockAdjustmentModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeStockAdjustmentModal()">×</span>
+        <h2 class="modal-header">재고 조정</h2>
+        <form id="stockAdjustmentForm" onsubmit="adjustPartStock(event)">
+            <input type="hidden" id="adjustmentPartId">
+
+            <div class="form-group">
+                <label class="form-label">부품명</label>
+                <input type="text" id="adjustmentPartName" class="form-input" readonly style="background-color: #f8f9fa;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">현재 재고</label>
+                <input type="number" id="adjustmentCurrentStock" class="form-input" readonly style="background-color: #f8f9fa;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="adjustmentQuantity">조정 수량 *</label>
+                <input type="number"
+                       id="adjustmentQuantity"
+                       class="form-input"
+                       placeholder="증가: 양수, 감소: 음수"
+                       oninput="calculateAdjustedStock()"
+                       required>
+                <small style="color: #6b7280; display: block; margin-top: 6px;">
+                    양수(+)를 입력하면 재고 증가, 음수(-)를 입력하면 재고 감소
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">조정 후 재고</label>
+                <input type="number" id="adjustmentAfterStock" class="form-input" readonly style="background-color: #f8f9fa; font-weight: 600;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="adjustmentNote">비고</label>
+                <textarea id="adjustmentNote"
+                          class="form-input"
+                          rows="3"
+                          placeholder="재고 조정 사유를 입력하세요 (선택사항)"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStockAdjustmentModal()">취소</button>
+                <button type="submit" class="btn btn-primary"><span>조정</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div id="deleteModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeDeleteModal()">&times;</span>
@@ -1105,6 +1157,15 @@
                     </span>
                 </td>
                 <td>${escapeHtml(part.unit)}</td>
+
+                <td>
+                    <button class="btn btn-info"
+                    onclick="openStockAdjustmentModal(${part.id}, '${escapeHtml(part.name)}', ${part.stockQuantity})"
+                    style="padding: 8px 12px; font-size: 0.8125rem;">
+                        조정
+                    </button>
+                </td>
+
                 <td>
                     <div class="action-buttons">
                         <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
@@ -1570,6 +1631,101 @@
         }, 3000);
     }
 
+    // 재고 조정 모달 열기
+    function openStockAdjustmentModal(partId, partName, currentStock) {
+        document.getElementById('adjustmentPartId').value = partId;
+        document.getElementById('adjustmentPartName').value = partName;
+        document.getElementById('adjustmentCurrentStock').value = currentStock;
+        document.getElementById('adjustmentQuantity').value = '';
+        document.getElementById('adjustmentAfterStock').value = currentStock;
+        document.getElementById('adjustmentNote').value = '';
+
+// 스타일 초기화
+        const afterStockInput = document.getElementById('adjustmentAfterStock');
+        afterStockInput.style.color = '';
+        afterStockInput.style.fontWeight = '';
+
+        document.getElementById('stockAdjustmentModal').style.display = 'block';
+    }
+
+    // 재고 조정 모달 닫기
+    function closeStockAdjustmentModal() {
+        document.getElementById('stockAdjustmentModal').style.display = 'none';
+    }
+
+    // 조정 후 재고 계산
+    function calculateAdjustedStock() {
+        const
+            currentStock = parseInt(document.getElementById('adjustmentCurrentStock').value) || 0;
+        const adjustmentQuantity = parseInt(document.getElementById('adjustmentQuantity').value) || 0;
+        const afterStock = currentStock + adjustmentQuantity;
+
+        const afterStockInput = document.getElementById('adjustmentAfterStock');
+        afterStockInput.value = afterStock;
+
+// 음수가 되면 경고 표시
+        if (afterStock < 0) {
+            afterStockInput.style.color = 'red';
+            afterStockInput.style.fontWeight = 'bold';
+        } else {
+            afterStockInput.style.color = '';
+            afterStockInput.style.fontWeight = '';
+        }
+    }
+
+    // 재고 조정 실행
+    async function adjustPartStock(event) {
+        event.preventDefault();
+
+        const partId = document.getElementById('adjustmentPartId').value;
+        const adjustmentQuantity = parseInt(document.getElementById('adjustmentQuantity').value);
+        const note = document.getElementById('adjustmentNote').value.trim();
+        const afterStock = parseInt(document.getElementById('adjustmentAfterStock').value);
+
+// 음수 재고 검증
+        if (afterStock < 0) {
+            showNotification('조정 후 재고가 0보다 작을 수 없습니다', 'error');
+            return;
+        }
+
+// 조정 수량이 0인 경우
+        if (adjustmentQuantity === 0) {
+            showNotification('조정 수량을 입력해주세요', 'error');
+            return;
+        }
+
+        const requestData = {
+            adjustmentQuantity: adjustmentQuantity,
+            note: note || null
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${partId}/adjust-stock`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '재고 조정에 실패했습니다');
+            }
+
+            const message = adjustmentQuantity > 0
+                ? `재고가 ${adjustmentQuantity}개 증가했습니다`
+                : `재고가 ${Math.abs(adjustmentQuantity)}개 감소했습니다`;
+
+            showNotification(message, 'success');
+            closeStockAdjustmentModal();
+            await loadParts();
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
     // ESC 키로 모달 닫기
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
@@ -1578,6 +1734,7 @@
             const stockModal = document.getElementById('stockModal');
             const updateModal = document.getElementById('updateModal');
             const deleteModal = document.getElementById('deleteModal');
+            const stockAdjustmentModal = document.getElementById('stockAdjustmentModal');
 
             if (registerModal.style.display === 'block') {
                 closeRegisterModal();
@@ -1587,6 +1744,8 @@
                 closeUpdateModal();
             } else if (deleteModal.style.display === 'block') {
                 closeDeleteModal();
+            } else if (stockAdjustmentModal && stockAdjustmentModal.style.display === 'block') {
+                closeStockAdjustmentModal();
             }
         }
     });

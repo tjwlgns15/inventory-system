@@ -91,4 +91,11 @@ public class PartDtos {
             Integer stockQuantity,
             String unit
     ) {}
+
+    public record StockQuantityUpdateRequest(
+            @NotNull(message = "재고 수량은 필수입니다")
+            Integer adjustmentQuantity,
+
+            String note
+    ) {}
 }

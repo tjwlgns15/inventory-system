@@ -1,6 +1,7 @@
 package com.yhs.inventroysystem.application.part;
 
 
+import com.yhs.inventroysystem.application.part.PartCommands.PartStockUpdateCommand;
 import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
 import com.yhs.inventroysystem.domain.exception.PartInUseException;
 import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
@@ -25,6 +26,7 @@ import java.util.List;
 
 import static com.yhs.inventroysystem.application.part.PartCommands.PartRegisterCommand;
 import static com.yhs.inventroysystem.application.part.PartCommands.PartUpdateCommand;
+import static com.yhs.inventroysystem.domain.part.TransactionType.ADJUSTMENT;
 
 @Service
 @Transactional(readOnly = true)
@@ -128,13 +130,37 @@ public class PartService {
             int changeQuantity = afterStock - beforeStock;
             partStockTransactionService.recordTransaction(
                     part,
-                    TransactionType.ADJUSTMENT,
+                    ADJUSTMENT,
                     beforeStock,
                     changeQuantity
             );
         }
 
         return partRepository.save(part);
+    }
+
+    @Transactional
+    public Part adjustPartStock(Long partId, PartStockUpdateCommand command) {
+        Part part = findPartById(partId);
+
+        Integer beforeStock = part.getStockQuantity();
+        int afterStock = beforeStock + command.adjustmentQuantity();
+
+        if (afterStock < 0) {
+            throw new IllegalArgumentException("조정 후 재고가 0보다 작을 수 없습니다. (현재: " + beforeStock + ", 조정: " + command.adjustmentQuantity() + ")");
+        }
+
+        part.updateStockQuantity(afterStock);
+
+        partStockTransactionService.recordTransactionWithNote(
+                part,
+                ADJUSTMENT,
+                beforeStock,
+                command.adjustmentQuantity(),
+                command.note()
+        );
+
+        return part;
     }
 
     @Transactional
