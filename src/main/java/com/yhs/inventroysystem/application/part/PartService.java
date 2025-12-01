@@ -4,14 +4,17 @@ package com.yhs.inventroysystem.application.part;
 import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
 import com.yhs.inventroysystem.domain.exception.PartInUseException;
 import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.part.*;
+import com.yhs.inventroysystem.domain.part.Part;
+import com.yhs.inventroysystem.domain.part.PartRepository;
+import com.yhs.inventroysystem.domain.part.PartStockTransaction;
+import com.yhs.inventroysystem.domain.part.TransactionType;
 import com.yhs.inventroysystem.domain.product.ProductPartRepository;
-import com.yhs.inventroysystem.domain.product.ProductTransactionType;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
+import com.yhs.inventroysystem.infrastructure.file.FileUploadResult;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -20,19 +23,29 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.yhs.inventroysystem.application.part.PartCommands.*;
+import static com.yhs.inventroysystem.application.part.PartCommands.PartRegisterCommand;
+import static com.yhs.inventroysystem.application.part.PartCommands.PartUpdateCommand;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PartService {
 
     private final PartRepository partRepository;
     private final ProductPartRepository productPartRepository;
-
     private final PartStockTransactionService partStockTransactionService;
-
     private final FileStorageService fileStorageService;
+
+    public PartService(
+            PartRepository partRepository,
+            ProductPartRepository productPartRepository,
+            PartStockTransactionService partStockTransactionService,
+            FileStorageFactory fileStorageFactory) {
+        this.partRepository = partRepository;
+        this.productPartRepository = productPartRepository;
+        this.partStockTransactionService = partStockTransactionService;
+        this.fileStorageService = fileStorageFactory.getStorageService(FileStorageType.PART_IMAGE);
+    }
+
 
     @Transactional
     public Part registerPart(PartRegisterCommand command) {
@@ -49,13 +62,20 @@ public class PartService {
         // 이미지 파일이 있으면 저장
         MultipartFile imageFile = command.imageFile();
         if (imageFile != null && !imageFile.isEmpty()) {
-            String storedFileName = fileStorageService.storeFile(imageFile);
-            part.updateImage(storedFileName, imageFile.getOriginalFilename());
+            FileUploadResult result = fileStorageService.store(
+                    imageFile,
+                    FileStorageType.PART_IMAGE.getDirectory());
+            part.updateImage(result.getFilePath(), result.getOriginalFileName());
         }
 
         Part savedPart = partRepository.save(part);
 
-        partStockTransactionService.recordTransaction(savedPart, TransactionType.INITIAL, 0, command.initialStock());
+        partStockTransactionService.recordTransaction(
+                savedPart,
+                TransactionType.INITIAL,
+                0,
+                command.initialStock()
+        );
 
         return savedPart;
     }
@@ -92,17 +112,20 @@ public class PartService {
         if (imageFile != null && !imageFile.isEmpty()) {
             // 기존 이미지 삭제
             if (part.getImagePath() != null) {
-                fileStorageService.deleteFile(part.getImagePath());
+                fileStorageService.delete(part.getImagePath());
             }
 
             // 새 이미지 저장
-            String storedFileName = fileStorageService.storeFile(imageFile);
-            part.updateImage(storedFileName, imageFile.getOriginalFilename());
+            FileUploadResult result = fileStorageService.store(
+                    imageFile,
+                    FileStorageType.PART_IMAGE.getDirectory()
+            );
+            part.updateImage(result.getFilePath(), result.getOriginalFileName());
         }
 
         Integer afterStock = part.getStockQuantity();
         if (!beforeStock.equals(afterStock)) {
-            Integer changeQuantity = afterStock - beforeStock;
+            int changeQuantity = afterStock - beforeStock;
             partStockTransactionService.recordTransaction(
                     part,
                     TransactionType.ADJUSTMENT,
@@ -119,7 +142,7 @@ public class PartService {
         Part part = findPartById(partId);
 
         if (part.getImagePath() != null) {
-            fileStorageService.deleteFile(part.getImagePath());
+            fileStorageService.delete(part.getImagePath());
             part.removeImage();
         }
     }
@@ -157,7 +180,7 @@ public class PartService {
 
         // 이미지 파일 삭제
         if (part.getImagePath() != null) {
-            fileStorageService.deleteFile(part.getImagePath());
+            fileStorageService.delete(part.getImagePath());
         }
 
         part.markAsDeleted();

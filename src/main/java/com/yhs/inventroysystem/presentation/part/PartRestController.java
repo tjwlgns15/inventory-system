@@ -1,15 +1,15 @@
 package com.yhs.inventroysystem.presentation.part;
 
-import com.yhs.inventroysystem.domain.part.Part;
 import com.yhs.inventroysystem.application.part.PartService;
+import com.yhs.inventroysystem.domain.part.Part;
 import com.yhs.inventroysystem.domain.part.PartStockTransaction;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.presentation.part.PartDtos.*;
 import com.yhs.inventroysystem.presentation.part.PartTransactionDtos.PartTransactionResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,13 +18,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 
-import static com.yhs.inventroysystem.application.part.PartCommands.*;
+import static com.yhs.inventroysystem.application.part.PartCommands.PartRegisterCommand;
+import static com.yhs.inventroysystem.application.part.PartCommands.PartUpdateCommand;
 
 @RestController
 @RequestMapping("/api/parts")
@@ -130,26 +129,22 @@ public class PartRestController {
             return ResponseEntity.notFound().build();
         }
 
-        try {
-            Path filePath = fileStorageService.getFilePath(part.getImagePath());
-            Resource resource = new UrlResource(filePath.toUri());
+        // 파일 데이터 로드
+        byte[] imageData = fileStorageService.load(part.getImagePath());
+        ByteArrayResource resource = new ByteArrayResource(imageData);
 
-            if (resource.exists() && resource.isReadable()) {
-                // 한글 파일명을 URL 인코딩
-                String encodedFileName = URLEncoder.encode(part.getOriginalImageName(), StandardCharsets.UTF_8)
-                        .replaceAll("\\+", "%20"); // 공백을 %20으로 변환
+        // 한글 파일명을 URL 인코딩
+        String encodedFileName = URLEncoder.encode(
+                part.getOriginalImageName(),
+                StandardCharsets.UTF_8
+        ).replaceAll("\\+", "%20");
 
-                return ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG)
-                        .header(HttpHeaders.CONTENT_DISPOSITION,
-                                "inline; filename*=UTF-8''" + encodedFileName)
-                        .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (MalformedURLException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename*=UTF-8''" + encodedFileName)
+                .contentLength(imageData.length)
+                .body(resource);
     }
 
     @PatchMapping("/{partId}/stock/increase")

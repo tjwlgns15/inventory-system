@@ -27,6 +27,10 @@ public class ResourceNotFoundException extends BusinessException {
         return new ResourceNotFoundException("납품을 찾을 수 없습니다. ID: " + deliveryId);
     }
 
+    public static ResourceNotFoundException document(Long documentId) {
+        return new ResourceNotFoundException("해당 문서를 찾을 수 없습니다. ID: " + documentId);
+    }
+
     public static ResourceNotFoundException user(Long userId) {
         return new ResourceNotFoundException("사용자를 찾을 수 없습니다. ID: " + userId);
     }

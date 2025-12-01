@@ -83,6 +83,10 @@ public class Delivery extends BaseTimeEntity {
     @JoinColumn(name = "shipment_task_id")
     private Task shipmentTask;
 
+    @OneToMany(mappedBy = "delivery", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
+    private List<DeliveryDocument> documents = new ArrayList<>();
+
     public Delivery(String deliveryNumber, Client client, LocalDate orderedAt, LocalDate requestedAt) {
         this.deliveryNumber = deliveryNumber;
         this.client = client;

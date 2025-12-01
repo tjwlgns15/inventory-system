@@ -380,11 +380,13 @@
             padding: 36px;
             border-radius: 24px;
             width: 90%;
-            max-width: 1000px;
+            max-width: 1400px;
             max-height: 90vh;
             overflow: hidden;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
             animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
         }
 
         #createForm {
@@ -595,10 +597,19 @@
 
         .detail-form-container {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 300px 1fr 350px;
             gap: 30px;
-            max-height: calc(85vh - 200px);
-            margin-bottom: 14px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #detailContent {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
         }
 
         /* 좌측 컬럼 - 기본 정보 */
@@ -608,12 +619,290 @@
             overflow-y: auto;
         }
 
-        /* 우측 컬럼 - 납품 항목 테이블 */
+        /* 중앙 컬럼 - 납품 항목 테이블 */
         .detail-right-column {
             display: flex;
             flex-direction: column;
             min-height: 0;
             overflow: hidden;
+        }
+
+        /* 우측 컬럼 - 문서 관리 */
+        .detail-documents-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* 문서 관리 스타일 */
+        .documents-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            flex: 1;
+        }
+
+        .documents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+
+        .documents-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #374151;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .documents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .document-item {
+            background: white;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .document-item:last-child {
+            border-bottom: none;
+        }
+
+        .document-item:hover {
+            background: rgba(102, 126, 234, 0.03);
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .document-filename {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            word-break: break-word;
+            flex: 1;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .document-filename::before {
+            content: '📄';
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            background: rgba(0, 0, 0, 0.04);
+            border: none;
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .btn-icon:hover {
+            background: rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-download {
+            color: #667eea;
+        }
+
+        .btn-download:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-delete-doc {
+            color: #ef4444;
+        }
+
+        .btn-delete-doc:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .document-description {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-bottom: 6px;
+            line-height: 1.4;
+            padding-left: 22px;
+        }
+
+        .document-info {
+            display: flex;
+            gap: 12px;
+            font-size: 0.7rem;
+            color: #9ca3af;
+            padding-left: 22px;
+        }
+
+        .document-info span::before {
+            margin-right: 4px;
+        }
+
+        .document-info span:first-child::before {
+            content: '💾';
+        }
+
+        .document-info span:last-child::before {
+            content: '📅';
+        }
+
+        .no-documents {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .no-documents::before {
+            content: '📁';
+            display: block;
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .upload-area {
+            display: none;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+        }
+
+        .upload-area.active {
+            display: block;
+        }
+
+        .upload-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .upload-input-group input[type="file"] {
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        .upload-input-group input[type="file"]::file-selector-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            margin-right: 10px;
+        }
+
+        .upload-input-group textarea {
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            resize: vertical;
+            min-height: 60px;
+            font-family: 'notosanskr', sans-serif;
+            background: white;
+        }
+
+        .upload-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-small.btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+        }
+
+        .btn-small.btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-small.btn-secondary {
+            background: white;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-small.btn-secondary:hover {
+            background: #f9fafb;
         }
 
         /* 납품 항목 테이블 래퍼 - 스크롤 적용 */
@@ -772,6 +1061,8 @@
         .delivery-delete {
             display: flex;
             justify-content: flex-end;
+            flex-shrink: 0;
+            margin-top: 14px;
         }
 
         /* 체크박스 방식 아이템 스타일 */
@@ -943,8 +1234,21 @@
                 gap: 20px;
             }
 
-            .detail-right-column {
+            .detail-right-column,
+            .detail-documents-column {
                 min-height: 300px;
+            }
+
+            .modal-content {
+                max-width: 95%;
+                width: 95%;
+            }
+        }
+
+        @media (min-width: 1025px) and (max-width: 1400px) {
+            .detail-form-container {
+                grid-template-columns: 280px 1fr 320px;
+                gap: 20px;
             }
         }
 
@@ -1476,6 +1780,7 @@
     let memoTargetId = null;
     let originalProducts = [];
     let checkedStates = new Map();
+    let currentDeliveryId = null;
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -2228,9 +2533,9 @@
                             <p><strong>통화:</strong> ${delivery.currencySymbol || ''} ${delivery.currency || '-'}</p>
                             ${delivery.exchangeRate ? `<p><strong>환율:</strong> ${formatNumber(delivery.exchangeRate)}</p>` : ''}
                             ${delivery.subtotalAmount !== delivery.totalAmount ?
-                    `<p><strong>소계:</strong> ${formatPrice(delivery.subtotalAmount, delivery.currency)}</p>` : ''}
+                `<p><strong>소계:</strong> ${formatPrice(delivery.subtotalAmount, delivery.currency)}</p>` : ''}
                             ${delivery.totalDiscountAmount ?
-                    `<p><strong>전체 할인:</strong> -${formatPrice(delivery.totalDiscountAmount, delivery.currency)}
+                `<p><strong>전체 할인:</strong> -${formatPrice(delivery.totalDiscountAmount, delivery.currency)}
                                 ${delivery.discountNote ? ` (${escapeHtml(delivery.discountNote)})` : ''}</p>` : ''}
                             <p><strong>최종 금액:</strong> ${formatPrice(delivery.totalAmount, delivery.currency)}</p>
                             ${delivery.totalAmountKRW ? `<p><strong>원화 환산 금액:</strong> ₩${formatNumber(delivery.totalAmountKRW)}</p>` : ''}
@@ -2272,6 +2577,32 @@
                             </table>
                         </div>
                     </div>
+
+                    <div class="detail-documents-column">
+                        <div class="documents-section">
+                            <div class="documents-header">
+                                <h3 class="documents-title">관련 문서</h3>
+                                <button class="btn-upload" onclick="toggleUploadArea()">
+                                    + 업로드
+                                </button>
+                            </div>
+
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-input-group">
+                                    <input type="file" id="documentFile" accept="*/*">
+                                    <textarea id="documentDescription" placeholder="문서 설명 (선택사항, 최대 500자)" maxlength="500"></textarea>
+                                    <div class="upload-buttons">
+                                        <button class="btn-small btn-secondary" onclick="cancelUpload()">취소</button>
+                                        <button class="btn-small btn-primary" onclick="uploadDocument()">업로드</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="documents-list" id="documentsList">
+                                <div class="no-documents">문서가 없습니다</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 ${delivery.status === 'COMPLETED' ? `
                     <div class="delivery-delete">
@@ -2281,6 +2612,10 @@
             `;
 
             document.getElementById('detailModal').style.display = 'block';
+
+            // 현재 수주 ID 저장 및 문서 목록 로드
+            currentDeliveryId = deliveryId;
+            await loadDocuments(deliveryId);
         } catch (error) {
             console.error('Error:', error);
             showNotification('수주 상세 정보를 불러오는데 실패했습니다', 'error');
@@ -2289,6 +2624,178 @@
 
     function closeDetailModal() {
         document.getElementById('detailModal').style.display = 'none';
+        currentDeliveryId = null;
+
+        // 업로드 영역 초기화
+        const uploadArea = document.getElementById('uploadArea');
+        if (uploadArea) {
+            uploadArea.classList.remove('active');
+        }
+    }
+
+    // 문서 관리 함수들
+    function toggleUploadArea() {
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.classList.toggle('active');
+
+        if (!uploadArea.classList.contains('active')) {
+            document.getElementById('documentFile').value = '';
+            document.getElementById('documentDescription').value = '';
+        }
+    }
+
+    function cancelUpload() {
+        document.getElementById('documentFile').value = '';
+        document.getElementById('documentDescription').value = '';
+        document.getElementById('uploadArea').classList.remove('active');
+    }
+
+    async function uploadDocument() {
+        const fileInput = document.getElementById('documentFile');
+        const description = document.getElementById('documentDescription').value;
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showNotification('파일을 선택해주세요', 'error');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        if (description) {
+            formData.append('description', description);
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${currentDeliveryId}/documents`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '문서 업로드에 실패했습니다');
+            }
+
+            showNotification('문서가 업로드되었습니다', 'success');
+            cancelUpload();
+            await loadDocuments(currentDeliveryId);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    async function loadDocuments(deliveryId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${deliveryId}/documents`);
+            if (!response.ok) throw new Error('문서 목록을 불러오는데 실패했습니다');
+
+            const data = await response.json();
+            const documents = data.documents;
+            const documentsList = document.getElementById('documentsList');
+
+            if (!documents || documents.length === 0) {
+                documentsList.innerHTML = '<div class="no-documents">문서가 없습니다</div>';
+                return;
+            }
+
+            documentsList.innerHTML = documents.map(doc => `
+                <div class="document-item">
+                    <div class="document-header">
+                        <div class="document-filename">${escapeHtml(doc.originalFileName)}</div>
+                        <div class="document-actions">
+                            <button class="btn-icon btn-download" onclick="downloadDocument(${doc.id})" title="다운로드">
+                                다운로드
+                            </button>
+                            <button class="btn-icon btn-delete-doc" onclick="confirmDeleteDocument(${doc.id})" title="삭제">
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                    ${doc.description ? `<div class="document-description">${escapeHtml(doc.description)}</div>` : ''}
+                    <div class="document-info">
+                        <span>${formatFileSize(doc.fileSize)}</span>
+                        <span>${formatDateTime(doc.createdAt)}</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('문서 목록을 불러오는데 실패했습니다', 'error');
+        }
+    }
+
+    async function downloadDocument(documentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${currentDeliveryId}/documents/${documentId}/download`);
+            if (!response.ok) throw new Error('문서 다운로드에 실패했습니다');
+
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'document';
+
+            if (contentDisposition) {
+                // filename*=UTF-8''%EC%B2... 형태 우선 파싱
+                const filenameStarMatch = contentDisposition.match(/filename\*\=UTF-8''([^;]+)/);
+                if (filenameStarMatch) {
+                    filename = decodeURIComponent(filenameStarMatch[1]);
+                } else {
+                    // fallback: filename="..."
+                    const filenameMatch = contentDisposition.match(/filename=\"([^"]+)\"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showNotification('문서가 다운로드되었습니다', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function confirmDeleteDocument(documentId) {
+        if (confirm('이 문서를 삭제하시겠습니까?')) {
+            deleteDocument(documentId);
+        }
+    }
+
+    async function deleteDocument(documentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${currentDeliveryId}/documents/${documentId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '문서 삭제에 실패했습니다');
+            }
+
+            showNotification('문서가 삭제되었습니다', 'success');
+            await loadDocuments(currentDeliveryId);
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification(error.message, 'error');
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (!bytes) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
     }
 
     function openMemoModalFromButton(button) {
