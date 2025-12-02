@@ -140,25 +140,26 @@
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: white;
             padding: 8px 16px;
         }
 
         .btn-warning:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.3);
         }
 
         .btn-info {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
+            background: white;
+            color: #667eea;
             padding: 8px 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-
         .btn-info:hover {
+            background: #f8f9ff;
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
         }
 
         .content-card {
@@ -774,15 +775,15 @@
                 <table id="partsTable">
                     <thead>
                         <tr>
-                            <th style="width: 6%;">이미지</th>
+                            <th style="width: 7%;">이미지</th>
                             <th style="width: 11%;">부품 코드</th>
-                            <th style="width: 12%;">부품명</th>
-                            <th style="width: 14%;">규격</th>
+                            <th style="width: 14%;">부품명</th>
+                            <th style="width: 16%;">규격</th>
                             <th style="width: 10%;">재고 수량</th>
-                            <th style="width: 7%;">단위</th>
+                            <th style="width: 6%;">단위</th>
                             <th style="width: 10%;">재고 조정</th>
                             <th style="width: 14%;">입/출고</th>
-                            <th style="width: 16%;">작업</th>
+                            <th style="width: 12%;">작업</th>
                         </tr>
                     </thead>
                     <tbody id="partsTableBody">
@@ -1159,23 +1160,22 @@
                 <td>${escapeHtml(part.unit)}</td>
 
                 <td>
-                    <button class="btn btn-info"
-                    onclick="openStockAdjustmentModal(${part.id}, '${escapeHtml(part.name)}', ${part.stockQuantity})"
-                    style="padding: 8px 12px; font-size: 0.8125rem;">
-                        조정
+                    <button class="btn btn-warning"
+                    onclick="openStockAdjustmentModal(${part.id}, '${escapeHtml(part.name)}', ${part.stockQuantity})">
+                        재고 조정
                     </button>
                 </td>
 
                 <td>
                     <div class="action-buttons">
                         <button class="btn btn-success" onclick="openStockModal(${part.id}, 'increase')">입고</button>
-                        <button class="btn btn-warning" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
+                        <button class="btn btn-danger" onclick="openStockModal(${part.id}, 'decrease')">출고</button>
+                        <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
                     </div>
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-info" onclick="viewTransactions(${part.id})">기록</button>
-                        <button class="btn btn-info" onclick="openUpdateModal(${part.id})">수정</button>
+                        <button class="btn btn-warning" onclick="openUpdateModal(${part.id})">수정</button>
                         <button class="btn btn-danger" onclick="openDeleteModal(${part.id})">삭제</button>
                     </div>
                 </td>

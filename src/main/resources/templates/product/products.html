@@ -1095,15 +1095,16 @@
                 <table id="productsTable">
                     <thead>
                         <tr>
-                            <th style="width: 12%;">제품 코드</th>
-                            <th style="width: 12%;">제품명</th>
-                            <th style="width: 8%;">카테고리</th>
-                            <th style="width: 8%;">제품라인</th>
-                            <th style="width: 8%;">기본 단가</th>
+                            <th style="width: 11%;">제품 코드</th>
+                            <th style="width: 11%;">제품명</th>
+                            <th style="width: 7%;">카테고리</th>
+                            <th style="width: 6%;">제품라인</th>
+                            <th style="width: 9%;">기본 단가</th>
                             <th style="width: 6%;">재고</th>
                             <th style="width: 16%;">설명</th>
-                            <th style="width: 14%;">생산</th>
-                            <th style="width: 16%;">작업</th>
+                            <th style="width: 8%;">재고 조정</th>
+                            <th style="width: 10%;">생산</th>
+                            <th style="width: 12%;">작업</th>
                         </tr>
                     </thead>
                     <tbody id="productsTableBody">
@@ -1623,9 +1624,11 @@
                     ${escapeHtml(product.description) || '-'}
                 </td>
                 <td>
+                    <button class="btn btn-warning" onclick="openStockAdjustmentModal(${product.id}, '${escapeHtml(product.name)}', ${product.stockQuantity})">재고 조정</button>
+                </td>
+                <td>
                     <div class="action-buttons">
                         <button class="btn btn-success" onclick="openProductionModal(${product.id})">생산</button>
-                        <button class="btn btn-warning" onclick="openStockAdjustmentModal(${product.id}, '${escapeHtml(product.name)}', ${product.stockQuantity})">재고 조정</button>
                         <button class="btn btn-info" onclick="viewTransactions(${product.id})">기록</button>
                     </div>
                 </td>
