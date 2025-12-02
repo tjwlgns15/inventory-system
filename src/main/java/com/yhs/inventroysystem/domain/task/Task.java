@@ -4,6 +4,7 @@ import com.yhs.inventroysystem.infrastructure.model.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
@@ -54,6 +55,7 @@ public class Task extends BaseTimeEntity {
     @Column(name = "priority", nullable = false)
     private Priority priority = Priority.MEDIUM;
 
+    @BatchSize(size = 200)
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaskCategoryMapping> categoryMappings = new ArrayList<>();
 
