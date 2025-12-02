@@ -56,7 +56,7 @@ public class Task extends BaseTimeEntity {
     private Priority priority = Priority.MEDIUM;
 
     @BatchSize(size = 200)
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)  // OneToMany는 기본이 Lazy loading: 트랜잭션 범위 밖(컨트롤러)에서 getCategoryMappings 호출 시 에러 발생
     private List<TaskCategoryMapping> categoryMappings = new ArrayList<>();
 
 

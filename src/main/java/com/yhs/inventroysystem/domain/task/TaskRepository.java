@@ -26,13 +26,11 @@ public interface TaskRepository extends CrudRepository<Task, Long> {
     Optional<Task> findByIdWithCategories(@Param("taskId") Long taskId);
 
     /**
-     * 페이징 조회 시 카테고리 정보를 함께 조회 (N+1 문제 해결)
+     * 페이징 조회 (fetch join 제거, @BatchSize로 N+1 해결)
      */
-    @Query(value = "SELECT DISTINCT t FROM Task t " +
-            "LEFT JOIN FETCH t.categoryMappings cm " +
-            "LEFT JOIN FETCH cm.category " +
+    @Query(value = "SELECT t FROM Task t " +
             "ORDER BY t.priority DESC, t.createdAt DESC",
-            countQuery = "SELECT COUNT(DISTINCT t) FROM Task t")
+            countQuery = "SELECT COUNT(t) FROM Task t")
     Page<Task> findAllWithCategories(Pageable pageable);
 
     /**
@@ -80,11 +78,9 @@ public interface TaskRepository extends CrudRepository<Task, Long> {
             @Param("completedStatus") TaskStatus completedStatus);
 
     /**
-     * 복합 검색 + 카테고리 Fetch Join
+     * 복합 검색 (fetch join 제거, @BatchSize로 N+1 해결)
      */
-    @Query(value = "SELECT DISTINCT t FROM Task t " +
-            "LEFT JOIN FETCH t.categoryMappings cm " +
-            "LEFT JOIN FETCH cm.category " +
+    @Query(value = "SELECT t FROM Task t " +
             "WHERE (:title IS NULL OR UPPER(t.title) LIKE UPPER(CONCAT('%', :title, '%'))) AND " +
             "(:authorName IS NULL OR UPPER(t.authorName) LIKE UPPER(CONCAT('%', :authorName, '%'))) AND " +
             "(:statusList IS NULL OR t.status IN :statusList) AND " +
@@ -92,7 +88,7 @@ public interface TaskRepository extends CrudRepository<Task, Long> {
             "(:startDate IS NULL OR t.startDate >= :startDate) AND " +
             "(:endDate IS NULL OR t.endDate <= :endDate) " +
             "ORDER BY t.priority DESC, t.createdAt DESC",
-            countQuery = "SELECT COUNT(DISTINCT t) FROM Task t " +
+            countQuery = "SELECT COUNT(t) FROM Task t " +
                     "WHERE (:title IS NULL OR UPPER(t.title) LIKE UPPER(CONCAT('%', :title, '%'))) AND " +
                     "(:authorName IS NULL OR UPPER(t.authorName) LIKE UPPER(CONCAT('%', :authorName, '%'))) AND " +
                     "(:statusList IS NULL OR t.status IN :statusList) AND " +

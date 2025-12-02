@@ -5,13 +5,13 @@ import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.task.TaskCommands.TaskCreateCommand;
 import com.yhs.inventroysystem.application.task.TaskCommands.TaskUpdateCommand;
 import com.yhs.inventroysystem.domain.task.*;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -21,6 +21,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 @Slf4j
 public class TaskService {
 
@@ -103,8 +104,17 @@ public class TaskService {
                                   Priority priority, LocalDate startDate, LocalDate endDate,
                                   int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return taskRepository.findTasksWithFiltersAndCategories(
+        Page<Task> tasks = taskRepository.findTasksWithFiltersAndCategories(
                 title, authorName, statusList, priority, startDate, endDate, pageable);
+
+        // 트랜잭션 안에서 카테고리 강제 로딩
+        tasks.getContent().forEach(task ->
+                task.getCategories().forEach(category ->
+                        category.getName()  // TaskCategory 필드 접근으로 강제 로딩
+                )
+        );
+
+        return tasks;
     }
 
     @Transactional
