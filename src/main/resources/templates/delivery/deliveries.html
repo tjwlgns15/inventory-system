@@ -2748,15 +2748,29 @@
             }
 
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
 
-            showNotification('문서가 다운로드되었습니다', 'success');
+            // Content-Disposition이 inline이면 새 탭에서 열기
+            const isInline = contentDisposition && contentDisposition.toLowerCase().startsWith('inline');
+
+            if (isInline) {
+                // 새 탭에서 열기
+                window.open(url, '_blank');
+                showNotification('문서가 새 탭에서 열렸습니다', 'success');
+
+                // 일정 시간 후 URL 해제
+                setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+            } else {
+                // 다운로드
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                showNotification('문서가 다운로드되었습니다', 'success');
+            }
         } catch (error) {
             console.error('Error:', error);
             showNotification(error.message, 'error');

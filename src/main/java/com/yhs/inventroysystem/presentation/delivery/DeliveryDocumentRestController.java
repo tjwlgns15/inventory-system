@@ -1,6 +1,5 @@
 package com.yhs.inventroysystem.presentation.delivery;
 
-import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands;
 import com.yhs.inventroysystem.application.delivery.DeliveryDocumentService;
 import com.yhs.inventroysystem.domain.delivery.DeliveryDocument;
 import com.yhs.inventroysystem.infrastructure.file.FileDownloadUtils;
@@ -16,11 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.List;
 
 import static com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.*;
-import static com.yhs.inventroysystem.presentation.delivery.DocumentDtos.*;
+import static com.yhs.inventroysystem.presentation.delivery.DocumentDtos.DocumentDescriptionUpdateRequest;
+import static com.yhs.inventroysystem.presentation.delivery.DocumentDtos.DocumentListResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -92,16 +92,20 @@ public class DeliveryDocumentRestController {
 
         ByteArrayResource resource = new ByteArrayResource(fileData);
 
+        String contentType = document.getContentType() != null
+                ? document.getContentType()
+                : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+
+        boolean shouldDisplayInline = FileDownloadUtils.shouldDisplayInline(contentType);
+
         String contentDisposition = FileDownloadUtils.createContentDisposition(
                 document.getOriginalFileName(),
-                userAgent
+                userAgent,
+                shouldDisplayInline
         );
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(
-                        document.getContentType() != null
-                                ? document.getContentType()
-                                : MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
                 .contentLength(fileData.length)
                 .body(resource);
