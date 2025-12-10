@@ -1432,6 +1432,11 @@
                         },
                         callbacks: {
                             label: function (context) {
+                                // 값이 0인 경우 표시하지 않음
+                                if (context.parsed.y === 0) {
+                                    return null;
+                                }
+
                                 const label = context.dataset.label || '';
                                 const value = context.parsed.y.toLocaleString();
                                 return `${label}: ${value}개`;
