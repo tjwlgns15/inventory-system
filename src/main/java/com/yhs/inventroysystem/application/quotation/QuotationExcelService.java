@@ -251,7 +251,7 @@ public class QuotationExcelService {
 
     private String getQuotationTypeText(String type) {
         return switch (type) {
-            case "RECEIPT" -> "수령";
+            case "RECEIPT" -> "접수";
             case "ISSUANCE" -> "발행";
             default -> type;
         };

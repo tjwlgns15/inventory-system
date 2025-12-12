@@ -1398,7 +1398,7 @@
                     <label class="form-label">구분 *</label>
                     <select id="quotationType" class="form-select" required>
                         <option value="">선택</option>
-                        <option value="RECEIPT">수령</option>
+                        <option value="RECEIPT">접수</option>
                         <option value="ISSUANCE">발행</option>
                     </select>
                 </div>
@@ -1531,7 +1531,7 @@
                     <label class="form-label">구분 *</label>
                     <select id="updateQuotationType" class="form-select" required>
                         <option value="">선택</option>
-                        <option value="RECEIPT">수령</option>
+                        <option value="RECEIPT">접수</option>
                         <option value="ISSUANCE">발행</option>
                     </select>
                 </div>
@@ -1924,7 +1924,7 @@
         quotations.forEach(quotation => {
             const row = document.createElement('tr');
 
-            const typeText = quotation.quotationType === 'RECEIPT' ? '수령' : '발행';
+            const typeText = quotation.quotationType === 'RECEIPT' ? '접수' : '발행';
             const typeClass = quotation.quotationType === 'RECEIPT' ? 'status-receipt' : 'status-issuance';
             const taxText = quotation.isTax ? '포함' : '미포함';
             const taxClass = quotation.isTax ? 'status-include' : 'status-exclude';
@@ -2404,7 +2404,7 @@
         // 현재 견적서 데이터 저장
         currentQuotationData = quotation;
 
-        const typeText = quotation.quotationType === 'RECEIPT' ? '수령' : '발행';
+        const typeText = quotation.quotationType === 'RECEIPT' ? '접수' : '발행';
         const typeClass = quotation.quotationType === 'RECEIPT' ? 'status-receipt' : 'status-issuance';
         const taxText = quotation.isTax ? '포함' : '미포함';
 
