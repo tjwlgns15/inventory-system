@@ -2,7 +2,10 @@ package com.yhs.inventroysystem.infrastructure.file;
 
 public enum FileStorageType {
     PART_IMAGE("uploads/parts/images", "localFileStorage"),
-    DELIVERY_DOCUMENT("uploads/delivery/documents", "localFileStorage");
+    DELIVERY_DOCUMENT("uploads/delivery/documents", "localFileStorage"),
+    QUOTATION_DOCUMENT("uploads/quotation/documents", "localFileStorage")
+
+    ;
 
     private final String directory;
     private final String storageServiceName;

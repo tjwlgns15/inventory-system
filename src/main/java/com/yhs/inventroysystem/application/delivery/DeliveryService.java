@@ -3,21 +3,21 @@ package com.yhs.inventroysystem.application.delivery;
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.exchange.ExchangeRateService;
 import com.yhs.inventroysystem.application.product.ProductStockTransactionService;
-import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
+import com.yhs.inventroysystem.domain.delivery.*;
 import com.yhs.inventroysystem.domain.exception.InvalidDeliveryStateException;
 import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
 import com.yhs.inventroysystem.domain.exchange.ExchangeRate;
 import com.yhs.inventroysystem.domain.price.ClientProductPriceRepository;
 import com.yhs.inventroysystem.domain.client.Client;
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
 import com.yhs.inventroysystem.domain.price.ClientProductPrice;
 import com.yhs.inventroysystem.domain.product.Product;
 import com.yhs.inventroysystem.domain.client.ClientRepository;
-import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
 import com.yhs.inventroysystem.domain.product.ProductRepository;
 import com.yhs.inventroysystem.domain.product.ProductTransactionType;
 import com.yhs.inventroysystem.domain.task.*;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 import static com.yhs.inventroysystem.application.delivery.DeliveryCommands.*;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
 public class DeliveryService {
@@ -48,6 +48,29 @@ public class DeliveryService {
     private final TaskCategoryRepository taskCategoryRepository;
     private final ExchangeRateService exchangeRateService;
     private final ProductStockTransactionService productStockTransactionService;
+    private final FileStorageService fileStorageService;
+
+    public DeliveryService(DeliveryRepository deliveryRepository,
+                           ClientRepository clientRepository,
+                           ProductRepository productRepository,
+                           ClientProductPriceRepository priceRepository,
+                           StockDeductionService stockDeductionService,
+                           TaskRepository taskRepository,
+                           TaskCategoryRepository taskCategoryRepository,
+                           ExchangeRateService exchangeRateService,
+                           ProductStockTransactionService productStockTransactionService,
+                           FileStorageFactory fileStorageFactory) {
+        this.deliveryRepository = deliveryRepository;
+        this.clientRepository = clientRepository;
+        this.productRepository = productRepository;
+        this.priceRepository = priceRepository;
+        this.stockDeductionService = stockDeductionService;
+        this.taskRepository = taskRepository;
+        this.taskCategoryRepository = taskCategoryRepository;
+        this.exchangeRateService = exchangeRateService;
+        this.productStockTransactionService = productStockTransactionService;
+        this.fileStorageService = fileStorageFactory.getStorageService(FileStorageType.DELIVERY_DOCUMENT);
+    }
 
     private static final String DELIVERY_PREFIX = "SOLM-PO-";
 
@@ -230,6 +253,12 @@ public class DeliveryService {
                 .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
 
         validateDeliveryCompleted(delivery);
+
+        List<DeliveryDocument> documents = delivery.getDocuments();
+
+        for (DeliveryDocument document : documents) {
+            fileStorageService.delete(document.getFilePath());
+        }
 
         // 삭제
         delivery.markAsDeleted();

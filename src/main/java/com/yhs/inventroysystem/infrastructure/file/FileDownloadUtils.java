@@ -36,11 +36,11 @@ public class FileDownloadUtils {
         }
     }
 
-    public static String createContentDisposition(String fileName, String userAgent) {
-        return createContentDisposition(fileName, userAgent, false);
+    public static String createContentDisposition(String fileName) {
+        return createContentDisposition(fileName, false);
     }
 
-    public static String createContentDisposition(String fileName, String userAgent, boolean inline) {
+    public static String createContentDisposition(String fileName, boolean inline) {
 
         // UTF-8 인코딩 (RFC 5987 방식)
         String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8)

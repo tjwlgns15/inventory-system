@@ -1,8 +1,8 @@
 package com.yhs.inventroysystem.application.delivery;
 
-import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DocumentDeleteCommand;
-import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DocumentUpdateCommand;
-import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DocumentUploadCommand;
+import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DeliveryDocumentDeleteCommand;
+import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DeliveryDocumentUpdateCommand;
+import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DeliveryDocumentUploadCommand;
 import com.yhs.inventroysystem.domain.delivery.Delivery;
 import com.yhs.inventroysystem.domain.delivery.DeliveryDocument;
 import com.yhs.inventroysystem.domain.delivery.DeliveryDocumentRepository;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
 import java.util.List;
 
 @Service
@@ -27,6 +26,7 @@ public class DeliveryDocumentService {
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryDocumentRepository deliveryDocumentRepository;
+
     private final FileStorageService fileStorageService;
 
     public DeliveryDocumentService(
@@ -39,7 +39,7 @@ public class DeliveryDocumentService {
     }
 
     @Transactional
-    public DeliveryDocument uploadDocument(DocumentUploadCommand command) {
+    public DeliveryDocument uploadDocument(DeliveryDocumentUploadCommand command) {
         Delivery delivery = findDelivery(command.deliveryId());
 
         MultipartFile uploadFile = command.uploadFile();
@@ -85,17 +85,17 @@ public class DeliveryDocumentService {
         return fileStorageService.load(document.getFilePath());
     }
     @Transactional
-    public DeliveryDocument updateDocumentDescription(DocumentUpdateCommand command) {
+    public DeliveryDocument updateDocumentDescription(DeliveryDocumentUpdateCommand command) {
         DeliveryDocument document = findDocument(command.documentId());
 
         document.updateDescription(command.description());
-        log.info("배송 문서 설명 업데이트 - Document ID: {}", document.getId());
+        log.info("수주 관련 문서 설명 업데이트 - Document ID: {}", document.getId());
 
         return document;
     }
 
     @Transactional
-    public void deleteDocument(DocumentDeleteCommand command) {
+    public void deleteDocument(DeliveryDocumentDeleteCommand command) {
         Delivery delivery = findDelivery(command.deliveryId());
         DeliveryDocument document = findDocument(command.documentId());
 

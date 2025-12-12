@@ -4,18 +4,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 public class DeliveryDocumentCommands {
 
-    public record DocumentUploadCommand(
+    public record DeliveryDocumentUploadCommand(
             Long deliveryId,
             MultipartFile uploadFile,
             String description
     ) {}
 
-    public record DocumentDeleteCommand(
+    public record DeliveryDocumentDeleteCommand(
             Long deliveryId,
             Long documentId
     ) {}
 
-    public record DocumentUpdateCommand(
+    public record DeliveryDocumentUpdateCommand(
             Long documentId,
             String description
     ) {}

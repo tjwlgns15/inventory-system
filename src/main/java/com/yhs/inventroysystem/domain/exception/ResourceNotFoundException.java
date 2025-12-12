@@ -63,4 +63,8 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException taskCategory(String taskCategoryName) {
         return new ResourceNotFoundException(taskCategoryName);
     }
+
+    public static ResourceNotFoundException quotation(Long quotationId) {
+        return new ResourceNotFoundException("견적서 관련 정보를 찾을 수 없습니다. ID: " + quotationId);
+    }
 }
