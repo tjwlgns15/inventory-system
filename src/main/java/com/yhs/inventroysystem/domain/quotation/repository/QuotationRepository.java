@@ -1,6 +1,7 @@
 package com.yhs.inventroysystem.domain.quotation.repository;
 
 import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -48,7 +49,6 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
     @Query(
             value = "SELECT DISTINCT q " +
                     "FROM Quotation q " +
-                    "LEFT JOIN FETCH q.items " +
                     "WHERE  q.deletedAt IS NULL " +
                     "AND (LOWER(q.companyName) LIKE LOWER(CONCAT('%', :keyword, '%')))",
             countQuery = "SELECT COUNT(DISTINCT q) " +
@@ -61,7 +61,6 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
     @Query(
             value = "SELECT DISTINCT q " +
                     "FROM Quotation q " +
-                    "LEFT JOIN FETCH q.items " +
                     "WHERE q.deletedAt IS NULL",
             countQuery = "SELECT COUNT(DISTINCT q) " +
                     "FROM Quotation q " +
@@ -76,15 +75,29 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
     Optional<Quotation> findByIdWithItems(@Param("quotationId") Long quotationId);
 
     @Query("""
-    SELECT q
-    FROM Quotation q 
-    JOIN FETCH q.items 
-    WHERE q.deletedAt IS NULL
-    AND q.orderedAt BETWEEN :startDate AND :endDate
-    ORDER BY q.orderedAt
-    """)
+            SELECT q
+            FROM Quotation q 
+            JOIN FETCH q.items 
+            WHERE q.deletedAt IS NULL
+            AND q.orderedAt BETWEEN :startDate AND :endDate
+            ORDER BY q.orderedAt
+            """)
     List<Quotation> findQuotationsByPeriod(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT q FROM Quotation q " +
+            "WHERE q.deletedAt IS NULL " +
+            "AND q.quotationType = :quotationType " +
+            "AND q.companyName LIKE %:keyword%")
+    Page<Quotation> searchByKeywordAndType(@Param("keyword") String keyword,
+                                           @Param("quotationType") QuotationType quotationType,
+                                           Pageable pageable);
+
+    @Query("SELECT q FROM Quotation q " +
+            "WHERE q.deletedAt IS NULL " +
+            "AND q.quotationType = :quotationType")
+    Page<Quotation> findAllByType(@Param("quotationType") QuotationType quotationType,
+                                  Pageable pageable);
 }

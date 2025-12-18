@@ -58,14 +58,37 @@ public class QuotationService {
         quotation.addItems(items);
     }
 
-    public Page<Quotation> searchQuotations(String keyword, int page, int size, String sortBy, String direction) {
+    public Page<Quotation> searchQuotations(String keyword, QuotationType quotationType, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return quotationDomainService.searchByKeyword(keyword, pageable);
+
+        Page<Quotation> quotationPage;
+        if (quotationType != null) {
+            quotationPage =  quotationDomainService.searchByKeywordAndType(keyword, quotationType, pageable);
+        } else {
+            quotationPage = quotationDomainService.searchByKeyword(keyword, pageable);
+        }
+
+        quotationPage.getContent().forEach(quotation ->
+                quotation.getItems().size()
+        );
+
+        return quotationPage;
     }
 
-    public Page<Quotation> findAllQuotationsPaged(int page, int size, String sortBy, String direction) {
+    public Page<Quotation> findAllQuotationsPaged(QuotationType quotationType, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return quotationDomainService.findAllPaged(pageable);
+
+        Page<Quotation> quotationPage;
+        if (quotationType != null) {
+            quotationPage = quotationDomainService.findAllByType(quotationType, pageable);
+        } else {
+            quotationPage = quotationDomainService.findAllPaged(pageable);
+        }
+        quotationPage.getContent().forEach(quotation ->
+                quotation.getItems().size()
+        );
+
+        return quotationPage;
     }
 
     public Quotation findQuotationById(Long quotationId) {

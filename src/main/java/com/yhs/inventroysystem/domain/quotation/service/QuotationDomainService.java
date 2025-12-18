@@ -86,4 +86,12 @@ public class QuotationDomainService {
     public List<Quotation> findQuotationsByPeriod(LocalDate startDate, LocalDate endDate) {
         return quotationRepository.findQuotationsByPeriod(startDate, endDate);
     }
+
+    public Page<Quotation> searchByKeywordAndType(String keyword, QuotationType quotationType, Pageable pageable) {
+        return quotationRepository.searchByKeywordAndType(keyword, quotationType, pageable);
+    }
+
+    public Page<Quotation> findAllByType(QuotationType quotationType, Pageable pageable) {
+        return quotationRepository.findAllByType(quotationType, pageable);
+    }
 }

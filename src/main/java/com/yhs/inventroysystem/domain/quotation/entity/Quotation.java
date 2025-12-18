@@ -36,7 +36,7 @@ public class Quotation extends BaseTimeEntity {
     private String representativeName; // 담당자
 
     @OneToMany(mappedBy = "quotation", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 50)
+    @BatchSize(size = 100)
     private List<QuotationItem> items = new ArrayList<>();
 
     @Column(precision = 15, scale = 2)

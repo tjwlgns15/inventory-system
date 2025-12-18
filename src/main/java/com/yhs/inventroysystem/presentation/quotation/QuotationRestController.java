@@ -4,6 +4,7 @@ import com.yhs.inventroysystem.application.quotation.QuotationCommands;
 import com.yhs.inventroysystem.application.quotation.QuotationExcelService;
 import com.yhs.inventroysystem.application.quotation.QuotationService;
 import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationType;
 import com.yhs.inventroysystem.presentation.quotation.QuotationDtos.QuotationCreate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,15 +39,16 @@ public class QuotationRestController {
     public ResponseEntity<PageQuotationResponse> getQuotationsPaged(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "orderedAt") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String direction,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuotationType quotationType) {
 
         Page<Quotation> quotationPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            quotationPage = quotationService.searchQuotations(keyword, page, size, sortBy, direction);
+            quotationPage = quotationService.searchQuotations(keyword, quotationType, page, size, sortBy, direction);
         } else {
-            quotationPage = quotationService.findAllQuotationsPaged(page, size, sortBy, direction);
+            quotationPage = quotationService.findAllQuotationsPaged(quotationType, page, size, sortBy, direction);
         }
 
         return ResponseEntity.ok(PageQuotationResponse.from(quotationPage));

@@ -223,6 +223,35 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
 
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .filter-btn[data-type="ALL"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        #sortIcon {
+            font-size: 0.75rem;
+            margin-left: 4px;
+            opacity: 0.8;
+        }
+
         .table-container {
             overflow-x: auto;
             border-radius: 16px;
@@ -1340,20 +1369,30 @@
 
         <div class="content-card">
             <div class="search-bar">
-                <input
-                        type="text"
-                        class="search-input"
-                        id="searchInput"
-                        placeholder="거래처명으로 검색..."
-                        onkeyup="handleSearch(event)"
-                >
+                <div style="display: flex; gap: 12px; align-items: center; flex: 1;">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="filter-btn" data-type="ALL" onclick="filterByType('ALL')">전체</button>
+                        <button class="filter-btn" data-type="RECEIPT" onclick="filterByType('RECEIPT')">접수</button>
+                        <button class="filter-btn" data-type="ISSUANCE" onclick="filterByType('ISSUANCE')">발행</button>
+                    </div>
+                    <input
+                            type="text"
+                            class="search-input"
+                            id="searchInput"
+                            placeholder="거래처명으로 검색..."
+                            onkeyup="handleSearch(event)"
+                            style="flex: 1;"
+                    >
+                </div>
             </div>
 
             <div class="table-container">
                 <table>
                     <thead>
                     <tr>
-                        <th style="width: 8%;">날짜</th>
+                        <th style="width: 8%; cursor: pointer;" onclick="toggleDateSort()">
+                            날짜 <span id="sortIcon">▼</span>
+                        </th>
                         <th style="width: 14%;">번호</th>
                         <th style="width: 5%;">구분</th>
                         <th style="width: 12%;">거래처</th>
@@ -1609,6 +1648,8 @@
     let totalPages = 0;
     let totalElements = 0;
     let currentKeyword = '';
+    let currentQuotationType = null;
+    let currentSortDirection = 'desc';
     let itemCount = 0;
     let updateItemCount = 0;
     let selectedQuotationId = null;
@@ -1882,9 +1923,12 @@
             const pageSizeSelect = document.getElementById('pageSizeSelect');
             currentPageSize = parseInt(pageSizeSelect.value);
 
-            let url = `${API_BASE_URL}?page=${currentPage}&size=${currentPageSize}&sortBy=createdAt&direction=desc`;
+            let url = `${API_BASE_URL}?page=${currentPage}&size=${currentPageSize}&sortBy=orderedAt&direction=${currentSortDirection}`;
             if (currentKeyword) {
                 url += `&keyword=${encodeURIComponent(currentKeyword)}`;
+            }
+            if (currentQuotationType) {
+                url += `&quotationType=${currentQuotationType}`;
             }
 
             const response = await fetch(url);
@@ -1974,6 +2018,37 @@
             currentPage = 0;
             loadQuotations();
         }
+    }
+
+    // 타입별 필터링
+    function filterByType(type) {
+        currentQuotationType = type === 'ALL' ? null : type;
+        currentPage = 0;
+
+        // 버튼 활성화 스타일 변경
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.removeAttribute('data-type');
+            btn.style.background = 'rgba(255, 255, 255, 0.9)';
+            btn.style.color = '#667eea';
+            btn.style.borderColor = 'rgba(102, 126, 234, 0.2)';
+        });
+
+        const activeBtn = event.target;
+        activeBtn.setAttribute('data-type', type);
+        activeBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        activeBtn.style.color = 'white';
+        activeBtn.style.borderColor = 'transparent';
+
+        loadQuotations();
+    }
+
+    // 날짜 정렬 토글
+    function toggleDateSort() {
+        currentSortDirection = currentSortDirection === 'desc' ? 'asc' : 'desc';
+        const sortIcon = document.getElementById('sortIcon');
+        sortIcon.textContent = currentSortDirection === 'desc' ? '▼' : '▲';
+        currentPage = 0;
+        loadQuotations();
     }
 
     // 견적서 등록 모달 열기
