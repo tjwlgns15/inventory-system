@@ -1,10 +1,10 @@
 package com.yhs.inventroysystem.presentation.quotation;
 
 import com.yhs.inventroysystem.application.quotation.QuotationCommands;
-import com.yhs.inventroysystem.domain.exchange.Currency;
-import com.yhs.inventroysystem.domain.quotation.Quotation;
-import com.yhs.inventroysystem.domain.quotation.QuotationItem;
-import com.yhs.inventroysystem.domain.quotation.QuotationType;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
+import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationItem;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +15,6 @@ import org.springframework.data.domain.Page;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class QuotationDtos {
 

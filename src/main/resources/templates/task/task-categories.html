@@ -15,9 +15,9 @@
 
         body {
             font-family: 'notosanskr', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            color: #1a202c;
+            position: relative;
         }
 
         .container {
@@ -35,6 +35,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-top: 7vh;
         }
 
         .header h1 {
@@ -755,6 +756,15 @@
         </form>
     </div>
 </div>
+
+<div id="sidebar-container"></div>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+        })
+</script>
 
 <script>
     // API Base URL

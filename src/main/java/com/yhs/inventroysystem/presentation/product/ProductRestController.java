@@ -2,8 +2,8 @@ package com.yhs.inventroysystem.presentation.product;
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.product.ProductService;
-import com.yhs.inventroysystem.domain.product.Product;
-import com.yhs.inventroysystem.domain.product.ProductStockTransaction;
+import com.yhs.inventroysystem.domain.product.entity.Product;
+import com.yhs.inventroysystem.domain.product.entity.ProductStockTransaction;
 import com.yhs.inventroysystem.presentation.product.ProductDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

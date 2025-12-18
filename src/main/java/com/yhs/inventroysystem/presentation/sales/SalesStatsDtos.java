@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.presentation.sales;
 
-import com.yhs.inventroysystem.domain.exchange.Currency;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

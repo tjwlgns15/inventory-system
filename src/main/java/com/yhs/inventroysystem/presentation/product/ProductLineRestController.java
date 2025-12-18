@@ -1,9 +1,8 @@
 package com.yhs.inventroysystem.presentation.product;
 
-import com.yhs.inventroysystem.application.product.ProductLineCommands;
 import com.yhs.inventroysystem.application.product.ProductLineCommands.PLRegisterCommand;
 import com.yhs.inventroysystem.application.product.ProductLineService;
-import com.yhs.inventroysystem.domain.product.ProductLine;
+import com.yhs.inventroysystem.domain.product.entity.ProductLine;
 import com.yhs.inventroysystem.presentation.product.ProductLineDtos.PLRegisterRequest;
 import com.yhs.inventroysystem.presentation.product.ProductLineDtos.PLResponse;
 import com.yhs.inventroysystem.presentation.product.ProductLineDtos.PLUpdateRequest;

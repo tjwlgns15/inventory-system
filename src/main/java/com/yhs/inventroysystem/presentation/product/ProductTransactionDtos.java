@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.presentation.product;
 
-import com.yhs.inventroysystem.domain.product.ProductStockTransaction;
-import com.yhs.inventroysystem.domain.product.ProductTransactionType;
+import com.yhs.inventroysystem.domain.product.entity.ProductStockTransaction;
+import com.yhs.inventroysystem.domain.product.entity.ProductTransactionType;
 
 import java.time.LocalDateTime;
 

@@ -1403,7 +1403,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">발행일 *</label>
+                    <label class="form-label">날짜 *</label>
                     <input type="date" id="orderedAt" class="form-input" required>
                 </div>
             </div>
@@ -1536,7 +1536,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">발행일 *</label>
+                    <label class="form-label">날짜 *</label>
                     <input type="date" id="updateOrderedAt" class="form-input" required>
                 </div>
             </div>
@@ -1596,14 +1596,6 @@
         .then(res => res.text())
         .then(html => {
             document.getElementById("sidebar-container").innerHTML = html;
-
-            const sidebarMenu = document.querySelector(".left-slide-menu");
-
-            if (sidebarMenu) {
-                console.log("✅ 사이드바 로드 완료");
-            } else {
-                console.warn("⚠️ 사이드바 요소를 찾을 수 없습니다.");
-            }
         })
 </script>
 
@@ -2428,7 +2420,7 @@
                         <p><strong>구분:</strong> <span class="status-badge ${typeClass}">${typeText}</span></p>
                         <p><strong>거래처:</strong> ${escapeHtml(quotation.companyName)}</p>
                         <p><strong>담당자:</strong> ${escapeHtml(quotation.representativeName) || '-'}</p>
-                        <p><strong>발행일:</strong> ${formatDate(quotation.orderedAt)}</p>
+                        <p><strong>날짜:</strong> ${formatDate(quotation.orderedAt)}</p>
                         <p><strong>공급가액:</strong> ${quotation.currencySymbol} ${formatNumber(quotation.totalAmount)}</p>
                         ${quotation.isTax ? `<p><strong>부가세:</strong> ${quotation.currencySymbol} ${formatNumber(quotation.totalAfterTaxAmount - quotation.totalAmount)}</p>` : ''}
                         <p><strong>총 금액:</strong> <strong style="color: #667eea;">${quotation.currencySymbol} ${formatNumber(quotation.totalAfterTaxAmount)}</strong></p>

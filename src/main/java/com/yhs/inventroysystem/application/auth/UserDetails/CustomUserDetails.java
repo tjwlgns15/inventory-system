@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.application.auth.UserDetails;
 
-import com.yhs.inventroysystem.domain.auth.User;
+import com.yhs.inventroysystem.domain.auth.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.presentation.delivery;
 
-import com.yhs.inventroysystem.domain.delivery.DeliveryDocument;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryDocument;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;

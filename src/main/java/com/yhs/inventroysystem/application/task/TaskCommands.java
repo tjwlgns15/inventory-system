@@ -1,8 +1,8 @@
 package com.yhs.inventroysystem.application.task;
 
 
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.task.entity.Priority;
+import com.yhs.inventroysystem.domain.task.entity.TaskStatus;
 
 import java.time.LocalDate;
 

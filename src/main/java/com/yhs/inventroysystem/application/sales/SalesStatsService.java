@@ -1,10 +1,10 @@
 package com.yhs.inventroysystem.application.sales;
 
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
-import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
-import com.yhs.inventroysystem.domain.product.Product;
-import com.yhs.inventroysystem.domain.product.ProductRepository;
+import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryItem;
+import com.yhs.inventroysystem.domain.delivery.service.DeliveryDomainService;
+import com.yhs.inventroysystem.domain.product.entity.Product;
+import com.yhs.inventroysystem.domain.product.service.ProductDomainService;
 import com.yhs.inventroysystem.presentation.sales.SalesStatsDtos.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,8 +25,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class SalesStatsService {
 
-    private final DeliveryRepository deliveryRepository;
-    private final ProductRepository productRepository;
+    private final DeliveryDomainService deliveryDomainService;
+    private final ProductDomainService productDomainService;
 
     public WeeklySalesResponse getThisWeekSales() {
         LocalDate now = LocalDate.now();
@@ -55,7 +55,7 @@ public class SalesStatsService {
         LocalDateTime startDateTime = weekStart.atStartOfDay();
         LocalDateTime endDateTime = weekEnd.atTime(LocalTime.MAX);
 
-        List<Delivery> deliveries = deliveryRepository.findWeeklySales(startDateTime, endDateTime);
+        List<Delivery> deliveries = deliveryDomainService.findWeeklySales(startDateTime, endDateTime);
 
         // 제품별로 그룹핑하여 집계
         Map<Long, ProductSalesAggregation> productMap = new HashMap<>();
@@ -104,7 +104,7 @@ public class SalesStatsService {
         LocalDateTime startDate = startMonth.atDay(1).atStartOfDay();
         LocalDateTime endDate = currentMonth.atEndOfMonth().atTime(LocalTime.MAX);
 
-        List<Delivery> deliveries = deliveryRepository.findCompletedDeliveriesByPeriod(startDate, endDate);
+        List<Delivery> deliveries = deliveryDomainService.findCompletedDeliveriesByPeriod(startDate, endDate);
 
         // 제품별 월별 판매 데이터 집계
         Map<Long, Map<YearMonth, MonthlySalesAggregation>> productMonthlyMap = new HashMap<>();
@@ -135,7 +135,7 @@ public class SalesStatsService {
         }
 
         // 모든 제품 정보 가져오기
-        List<Product> allProducts = productRepository.findAllActive();
+        List<Product> allProducts = productDomainService.findAllActive();
 
         // 그룹별 월별 데이터 집계
         Map<String, Map<YearMonth, MonthlySalesAggregation>> groupMonthlyMap = new HashMap<>();
@@ -274,7 +274,7 @@ public class SalesStatsService {
 
 
     public YearlySalesByClientResponse getYearlySalesByClient(int year) {
-        List<Delivery> deliveries = deliveryRepository.findCompletedDeliveriesByYear(year);
+        List<Delivery> deliveries = deliveryDomainService.findCompletedDeliveriesByYear(year);
 
         Map<Long, List<Delivery>> deliveriesGroupByClient = deliveries.stream()
                 .collect(Collectors.groupingBy(d -> d.getClient().getId()));

@@ -1,8 +1,8 @@
 package com.yhs.inventroysystem.application.delivery;
 
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
-import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
+import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryItem;
+import com.yhs.inventroysystem.domain.delivery.service.DeliveryDomainService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -23,7 +22,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class DeliveryExcelService {
 
-    private final DeliveryRepository deliveryRepository;
+    private final DeliveryDomainService deliveryDomainService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -41,7 +40,7 @@ public class DeliveryExcelService {
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.plusDays(1).atStartOfDay();
 
-        List<Delivery> deliveries = deliveryRepository.findCompletedDeliveriesByPeriod(startDateTime, endDateTime);
+        List<Delivery> deliveries = deliveryDomainService.findCompletedDeliveriesByPeriod(startDateTime, endDateTime);
 
         return generateExcel(deliveries);
     }
@@ -50,8 +49,7 @@ public class DeliveryExcelService {
      * 특정 납품 ID 데이터만 엑셀로 내보내는 메서드
      */
     public byte[] exportDeliveryByIdToExcel(Long deliveryId) {
-        Delivery delivery = deliveryRepository.findById(deliveryId)
-                .orElseThrow(() -> new IllegalArgumentException("납품을 찾을 수 없습니다: " + deliveryId));
+        Delivery delivery = deliveryDomainService.findById(deliveryId);
         return generateExcel(List.of(delivery));
     }
 

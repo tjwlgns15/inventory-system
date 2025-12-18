@@ -4,7 +4,7 @@ package com.yhs.inventroysystem.presentation.task;
 import com.yhs.inventroysystem.application.task.TaskCategoryCommands.TaskCategoryCreateCommand;
 import com.yhs.inventroysystem.application.task.TaskCategoryCommands.TaskCategoryUpdateCommand;
 import com.yhs.inventroysystem.application.task.TaskCategoryService;
-import com.yhs.inventroysystem.domain.task.TaskCategory;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

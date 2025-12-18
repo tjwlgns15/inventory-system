@@ -1,72 +1,61 @@
 package com.yhs.inventroysystem.application.price;
 
-import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.price.ClientProductPriceRepository;
-import com.yhs.inventroysystem.domain.client.Client;
-import com.yhs.inventroysystem.domain.price.ClientProductPrice;
-import com.yhs.inventroysystem.domain.product.Product;
-import com.yhs.inventroysystem.domain.client.ClientRepository;
-import com.yhs.inventroysystem.domain.product.ProductRepository;
+import com.yhs.inventroysystem.domain.client.entity.Client;
+import com.yhs.inventroysystem.domain.client.service.ClientDomainService;
+import com.yhs.inventroysystem.domain.price.entity.ClientProductPrice;
+import com.yhs.inventroysystem.domain.price.service.PriceDomainService;
+import com.yhs.inventroysystem.domain.product.entity.Product;
+import com.yhs.inventroysystem.domain.product.service.ProductDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.BigDecimal;
+
 import java.util.List;
 
-import static com.yhs.inventroysystem.application.price.PriceCommands.*;
+import static com.yhs.inventroysystem.application.price.PriceCommands.PriceRegisterCommand;
+import static com.yhs.inventroysystem.application.price.PriceCommands.PriceUpdateCommand;
 
+// 연관관계 엔티티는 도메인 서비스가 아닌 비즈니스 서비스로 보는 게 합리적
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PriceService {
 
-    private final ClientProductPriceRepository priceRepository;
-    private final ClientRepository clientRepository;
-    private final ProductRepository productRepository;
+    private final PriceDomainService priceDomainService;
+    private final ClientDomainService clientDomainService;
+    private final ProductDomainService productDomainService;
 
     @Transactional
     public ClientProductPrice registerPrice(PriceRegisterCommand command) {
-        Client client = findClientById(command.clientId());
+        Client client = clientDomainService.findClientById(command.clientId());
 
-        Product product = productRepository.findById(command.productId())
-                .orElseThrow(() -> ResourceNotFoundException.product(command.productId()));
+        Product product = productDomainService.findById(command.productId());
 
-        if (priceRepository.existsByClientIdAndProductId(command.clientId(), command.productId())) {
-            throw DuplicateResourceException.price(command.clientId(), command.productId());
-        }
+        priceDomainService.existsByClientIdAndProductId(client.getId(), product.getId());
 
         ClientProductPrice price = new ClientProductPrice(
                 client,
                 product,
                 command.unitPrice()
         );
-        return priceRepository.save(price);
+        return priceDomainService.savePrice(price);
     }
 
     public List<ClientProductPrice> findPricesByClientId(Long clientId) {
-        return priceRepository.findByClientId(clientId);
+        return priceDomainService.findByClientId(clientId);
     }
 
     public List<ClientProductPrice> findAllPrices() {
-        return priceRepository.findAllWithClientAndProduct();
+        return priceDomainService.findAllWithClientAndProduct();
     }
 
     @Transactional
     public void updatePrice(PriceUpdateCommand command) {
-        ClientProductPrice price = priceRepository.findByClientIdAndProductId(command.clientId(), command.productId())
-                .orElseThrow(() -> ResourceNotFoundException.price(command.clientId(), command.productId()));
-
+        ClientProductPrice price = priceDomainService.findByClientIdAndProductId(command.clientId(), command.productId());
         price.updatePrice(command.newPrice());
     }
 
     public ClientProductPrice findPrice(Long clientId, Long productId) {
-        return priceRepository.findByClientIdAndProductId(clientId, productId)
-                .orElseThrow(() -> ResourceNotFoundException.price(clientId, productId));
-    }
-
-    public Client findClientById(Long clientId) {
-        return clientRepository.findByIdAndDeletedAt(clientId)
-                .orElseThrow(() -> ResourceNotFoundException.client(clientId));
+        return priceDomainService.findByClientIdAndProductId(clientId, productId);
     }
 }

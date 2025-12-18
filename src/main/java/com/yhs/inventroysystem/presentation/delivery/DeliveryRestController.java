@@ -3,7 +3,7 @@ package com.yhs.inventroysystem.presentation.delivery;
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.delivery.DeliveryCommands.*;
 import com.yhs.inventroysystem.application.delivery.DeliveryExcelService;
-import com.yhs.inventroysystem.domain.delivery.Delivery;
+import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
 import com.yhs.inventroysystem.application.delivery.DeliveryService;
 import com.yhs.inventroysystem.presentation.delivery.DeliveryDtos.*;
 import jakarta.validation.Valid;

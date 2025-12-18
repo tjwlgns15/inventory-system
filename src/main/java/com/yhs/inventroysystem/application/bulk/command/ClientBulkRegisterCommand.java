@@ -1,6 +1,5 @@
 package com.yhs.inventroysystem.application.bulk.command;
 
-import com.yhs.inventroysystem.domain.exchange.Currency;
 import lombok.Builder;
 
 import java.util.List;

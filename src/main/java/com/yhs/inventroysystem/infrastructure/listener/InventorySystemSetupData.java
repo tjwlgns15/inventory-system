@@ -1,11 +1,9 @@
 package com.yhs.inventroysystem.infrastructure.listener;
 
-import com.yhs.inventroysystem.domain.auth.User;
-import com.yhs.inventroysystem.domain.auth.UserRepository;
-import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.task.TaskCategory;
-import com.yhs.inventroysystem.domain.task.TaskCategoryRepository;
+import com.yhs.inventroysystem.domain.auth.entity.User;
+import com.yhs.inventroysystem.domain.auth.repository.UserRepository;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
+import com.yhs.inventroysystem.domain.task.repository.TaskCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;

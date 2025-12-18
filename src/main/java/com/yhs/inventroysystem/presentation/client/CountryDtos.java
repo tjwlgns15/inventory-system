@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.presentation.client;
 
-import com.yhs.inventroysystem.domain.client.Country;
+import com.yhs.inventroysystem.domain.client.entity.Country;
 import jakarta.validation.constraints.NotBlank;
 
 public class CountryDtos {

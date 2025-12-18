@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.application.quotation;
 
-import com.yhs.inventroysystem.domain.exchange.Currency;
-import com.yhs.inventroysystem.domain.quotation.QuotationType;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

@@ -2,15 +2,11 @@ package com.yhs.inventroysystem.presentation.task;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskCategory;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.task.entity.Priority;
+import com.yhs.inventroysystem.domain.task.entity.Task;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
+import com.yhs.inventroysystem.domain.task.entity.TaskStatus;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.presentation.quotation;
 
-import com.yhs.inventroysystem.domain.quotation.QuotationDocument;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationDocument;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;

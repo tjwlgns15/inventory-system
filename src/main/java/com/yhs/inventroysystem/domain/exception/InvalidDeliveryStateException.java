@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.domain.exception;
 
-import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryStatus;
 import org.springframework.http.HttpStatus;
 
 public class InvalidDeliveryStateException extends BusinessException {

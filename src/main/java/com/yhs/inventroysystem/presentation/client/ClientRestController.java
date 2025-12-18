@@ -1,8 +1,7 @@
 package com.yhs.inventroysystem.presentation.client;
 
-import com.yhs.inventroysystem.domain.client.Client;
+import com.yhs.inventroysystem.domain.client.entity.Client;
 import com.yhs.inventroysystem.application.client.ClientService;
-import com.yhs.inventroysystem.presentation.client.ClientDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,8 +1,8 @@
 package com.yhs.inventroysystem.presentation.product;
 
-import com.yhs.inventroysystem.domain.product.Product;
-import com.yhs.inventroysystem.domain.product.ProductCategory;
-import com.yhs.inventroysystem.domain.product.ProductPart;
+import com.yhs.inventroysystem.domain.product.entity.Product;
+import com.yhs.inventroysystem.domain.product.entity.ProductCategory;
+import com.yhs.inventroysystem.domain.product.entity.ProductPart;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

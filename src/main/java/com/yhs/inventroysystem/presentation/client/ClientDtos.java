@@ -1,8 +1,8 @@
 package com.yhs.inventroysystem.presentation.client;
 
-import com.yhs.inventroysystem.domain.client.Client;
-import com.yhs.inventroysystem.domain.client.ClientType;
-import com.yhs.inventroysystem.domain.exchange.Currency;
+import com.yhs.inventroysystem.domain.client.entity.Client;
+import com.yhs.inventroysystem.domain.client.entity.ClientType;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -4,39 +4,46 @@ import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.bulk.command.*;
 import com.yhs.inventroysystem.application.bulk.command.ProductBulkRegisterCommand.BulkProductData;
 import com.yhs.inventroysystem.application.bulk.parser.*;
-import com.yhs.inventroysystem.application.exchange.ExchangeRateService;
-import com.yhs.inventroysystem.application.part.PartStockTransactionService;
-import com.yhs.inventroysystem.application.product.ProductStockTransactionService;
-import com.yhs.inventroysystem.domain.client.Client;
-import com.yhs.inventroysystem.domain.client.ClientRepository;
-import com.yhs.inventroysystem.domain.client.Country;
-import com.yhs.inventroysystem.domain.client.CountryRepository;
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
-import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
-import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
-import com.yhs.inventroysystem.domain.exchange.Currency;
-import com.yhs.inventroysystem.domain.exchange.ExchangeRate;
-import com.yhs.inventroysystem.domain.part.Part;
-import com.yhs.inventroysystem.domain.part.PartRepository;
-import com.yhs.inventroysystem.domain.part.TransactionType;
-import com.yhs.inventroysystem.domain.price.ClientProductPrice;
-import com.yhs.inventroysystem.domain.price.ClientProductPriceRepository;
-import com.yhs.inventroysystem.domain.product.*;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskRepository;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.client.entity.Client;
+import com.yhs.inventroysystem.domain.client.entity.Country;
+import com.yhs.inventroysystem.domain.client.repository.ClientRepository;
+import com.yhs.inventroysystem.domain.client.repository.CountryRepository;
+import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryItem;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryStatus;
+import com.yhs.inventroysystem.domain.delivery.repository.DeliveryRepository;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
+import com.yhs.inventroysystem.domain.exchange.entity.ExchangeRate;
+import com.yhs.inventroysystem.domain.exchange.service.ExchangeDomainService;
+import com.yhs.inventroysystem.domain.part.entity.Part;
+import com.yhs.inventroysystem.domain.part.entity.TransactionType;
+import com.yhs.inventroysystem.domain.part.repository.PartRepository;
+import com.yhs.inventroysystem.domain.part.service.PartStockTransactionDomainService;
+import com.yhs.inventroysystem.domain.price.entity.ClientProductPrice;
+import com.yhs.inventroysystem.domain.price.repository.ClientProductPriceRepository;
+import com.yhs.inventroysystem.domain.product.entity.Product;
+import com.yhs.inventroysystem.domain.product.entity.ProductCategory;
+import com.yhs.inventroysystem.domain.product.entity.ProductPart;
+import com.yhs.inventroysystem.domain.product.entity.ProductTransactionType;
+import com.yhs.inventroysystem.domain.product.repository.ProductPartRepository;
+import com.yhs.inventroysystem.domain.product.repository.ProductRepository;
+import com.yhs.inventroysystem.domain.product.service.ProductStockTransactionDomainService;
+import com.yhs.inventroysystem.domain.task.entity.Priority;
+import com.yhs.inventroysystem.domain.task.entity.Task;
+import com.yhs.inventroysystem.domain.task.entity.TaskStatus;
+import com.yhs.inventroysystem.domain.task.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -46,11 +53,11 @@ import java.util.List;
 public class BulkRegisterService {
 
     private final PartRepository partRepository;
-    private final PartStockTransactionService partStockTransactionService;
+    private final PartStockTransactionDomainService partStockTransactionDomainService;
     private final PartBulkFileParser partBulkFileParser;
 
     private final ProductRepository productRepository;
-    private final ProductStockTransactionService productStockTransactionService;
+    private final ProductStockTransactionDomainService productStockTransactionDomainService;
     private final ProductBulkFileParser productBulkFileParser;
 
     private final ProductPartRepository productPartRepository;
@@ -65,10 +72,14 @@ public class BulkRegisterService {
 
     private final DeliveryRepository deliveryRepository;
     private final DeliveryBulkFileParser deliveryBulkFileParser;
-    private final ExchangeRateService exchangeRateService;
+    private final ExchangeDomainService exchangeDomainService;
     private final TaskRepository taskRepository;
 
     private final DeliveryItemBulkFileParser deliveryItemBulkFileParser;
+
+    private final RestTemplate restTemplate;
+
+    private static final String API_URL = "https://api.exchangerate-api.com/v4/latest/KRW";
 
     /**
      * Part
@@ -117,7 +128,7 @@ public class BulkRegisterService {
                 Part savedPart = partRepository.save(part);
 
                 // 초기 재고 트랜잭션 기록
-                partStockTransactionService.recordTransaction(
+                partStockTransactionDomainService.recordTransaction(
                         savedPart,
                         TransactionType.INITIAL,
                         0,
@@ -201,7 +212,6 @@ public class BulkRegisterService {
                 // todo: 임시로 HARDWARE, null
                 Product product = new Product(
                         ProductCategory.HARDWARE,
-                        null,
                         bulkData.productCode(),
                         bulkData.name(),
                         bulkData.defaultUnitPrice(),
@@ -212,7 +222,7 @@ public class BulkRegisterService {
                 Product savedProduct = productRepository.save(product);
 
                 // 초기 재고 트랜잭션 기록
-                productStockTransactionService.recordTransaction(
+                productStockTransactionDomainService.recordTransaction(
                         savedProduct,
                         ProductTransactionType.INITIAL,
                         0,
@@ -652,7 +662,7 @@ public class BulkRegisterService {
                 }
 
                 // 환율 조회 및 설정
-                ExchangeRate exchangeRate = exchangeRateService.getLatestExchangeRate(client.getCurrency());
+                ExchangeRate exchangeRate = getLatestExchangeRate(client.getCurrency());
                 delivery.setExchangeRate(exchangeRate.getRate());
 
                 // Delivery 저장
@@ -936,5 +946,70 @@ public class BulkRegisterService {
                 .orElseGet(() -> product.getDefaultUnitPrice() != null
                         ? product.getDefaultUnitPrice()
                         : BigDecimal.ZERO);
+    }
+
+    /**
+     * 최신 환율 조회 (오늘 날짜 기준)
+     */
+    @Transactional
+    public ExchangeRate getLatestExchangeRate(Currency currency) {
+        LocalDate now = LocalDate.now();
+
+        // KRW는 환율이 1
+        if (currency == Currency.KRW) {
+            return new ExchangeRate(Currency.KRW, BigDecimal.ONE, now);
+        }
+
+        return exchangeDomainService.findByCurrencyAndDate(currency, now)
+                .orElseGet(() -> fetchAndSaveExchangeRate(currency, now));
+    }
+
+    /**
+     * 외부 API에서 환율 가져와서 저장
+     */
+    @Transactional
+    public ExchangeRate fetchAndSaveExchangeRate(Currency currency, LocalDate date) {
+        try {
+            // API 호출
+            Map<String, Object> response = restTemplate.getForObject(API_URL, Map.class);
+
+            if (response != null && response.containsKey("rates")) {
+                Map<String, Double> rates = (Map<String, Double>) response.get("rates");
+
+                // KRW 기준이므로 역수 계산
+                // 예: API에서 1 KRW = 0.00075 USD라면, 1 USD = 1333.33 KRW
+                Double rate = rates.get(currency.getCode());
+                BigDecimal krwRate = BigDecimal.ONE.divide(
+                        BigDecimal.valueOf(rate),
+                        6,
+                        BigDecimal.ROUND_HALF_UP
+                );
+
+                ExchangeRate exchangeRate = new ExchangeRate(currency, krwRate, date);
+                return exchangeDomainService.saveExchangeRate(exchangeRate);
+            }
+        } catch (Exception e) {
+            log.error("환율 조회 실패: {}", e.getMessage());
+        }
+
+        // 실패 시 기본값 반환 (고정 환율)
+        return getDefaultExchangeRate(currency, date);
+    }
+
+    /**
+     * API 실패 시 기본 환율 반환
+     */
+    private ExchangeRate getDefaultExchangeRate(Currency currency, LocalDate date) {
+        BigDecimal defaultRate = switch (currency) {
+            case USD -> BigDecimal.valueOf(1300.0);
+            case JPY -> BigDecimal.valueOf(9.5);
+            case EUR -> BigDecimal.valueOf(1400.0);
+            case CNY -> BigDecimal.valueOf(180.0);
+            case GBP -> BigDecimal.valueOf(1650.0);
+            default -> BigDecimal.ONE;
+        };
+
+        ExchangeRate exchangeRate = new ExchangeRate(currency, defaultRate, date);
+        return exchangeDomainService.saveExchangeRate(exchangeRate);
     }
 }

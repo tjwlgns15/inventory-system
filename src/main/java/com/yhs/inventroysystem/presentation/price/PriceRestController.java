@@ -1,8 +1,7 @@
 package com.yhs.inventroysystem.presentation.price;
 
-import com.yhs.inventroysystem.domain.price.ClientProductPrice;
+import com.yhs.inventroysystem.domain.price.entity.ClientProductPrice;
 import com.yhs.inventroysystem.application.price.PriceService;
-import com.yhs.inventroysystem.presentation.client.ClientDtos.*;
 import com.yhs.inventroysystem.presentation.price.PriceDtos.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

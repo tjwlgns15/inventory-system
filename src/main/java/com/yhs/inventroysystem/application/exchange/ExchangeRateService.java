@@ -1,8 +1,8 @@
 package com.yhs.inventroysystem.application.exchange;
 
-import com.yhs.inventroysystem.domain.exchange.Currency;
-import com.yhs.inventroysystem.domain.exchange.ExchangeRate;
-import com.yhs.inventroysystem.domain.exchange.ExchangeRateRepository;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
+import com.yhs.inventroysystem.domain.exchange.entity.ExchangeRate;
+import com.yhs.inventroysystem.domain.exchange.service.ExchangeDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 public class ExchangeRateService {
 
-    private final ExchangeRateRepository exchangeRateRepository;
+    private final ExchangeDomainService exchangeDomainService;
     private final RestTemplate restTemplate;
 
     private static final String API_URL = "https://api.exchangerate-api.com/v4/latest/KRW";
@@ -35,27 +35,7 @@ public class ExchangeRateService {
         }
 
         // DB에서 조회
-        return exchangeRateRepository.findByCurrencyAndDate(currency, date)
-                .orElseGet(() -> fetchAndSaveExchangeRate(currency, date));
-    }
-
-    /**
-     * 최신 환율 조회 (오늘 날짜 기준)
-     */
-    @Transactional
-    public ExchangeRate getLatestExchangeRate(Currency currency) {
-        return getExchangeRate(currency, LocalDate.now());
-    }
-
-    /**
-     * 특정 날짜 이전의 가장 최근 환율 조회
-     */
-    public ExchangeRate getExchangeRateBeforeDate(Currency currency, LocalDate date) {
-        if (currency == Currency.KRW) {
-            return new ExchangeRate(Currency.KRW, BigDecimal.ONE, date);
-        }
-
-        return exchangeRateRepository.findLatestByCurrencyBeforeDate(currency, date)
+        return exchangeDomainService.findByCurrencyAndDate(currency, date)
                 .orElseGet(() -> fetchAndSaveExchangeRate(currency, date));
     }
 
@@ -81,7 +61,7 @@ public class ExchangeRateService {
                 );
 
                 ExchangeRate exchangeRate = new ExchangeRate(currency, krwRate, date);
-                return exchangeRateRepository.save(exchangeRate);
+                return exchangeDomainService.saveExchangeRate(exchangeRate);
             }
         } catch (Exception e) {
             log.error("환율 조회 실패: {}", e.getMessage());
@@ -105,14 +85,7 @@ public class ExchangeRateService {
         };
 
         ExchangeRate exchangeRate = new ExchangeRate(currency, defaultRate, date);
-        return exchangeRateRepository.save(exchangeRate);
+        return exchangeDomainService.saveExchangeRate(exchangeRate);
     }
 
-    /**
-     * 금액을 원화로 환산
-     */
-    public BigDecimal convertToKRW(BigDecimal amount, Currency currency, LocalDate date) {
-        ExchangeRate rate = getExchangeRate(currency, date);
-        return rate.convertToKRW(amount);
-    }
 }

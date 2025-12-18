@@ -3,7 +3,7 @@ package com.yhs.inventroysystem.presentation.quotation;
 import com.yhs.inventroysystem.application.quotation.QuotationCommands;
 import com.yhs.inventroysystem.application.quotation.QuotationExcelService;
 import com.yhs.inventroysystem.application.quotation.QuotationService;
-import com.yhs.inventroysystem.domain.quotation.Quotation;
+import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
 import com.yhs.inventroysystem.presentation.quotation.QuotationDtos.QuotationCreate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

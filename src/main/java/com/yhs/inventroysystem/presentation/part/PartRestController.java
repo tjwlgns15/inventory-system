@@ -1,10 +1,9 @@
 package com.yhs.inventroysystem.presentation.part;
 
-import com.yhs.inventroysystem.application.part.PartCommands;
 import com.yhs.inventroysystem.application.part.PartCommands.PartStockUpdateCommand;
 import com.yhs.inventroysystem.application.part.PartService;
-import com.yhs.inventroysystem.domain.part.Part;
-import com.yhs.inventroysystem.domain.part.PartStockTransaction;
+import com.yhs.inventroysystem.domain.part.entity.Part;
+import com.yhs.inventroysystem.domain.part.entity.PartStockTransaction;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.presentation.part.PartDtos.*;
 import com.yhs.inventroysystem.presentation.part.PartTransactionDtos.PartTransactionResponse;

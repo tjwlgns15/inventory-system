@@ -3,11 +3,10 @@ package com.yhs.inventroysystem.application.delivery;
 import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DeliveryDocumentDeleteCommand;
 import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DeliveryDocumentUpdateCommand;
 import com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.DeliveryDocumentUploadCommand;
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryDocument;
-import com.yhs.inventroysystem.domain.delivery.DeliveryDocumentRepository;
-import com.yhs.inventroysystem.domain.delivery.DeliveryRepository;
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
+import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryDocument;
+import com.yhs.inventroysystem.domain.delivery.service.DeliveryDocumentDomainService;
+import com.yhs.inventroysystem.domain.delivery.service.DeliveryDomainService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
@@ -24,23 +23,23 @@ import java.util.List;
 @Slf4j
 public class DeliveryDocumentService {
 
-    private final DeliveryRepository deliveryRepository;
-    private final DeliveryDocumentRepository deliveryDocumentRepository;
+    private final DeliveryDomainService deliveryDomainService;
+    private final DeliveryDocumentDomainService deliveryDocumentDomainService;
 
     private final FileStorageService fileStorageService;
 
     public DeliveryDocumentService(
-            DeliveryRepository deliveryRepository,
-            DeliveryDocumentRepository deliveryDocumentRepository,
+            DeliveryDomainService deliveryDomainService,
+            DeliveryDocumentDomainService deliveryDocumentDomainService,
             FileStorageFactory fileStorageFactory) {
-        this.deliveryRepository = deliveryRepository;
-        this.deliveryDocumentRepository = deliveryDocumentRepository;
+        this.deliveryDomainService = deliveryDomainService;
+        this.deliveryDocumentDomainService = deliveryDocumentDomainService;
         this.fileStorageService = fileStorageFactory.getStorageService(FileStorageType.DELIVERY_DOCUMENT);
     }
 
     @Transactional
     public DeliveryDocument uploadDocument(DeliveryDocumentUploadCommand command) {
-        Delivery delivery = findDelivery(command.deliveryId());
+        Delivery delivery = deliveryDomainService.findById(command.deliveryId());
 
         MultipartFile uploadFile = command.uploadFile();
         validateDocumentFile(uploadFile);
@@ -63,7 +62,7 @@ public class DeliveryDocumentService {
             document.updateDescription(command.description());
         }
 
-        DeliveryDocument savedDocument = deliveryDocumentRepository.save(document);
+        DeliveryDocument savedDocument = deliveryDocumentDomainService.saveDeliveryDocument(document);
         delivery.getDocuments().add(savedDocument);
 
         log.info("출하 문서 업로드 완료 - deliveryId: {}, fileName: {}",
@@ -73,20 +72,20 @@ public class DeliveryDocumentService {
     }
 
     public DeliveryDocument getDocument(Long documentId) {
-        return findDocument(documentId);
+        return deliveryDocumentDomainService.findById(documentId);
     }
 
     public List<DeliveryDocument> getDocumentsByDeliveryId(Long deliveryId) {
-        return deliveryDocumentRepository.findByDeliveryId(deliveryId);
+        return deliveryDocumentDomainService.getDocumentsByDeliveryId(deliveryId);
     }
 
     public byte[] getDocumentFile(Long documentId) {
-        DeliveryDocument document = findDocument(documentId);
+        DeliveryDocument document = deliveryDocumentDomainService.findById(documentId);
         return fileStorageService.load(document.getFilePath());
     }
     @Transactional
     public DeliveryDocument updateDocumentDescription(DeliveryDocumentUpdateCommand command) {
-        DeliveryDocument document = findDocument(command.documentId());
+        DeliveryDocument document = deliveryDocumentDomainService.findById(command.documentId());
 
         document.updateDescription(command.description());
         log.info("수주 관련 문서 설명 업데이트 - Document ID: {}", document.getId());
@@ -96,26 +95,15 @@ public class DeliveryDocumentService {
 
     @Transactional
     public void deleteDocument(DeliveryDocumentDeleteCommand command) {
-        Delivery delivery = findDelivery(command.deliveryId());
-        DeliveryDocument document = findDocument(command.documentId());
+        Delivery delivery = deliveryDomainService.findById(command.deliveryId());
+        DeliveryDocument document = deliveryDocumentDomainService.findById(command.documentId());
 
         fileStorageService.delete(document.getFilePath());
 
         delivery.getDocuments().remove(document);
-        deliveryDocumentRepository.delete(document);
+        deliveryDocumentDomainService.deleteDocument(document);
 
         log.info("출하 문서 삭제 완료 - deliveryId: {}, documentId: {}", command.deliveryId(), command.documentId());
-    }
-
-
-    private Delivery findDelivery(Long deliveryId) {
-        return deliveryRepository.findById(deliveryId)
-                .orElseThrow(() -> ResourceNotFoundException.delivery(deliveryId));
-    }
-
-    private DeliveryDocument findDocument(Long documentId) {
-        return deliveryDocumentRepository.findById(documentId)
-                .orElseThrow(() -> ResourceNotFoundException.document(documentId));
     }
 
     private void validateDocumentFile(MultipartFile file) {

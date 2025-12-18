@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.application.client;
 
-import com.yhs.inventroysystem.domain.exchange.Currency;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
 
 public class ClientCommands {
 

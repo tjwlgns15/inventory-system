@@ -1,7 +1,10 @@
 package com.yhs.inventroysystem.application.task;
 
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.task.*;
+import com.yhs.inventroysystem.domain.task.entity.Task;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
+import com.yhs.inventroysystem.domain.task.service.TaskCategoryDomainService;
+import com.yhs.inventroysystem.domain.task.service.TaskDomainService;
+import com.yhs.inventroysystem.domain.task.service.TaskMappingDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,9 +18,9 @@ import java.util.List;
 @Slf4j
 public class TaskCategoryMappingService {
 
-    private final TaskRepository taskRepository;
-    private final TaskCategoryRepository taskCategoryRepository;
-    private final TaskCategoryMappingRepository taskCategoryMappingRepository;
+    private final TaskDomainService taskDomainService;
+    private final TaskCategoryDomainService taskCategoryDomainService;
+    private final TaskMappingDomainService taskMappingDomainService;
 
     /**
      * 작업에 카테고리 추가
@@ -48,7 +51,7 @@ public class TaskCategoryMappingService {
      */
     public List<TaskCategory> getTaskCategories(Long taskId) {
         findTaskById(taskId);
-        return taskCategoryMappingRepository.findCategoriesByTaskId(taskId);
+        return taskMappingDomainService.findCategoriesByTaskId(taskId);
     }
 
     /**
@@ -58,17 +61,13 @@ public class TaskCategoryMappingService {
     public void updateTaskCategories(Long taskId, List<Long> taskCategoryIds) {
         Task task = findTaskById(taskId);
 
-        taskCategoryMappingRepository.deleteByTaskId(taskId);
-        taskCategoryMappingRepository.flush();
-
         task.clearCategories();
 
         // 새로운 카테고리들 추가
         if (taskCategoryIds != null && !taskCategoryIds.isEmpty()) {
-            for (Long taskCategoryId : taskCategoryIds) {
-                TaskCategory taskCategory = findTaskCategoryById(taskCategoryId);
-                task.addCategory(taskCategory);
-            }
+            taskCategoryIds.stream()
+                    .map(this::findTaskCategoryById)
+                    .forEach(task::addCategory);
         }
 
         log.info("작업의 카테고리가 업데이트되었습니다. taskId: {}, 카테고리 개수: {}",
@@ -77,16 +76,12 @@ public class TaskCategoryMappingService {
 
     /**
      * 카테고리별 작업 목록 조회 (Fetch Join 사용)
-     *
-     * 방법:
-     * 1. 카테고리에 속한 Task ID 목록 조회
-     * 2. Task ID로 Fetch Join하여 Task + 모든 카테고리 정보 조회
      */
     public List<Task> getTasksByCategory(Long categoryId) {
         findTaskCategoryById(categoryId);
 
         // 1단계: 해당 카테고리에 속한 Task ID 목록 조회
-        List<Long> taskIds = taskCategoryMappingRepository.findTaskIdsByCategoryId(categoryId);
+        List<Long> taskIds = taskMappingDomainService.findTaskIdsByCategoryId(categoryId);
 
         if (taskIds.isEmpty()) {
             return List.of();
@@ -94,7 +89,7 @@ public class TaskCategoryMappingService {
 
         // 2단계: Task ID로 Fetch Join하여 Task + 카테고리 정보 조회
         // TaskRepository에 이미 있는 메서드 활용
-        return taskRepository.findTasksByIdsWithCategories(taskIds);
+        return taskDomainService.findTasksByIdsWithCategories(taskIds);
     }
 
     /**
@@ -105,17 +100,14 @@ public class TaskCategoryMappingService {
         log.info("모든 Task에 대한 자동 카테고리 매핑 시작");
 
         // 필요한 카테고리들 미리 조회
-        TaskCategory orderDeliveryCategory = taskCategoryRepository.findByName("수주/납품")
-                .orElseThrow(() -> ResourceNotFoundException.taskCategory("카테고리 '수주/납품'을 찾을 수 없습니다."));
+        TaskCategory orderDeliveryCategory = taskCategoryDomainService.findByName("수주/납품");
 
-        TaskCategory productionCategory = taskCategoryRepository.findByName("제품 생산")
-                .orElseThrow(() -> ResourceNotFoundException.taskCategory("카테고리 '생산'을 찾을 수 없습니다."));
+        TaskCategory productionCategory = taskCategoryDomainService.findByName("제품 생산");
 
-        TaskCategory etcCategory = taskCategoryRepository.findByName("기타")
-                .orElseThrow(() -> ResourceNotFoundException.taskCategory("카테고리 '기타'를 찾을 수 없습니다."));
+        TaskCategory etcCategory = taskCategoryDomainService.findByName("기타");
 
         // 모든 Task 조회
-        List<Task> allTasks = taskRepository.findAll();
+        List<Task> allTasks = taskDomainService.findAllTasks();
         log.info("이 {} 개의 Task를 조회했습니다.", allTasks.size());
 
         int mappedCount = 0;
@@ -173,12 +165,10 @@ public class TaskCategoryMappingService {
     }
 
     private Task findTaskById(Long taskId) {
-        return taskRepository.findById(taskId)
-                .orElseThrow(() -> ResourceNotFoundException.task(taskId));
+        return taskDomainService.findTaskById(taskId);
     }
 
     private TaskCategory findTaskCategoryById(Long taskCategoryId) {
-        return taskCategoryRepository.findById(taskCategoryId)
-                .orElseThrow(() -> ResourceNotFoundException.taskCategory(taskCategoryId));
+        return taskCategoryDomainService.findTaskCategoryById(taskCategoryId);
     }
 }

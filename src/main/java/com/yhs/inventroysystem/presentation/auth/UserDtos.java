@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.presentation.auth;
 
-import com.yhs.inventroysystem.domain.auth.User;
-import com.yhs.inventroysystem.domain.auth.UserRole;
+import com.yhs.inventroysystem.domain.auth.entity.User;
+import com.yhs.inventroysystem.domain.auth.entity.UserRole;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserDtos {

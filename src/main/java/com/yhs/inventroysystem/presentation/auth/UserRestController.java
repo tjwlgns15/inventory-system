@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.presentation.auth;
 
 import com.yhs.inventroysystem.application.auth.UserService;
-import com.yhs.inventroysystem.domain.auth.User;
+import com.yhs.inventroysystem.domain.auth.entity.User;
 import com.yhs.inventroysystem.presentation.auth.UserDtos.UserResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;

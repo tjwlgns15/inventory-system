@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.application.auth.UserDetails;
 
-import com.yhs.inventroysystem.domain.auth.User;
-import com.yhs.inventroysystem.domain.auth.UserRepository;
+import com.yhs.inventroysystem.domain.auth.entity.User;
+import com.yhs.inventroysystem.domain.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.presentation.delivery;
 
 import com.yhs.inventroysystem.application.delivery.DeliveryDocumentService;
-import com.yhs.inventroysystem.domain.delivery.DeliveryDocument;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryDocument;
 import com.yhs.inventroysystem.infrastructure.file.FileDownloadUtils;
 import com.yhs.inventroysystem.presentation.delivery.DeliveryDocumentDtos.DeliveryDocumentResponse;
 import jakarta.validation.Valid;

@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.application.bulk.command;
 
-import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryStatus;
 import lombok.Builder;
 
 import java.math.BigDecimal;

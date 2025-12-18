@@ -3,12 +3,11 @@ package com.yhs.inventroysystem.presentation.task;
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
 import com.yhs.inventroysystem.application.task.TaskCategoryMappingService;
-import com.yhs.inventroysystem.application.task.TaskCommands;
 import com.yhs.inventroysystem.application.task.TaskCommands.*;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskCategory;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.task.entity.Priority;
+import com.yhs.inventroysystem.domain.task.entity.Task;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
+import com.yhs.inventroysystem.domain.task.entity.TaskStatus;
 import com.yhs.inventroysystem.application.task.TaskService;
 import com.yhs.inventroysystem.presentation.task.TaskCategoryDto.TaskCategorySimpleResponse;
 import com.yhs.inventroysystem.presentation.task.TaskDto.*;
@@ -21,14 +20,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tasks")

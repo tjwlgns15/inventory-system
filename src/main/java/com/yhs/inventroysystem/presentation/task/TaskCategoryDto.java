@@ -1,15 +1,9 @@
 package com.yhs.inventroysystem.presentation.task;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.yhs.inventroysystem.domain.task.Priority;
-import com.yhs.inventroysystem.domain.task.Task;
-import com.yhs.inventroysystem.domain.task.TaskCategory;
-import com.yhs.inventroysystem.domain.task.TaskStatus;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
 import jakarta.validation.constraints.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class TaskCategoryDto {

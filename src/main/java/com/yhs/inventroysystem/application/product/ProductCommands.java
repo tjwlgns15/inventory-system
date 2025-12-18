@@ -1,6 +1,6 @@
 package com.yhs.inventroysystem.application.product;
 
-import com.yhs.inventroysystem.domain.product.ProductCategory;
+import com.yhs.inventroysystem.domain.product.entity.ProductCategory;
 
 import java.math.BigDecimal;
 import java.util.List;

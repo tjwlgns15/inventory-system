@@ -1,7 +1,7 @@
 package com.yhs.inventroysystem.presentation.part;
 
-import com.yhs.inventroysystem.domain.part.PartStockTransaction;
-import com.yhs.inventroysystem.domain.part.TransactionType;
+import com.yhs.inventroysystem.domain.part.entity.PartStockTransaction;
+import com.yhs.inventroysystem.domain.part.entity.TransactionType;
 
 import java.time.LocalDateTime;
 

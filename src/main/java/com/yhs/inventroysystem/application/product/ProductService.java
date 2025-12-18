@@ -1,15 +1,21 @@
 package com.yhs.inventroysystem.application.product;
 
 import com.yhs.inventroysystem.application.auth.UserDetails.CustomUserDetails;
-import com.yhs.inventroysystem.application.part.PartStockTransactionService;
-import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
 import com.yhs.inventroysystem.domain.exception.InsufficientStockException;
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.part.Part;
-import com.yhs.inventroysystem.domain.part.PartRepository;
-import com.yhs.inventroysystem.domain.part.TransactionType;
-import com.yhs.inventroysystem.domain.product.*;
-import com.yhs.inventroysystem.domain.task.*;
+import com.yhs.inventroysystem.domain.part.entity.Part;
+import com.yhs.inventroysystem.domain.part.entity.TransactionType;
+import com.yhs.inventroysystem.domain.part.service.PartDomainService;
+import com.yhs.inventroysystem.domain.part.service.PartStockTransactionDomainService;
+import com.yhs.inventroysystem.domain.product.entity.*;
+import com.yhs.inventroysystem.domain.product.service.ProductDomainService;
+import com.yhs.inventroysystem.domain.product.service.ProductLineDomainService;
+import com.yhs.inventroysystem.domain.product.service.ProductStockTransactionDomainService;
+import com.yhs.inventroysystem.domain.task.entity.Priority;
+import com.yhs.inventroysystem.domain.task.entity.Task;
+import com.yhs.inventroysystem.domain.task.entity.TaskCategory;
+import com.yhs.inventroysystem.domain.task.entity.TaskStatus;
+import com.yhs.inventroysystem.domain.task.service.TaskCategoryDomainService;
+import com.yhs.inventroysystem.domain.task.service.TaskDomainService;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,26 +34,21 @@ import static com.yhs.inventroysystem.application.product.ProductCommands.*;
 @Transactional(readOnly = true)
 public class ProductService {
 
-    private final ProductRepository productRepository;
-    private final PartRepository partRepository;
-    private final TaskRepository taskRepository;
-    private final ProductLineRepository productLineRepository;
-    private final TaskCategoryRepository taskCategoryRepository;
+    private final ProductDomainService productDomainService;
+    private final ProductLineDomainService productLineDomainService;
+    private final PartDomainService partDomainService;
+    private final TaskDomainService taskDomainService;
+    private final TaskCategoryDomainService taskCategoryDomainService;
 
-    private final ProductStockTransactionService productStockTransactionService;
-    private final PartStockTransactionService partStockTransactionService;
+    private final ProductStockTransactionDomainService productStockTransactionDomainService;
+    private final PartStockTransactionDomainService partStockTransactionDomainService;
 
 
     @Transactional
     public Product registerProduct(ProductRegisterCommand command) {
-        validateProductCodeDuplication(command.productCode());
-        validateProductNameDuplication(command.name());
 
-        ProductLine productLine = findProductLineIfPresent(command.productLineId());
-
-        Product product = new Product(
+        Product product = productDomainService.createProduct(
                 command.productCategory(),
-                productLine,
                 command.productCode(),
                 command.name(),
                 command.defaultUnitPrice(),
@@ -55,100 +56,72 @@ public class ProductService {
                 command.initialStock()
         );
 
-        // 부품 매핑 추가
-        if (command.partMappings() != null && !command.partMappings().isEmpty()) {
-            for (PartMappingInfo mappingInfo : command.partMappings()) {
-                Part part = partRepository.findByIdAndNotDeleted(mappingInfo.partId())
-                        .orElseThrow(() -> ResourceNotFoundException.part(mappingInfo.partId()));
-
-                ProductPart mapping = new ProductPart(
-                        product,
-                        part,
-                        mappingInfo.requiredQuantity()
-                );
-
-                product.addPartMapping(mapping);
-            }
+        if (command.productLineId() != null) {
+            ProductLine productLine = productLineDomainService.findById(command.productLineId());
+            product.assignProductLine(productLine);
         }
-        Product savedProduct = productRepository.save(product);
 
-        productStockTransactionService.recordTransaction(savedProduct, ProductTransactionType.INITIAL, 0, command.initialStock());
+        if (command.partMappings() != null && !command.partMappings().isEmpty()) {
+            addPartMappings(product, command.partMappings());
+        }
 
-        return savedProduct;
+        productStockTransactionDomainService.recordTransaction(
+                product,
+                ProductTransactionType.INITIAL,
+                0,
+                command.initialStock()
+        );
+
+        return product;
     }
+
 
     public List<Product> findAllProduct(String sortBy, String direction) {
         Sort sort = PageableUtils.createSort(sortBy, direction);
-        return productRepository.findAllActive(sort);
+        return productDomainService.findAllActive(sort);
     }
 
     public Page<Product> searchProducts(String keyword, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return productRepository.searchByKeyword(keyword, pageable);
+        return productDomainService.searchByKeyword(keyword, pageable);
     }
 
     public Page<Product> findAllProductPaged(int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return productRepository.findAllActive(pageable);
+        return productDomainService.findAllActive(pageable);
     }
 
     public List<Product> findAllProductWithParts() {
-        return productRepository.findAllActiveWithPartOrderByDisplayOrder();
+        return productDomainService.findAllActiveWithPartOrderByDisplayOrder();
     }
 
     public Product findProductWithParts(Long productId) {
-        return productRepository.findByIdWithPartsAndNotDeleted(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+        return productDomainService.findProductWithParts(productId);
     }
 
     public Product findProductById(Long productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+        return productDomainService.findById(productId);
     }
 
     @Transactional
     public Product produceProduct(ProductProduceCommand command, CustomUserDetails currentUser) {
         // 1. 제품 조회 (부품 정보 포함)
-        Product product = productRepository.findByIdWithPartsAndNotDeleted(command.productId())
-                .orElseThrow(() -> ResourceNotFoundException.product(command.productId()));
+        Product product = productDomainService.findProductWithParts(command.productId());
 
         // 2. 부품이 있는 경우에만 부품 재고 검증 및 차감
         if (!product.getPartMappings().isEmpty()) {
             // 필요한 부품 재고 검증
-            for (ProductPart mapping : product.getPartMappings()) {
-                Part part = mapping.getPart();
-                Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
-
-                if (part.getStockQuantity() < requiredQuantity) {
-                    throw InsufficientStockException.insufficientStock(
-                            part.getName(),
-                            requiredQuantity,
-                            part.getStockQuantity()
-                    );
-                }
-            }
-
+            validatePartStock(command, product);
             // 부품 재고 차감
-            for (ProductPart mapping : product.getPartMappings()) {
-                Part part = mapping.getPart();
-                Integer beforeStock = part.getStockQuantity();
-                Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
-                part.decreaseStock(requiredQuantity);
-
-                partStockTransactionService.recordTransaction(
-                        part,
-                        TransactionType.OUTBOUND,
-                        beforeStock,
-                        -requiredQuantity
-                );
-            }
+            decreasePartStock(command, product);
         }
 
-        // 3. 제품 재고 증가 (부품 유무와 관계없이 항상 실행)
+        // 3. 제품 재고 증가
         Integer beforeStock = product.getStockQuantity();
         product.increaseStock(command.quantity());
 
-        productStockTransactionService.recordTransaction(product, ProductTransactionType.PRODUCE, beforeStock, command.quantity());
+        productStockTransactionDomainService.recordTransaction(product, ProductTransactionType.PRODUCE, beforeStock, command.quantity());
+
         createTaskForProduct(product, command.quantity(), currentUser);
 
         return product;
@@ -156,10 +129,9 @@ public class ProductService {
 
     @Transactional
     public Product updateProduct(Long productId, ProductUpdateCommand command) {
-        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+        Product product = productDomainService.findProductWithParts(productId);
 
-        validateProductNameDuplicationForUpdate(productId, command.name());
+        productDomainService.validateProductNameDuplicationForUpdate(productId, command.name());
 
         product.updateInfo(
                 command.name(),
@@ -172,8 +144,7 @@ public class ProductService {
         }
 
         if (command.productLineId() != null) {
-            ProductLine productLine = productLineRepository.findById(command.productLineId())
-                    .orElseThrow(() -> ResourceNotFoundException.productLine(command.productLineId()));
+            ProductLine productLine = productLineDomainService.findById(command.productLineId());
             product.assignProductLine(productLine);
         } else {
             // productLineId가 null이면 제품 라인 제거
@@ -185,17 +156,7 @@ public class ProductService {
 
         // 새로운 부품 매핑 추가
         if (command.partMappings() != null && !command.partMappings().isEmpty()) {
-            for (PartMappingInfo mappingInfo : command.partMappings()) {
-                Part part = partRepository.findByIdAndNotDeleted(mappingInfo.partId())
-                        .orElseThrow(() -> ResourceNotFoundException.part(mappingInfo.partId()));
-
-                ProductPart mapping = new ProductPart(
-                        product,
-                        part,
-                        mappingInfo.requiredQuantity()
-                );
-                product.addPartMapping(mapping);
-            }
+            addPartMappings(product, command.partMappings());
         }
 
         return product;
@@ -203,8 +164,7 @@ public class ProductService {
 
     @Transactional
     public Product adjustProductStock(Long productId, ProductStockUpdateCommand command) {
-        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+        Product product = productDomainService.findProductWithParts(productId);
 
         Integer beforeStock = product.getStockQuantity();
         int afterStock = beforeStock + command.adjustmentQuantity();
@@ -217,7 +177,7 @@ public class ProductService {
         product.updateStockQuantity(afterStock);
 
         // 트랜잭션 기록 (사유 포함)
-        productStockTransactionService.recordTransactionWithNote(
+        productStockTransactionDomainService.recordTransactionWithNote(
                 product,
                 ProductTransactionType.ADJUSTMENT,
                 beforeStock,
@@ -230,7 +190,7 @@ public class ProductService {
 
     @Transactional
     public Product updateDisplayOrder(Long productId, DisplayOrderUpdateCommand command) {
-        Product product = findProductById(productId);
+        Product product = productDomainService.findById(productId);
         product.changeDisplayOrder(command.displayOrder());
         return product;
     }
@@ -238,48 +198,45 @@ public class ProductService {
     @Transactional
     public void updateDisplayOrders(List<ProductOrderUpdate> updates) {
         updates.forEach(update -> {
-            Product product = productRepository.findById(update.productId())
-                    .orElseThrow(() -> ResourceNotFoundException.product(update.productId()));
-
+            Product product = productDomainService.findById(update.productId());
             product.changeDisplayOrder(update.displayOrder());
         });
     }
 
     @Transactional
     public void deleteProduct(Long productId) {
-        Product product = findProductById(productId);
+        Product product = productDomainService.findById(productId);
         product.markAsDeleted();
     }
 
     @Transactional
     public Product toggleProductFeatured(Long productId) {
-        Product product = findProductById(productId);
+        Product product = productDomainService.findById(productId);
         product.toggleFeatured();
         return product;
     }
 
     @Transactional
     public Product toggleProductFeatured2(Long productId) {
-        Product product = findProductById(productId);
+        Product product = productDomainService.findById(productId);
         product.toggleFeatured2();
         return product;
     }
 
 
     public List<ProductStockTransaction> getProductStockTransactions(Long productId) {
-        return productStockTransactionService.findByProductId(productId);
+        return productStockTransactionDomainService.findByProductId(productId);
     }
 
     public List<ProductStockTransaction> getAllStockTransactions() {
-        return productStockTransactionService.findAll();
+        return productStockTransactionDomainService.findAll();
     }
 
     /**
      * 제품의 최대 생산 가능 수량 계산
      */
     public Integer calculateMaxProducibleQuantity(Long productId) {
-        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+        Product product = productDomainService.findProductWithParts(productId);
 
         // 부품이 없으면 제한 없음 (매우 큰 수 반환)
         if (product.getPartMappings().isEmpty()) {
@@ -308,8 +265,7 @@ public class ProductService {
      * 특정 수량 생산 시 부족한 부품 정보 계산
      */
     public List<InsufficientPartDetail> calculateInsufficientParts(Long productId, Integer requestedQuantity) {
-        Product product = productRepository.findByIdWithPartsAndNotDeleted(productId)
-                .orElseThrow(() -> ResourceNotFoundException.product(productId));
+        Product product = productDomainService.findProductWithParts(productId);
 
         if (product.getPartMappings().isEmpty()) {
             return List.of();
@@ -342,49 +298,11 @@ public class ProductService {
     /*
         Private Method
      */
-    private void validateProductCodeDuplication(String productCode) {
-        if (productRepository.existsByProductCodeAndNotDeleted(productCode)) {
-            throw DuplicateResourceException.productCode(productCode);
-        }
-    }
-
-    private void validateProductNameDuplication(String productName) {
-        if (productRepository.existsByNameAndNotDeleted(productName)) {
-            throw DuplicateResourceException.productName(productName);
-        }
-    }
-
-    private ProductLine findProductLineIfPresent(Long productLineId) {
-        if (productLineId == null) {
-            return null;
-        }
-        return productLineRepository.findById(productLineId)
-                .orElseThrow(() -> ResourceNotFoundException.productLine(productLineId));
-    }
-    private void validateProductCodeDuplicationForUpdate(Long productId, String productCode) {
-        productRepository.findByProductCodeAndNotDeleted(productCode)
-                .ifPresent(existingProduct -> {
-                    if (!existingProduct.getId().equals(productId)) {
-                        throw DuplicateResourceException.productCode(productCode);
-                    }
-                });
-    }
-
-    private void validateProductNameDuplicationForUpdate(Long productId, String productName) {
-        productRepository.findByNameAndNotDeleted(productName)
-                .ifPresent(existingProduct -> {
-                    if (!existingProduct.getId().equals(productId)) {
-                        throw DuplicateResourceException.productName(productName);
-                    }
-                });
-    }
-
     private void createTaskForProduct(Product product, Integer quantity, CustomUserDetails currentUser) {
         String title = generateTaskTitle(product, quantity);
         String description = generateTaskDescription(product, quantity);
 
-        TaskCategory productionCategory = taskCategoryRepository.findByName("제품 생산")
-                .orElseThrow(() -> ResourceNotFoundException.taskCategory("카테고리 '생산'을 찾을 수 없습니다."));
+        TaskCategory productionCategory = taskCategoryDomainService.findByName("제품 생산");
 
         Task task = new Task(
                 title,
@@ -397,7 +315,7 @@ public class ProductService {
         );
 
         task.addCategory(productionCategory);
-        taskRepository.save(task);
+        taskDomainService.saveTask(task);
     }
     private String generateTaskTitle(Product product, Integer quantity) {
         return String.format("[생산] %s - %s",
@@ -411,5 +329,50 @@ public class ProductService {
                         product.getName(),
                         quantity,
                         product.getStockQuantity());
+    }
+
+
+    private void addPartMappings(Product product, List<PartMappingInfo> mappings) {
+        for (PartMappingInfo mapping : mappings) {
+            Part part = partDomainService.findById(mapping.partId());
+            ProductPart productPart = new ProductPart(
+                    product,
+                    part,
+                    mapping.requiredQuantity()
+            );
+
+            product.addPartMapping(productPart);
+        }
+    }
+
+    private static void validatePartStock(ProductProduceCommand command, Product product) {
+        for (ProductPart mapping : product.getPartMappings()) {
+            Part part = mapping.getPart();
+            Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
+
+            if (part.getStockQuantity() < requiredQuantity) {
+                throw InsufficientStockException.insufficientStock(
+                        part.getName(),
+                        requiredQuantity,
+                        part.getStockQuantity()
+                );
+            }
+        }
+    }
+
+    private void decreasePartStock(ProductProduceCommand command, Product product) {
+        for (ProductPart mapping : product.getPartMappings()) {
+            Part part = mapping.getPart();
+            Integer beforeStock = part.getStockQuantity();
+            Integer requiredQuantity = mapping.calculateTotalRequired(command.quantity());
+            part.decreaseStock(requiredQuantity);
+
+            partStockTransactionDomainService.recordTransaction(
+                    part,
+                    TransactionType.OUTBOUND,
+                    beforeStock,
+                    -requiredQuantity
+            );
+        }
     }
 }

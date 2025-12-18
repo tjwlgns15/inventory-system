@@ -1,7 +1,6 @@
 package com.yhs.inventroysystem.presentation.product;
 
-import com.yhs.inventroysystem.domain.product.ProductLine;
-import com.yhs.inventroysystem.domain.product.ProductPart;
+import com.yhs.inventroysystem.domain.product.entity.ProductLine;
 import jakarta.validation.constraints.NotBlank;
 
 public class ProductLineDtos {

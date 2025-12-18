@@ -1,10 +1,9 @@
 package com.yhs.inventroysystem.presentation.part;
 
-import com.yhs.inventroysystem.domain.part.Part;
+import com.yhs.inventroysystem.domain.part.entity.Part;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

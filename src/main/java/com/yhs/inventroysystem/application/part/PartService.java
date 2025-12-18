@@ -2,14 +2,13 @@ package com.yhs.inventroysystem.application.part;
 
 
 import com.yhs.inventroysystem.application.part.PartCommands.PartStockUpdateCommand;
-import com.yhs.inventroysystem.domain.exception.DuplicateResourceException;
 import com.yhs.inventroysystem.domain.exception.PartInUseException;
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.part.Part;
-import com.yhs.inventroysystem.domain.part.PartRepository;
-import com.yhs.inventroysystem.domain.part.PartStockTransaction;
-import com.yhs.inventroysystem.domain.part.TransactionType;
-import com.yhs.inventroysystem.domain.product.ProductPartRepository;
+import com.yhs.inventroysystem.domain.part.entity.Part;
+import com.yhs.inventroysystem.domain.part.entity.PartStockTransaction;
+import com.yhs.inventroysystem.domain.part.entity.TransactionType;
+import com.yhs.inventroysystem.domain.part.service.PartDomainService;
+import com.yhs.inventroysystem.domain.part.service.PartStockTransactionDomainService;
+import com.yhs.inventroysystem.domain.product.service.ProductPartDomainService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
@@ -26,32 +25,32 @@ import java.util.List;
 
 import static com.yhs.inventroysystem.application.part.PartCommands.PartRegisterCommand;
 import static com.yhs.inventroysystem.application.part.PartCommands.PartUpdateCommand;
-import static com.yhs.inventroysystem.domain.part.TransactionType.ADJUSTMENT;
+import static com.yhs.inventroysystem.domain.part.entity.TransactionType.ADJUSTMENT;
 
 @Service
 @Transactional(readOnly = true)
 public class PartService {
 
-    private final PartRepository partRepository;
-    private final ProductPartRepository productPartRepository;
-    private final PartStockTransactionService partStockTransactionService;
+    private final PartDomainService partDomainService;
+    private final ProductPartDomainService productPartDomainService;
+    private final PartStockTransactionDomainService partStockTransactionDomainService;
     private final FileStorageService fileStorageService;
 
     public PartService(
-            PartRepository partRepository,
-            ProductPartRepository productPartRepository,
-            PartStockTransactionService partStockTransactionService,
+            PartDomainService partDomainService,
+            ProductPartDomainService productPartDomainService,
+            PartStockTransactionDomainService partStockTransactionDomainService,
             FileStorageFactory fileStorageFactory) {
-        this.partRepository = partRepository;
-        this.productPartRepository = productPartRepository;
-        this.partStockTransactionService = partStockTransactionService;
+        this.partDomainService = partDomainService;
+        this.productPartDomainService = productPartDomainService;
+        this.partStockTransactionDomainService = partStockTransactionDomainService;
         this.fileStorageService = fileStorageFactory.getStorageService(FileStorageType.PART_IMAGE);
     }
 
 
     @Transactional
     public Part registerPart(PartRegisterCommand command) {
-        validatePartCodeDuplication(command.partCode());
+        partDomainService.validatePartCodeDuplication(command.partCode());
 
         Part part = new Part(
                 command.partCode(),
@@ -70,9 +69,9 @@ public class PartService {
             part.updateImage(result.getFilePath(), result.getOriginalFileName());
         }
 
-        Part savedPart = partRepository.save(part);
+        Part savedPart = partDomainService.savePart(part);
 
-        partStockTransactionService.recordTransaction(
+        partStockTransactionDomainService.recordTransaction(
                 savedPart,
                 TransactionType.INITIAL,
                 0,
@@ -84,17 +83,17 @@ public class PartService {
 
     public List<Part> findAllPart(String sortBy, String direction) {
         Sort sort = PageableUtils.createSort(sortBy, direction);
-        return partRepository.findAllActive(sort);
+        return partDomainService.findAllActive(sort);
     }
 
     public Page<Part> searchParts(String keyword, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return partRepository.searchByKeyword(keyword, pageable);
+        return partDomainService.searchByKeyword(keyword, pageable);
     }
 
     public Page<Part> findAllPartPaged(int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return partRepository.findAllActive(pageable);
+        return partDomainService.findAllActive(pageable);
     }
 
     @Transactional
@@ -128,7 +127,7 @@ public class PartService {
         Integer afterStock = part.getStockQuantity();
         if (!beforeStock.equals(afterStock)) {
             int changeQuantity = afterStock - beforeStock;
-            partStockTransactionService.recordTransaction(
+            partStockTransactionDomainService.recordTransaction(
                     part,
                     ADJUSTMENT,
                     beforeStock,
@@ -136,7 +135,7 @@ public class PartService {
             );
         }
 
-        return partRepository.save(part);
+        return partDomainService.savePart(part);
     }
 
     @Transactional
@@ -152,7 +151,7 @@ public class PartService {
 
         part.updateStockQuantity(afterStock);
 
-        partStockTransactionService.recordTransactionWithNote(
+        partStockTransactionDomainService.recordTransactionWithNote(
                 part,
                 ADJUSTMENT,
                 beforeStock,
@@ -180,7 +179,7 @@ public class PartService {
 
         part.increaseStock(quantity);
 
-        partStockTransactionService.recordTransaction(part, TransactionType.INBOUND, beforeStock, quantity);
+        partStockTransactionDomainService.recordTransaction(part, TransactionType.INBOUND, beforeStock, quantity);
     }
 
     @Transactional
@@ -190,7 +189,7 @@ public class PartService {
 
         part.decreaseStock(quantity);
 
-        partStockTransactionService.recordTransaction(part, TransactionType.OUTBOUND, beforeStock, -quantity);
+        partStockTransactionDomainService.recordTransaction(part, TransactionType.OUTBOUND, beforeStock, -quantity);
 
     }
 
@@ -199,8 +198,8 @@ public class PartService {
         Part part = findPartById(partId);
 
         // 매핑된 product 유무 확인
-        if (productPartRepository.existsByPart(part)) {
-            long usingProductCount = productPartRepository.countProductsByPart(part);
+        if (productPartDomainService.existsByPart(part)) {
+            long usingProductCount = productPartDomainService.countProductsByPart(part);
             throw PartInUseException.usedInProducts(part.getPartCode(), (int) usingProductCount);
         }
 
@@ -213,26 +212,14 @@ public class PartService {
     }
 
     public List<PartStockTransaction> getPartStockTransactions(Long partId) {
-        return partStockTransactionService.findByPartId(partId);
+        return partStockTransactionDomainService.findByPartId(partId);
     }
 
     public List<PartStockTransaction> getAllStockTransactions() {
-        return partStockTransactionService.findAll();
+        return partStockTransactionDomainService.findAll();
     }
 
     public Part findPartById(Long partId) {
-        return partRepository.findByIdAndNotDeleted(partId)
-                .orElseThrow(() -> ResourceNotFoundException.part(partId));
-    }
-
-
-    /*
-        Private Method
-     */
-
-    private void validatePartCodeDuplication(String partCode) {
-        if (partRepository.existsByPartCodeAndNotDeleted(partCode)) {
-            throw DuplicateResourceException.partCode(partCode);
-        }
+        return partDomainService.findById(partId);
     }
 }

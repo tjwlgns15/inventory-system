@@ -1,7 +1,6 @@
 package com.yhs.inventroysystem.application.bulk.parser;
 
-import com.yhs.inventroysystem.application.bulk.command.DeliveryBulkRegisterCommand;
-import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryStatus;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;

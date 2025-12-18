@@ -1,12 +1,14 @@
 package com.yhs.inventroysystem.application.quotation;
 
-import com.yhs.inventroysystem.domain.exception.ResourceNotFoundException;
-import com.yhs.inventroysystem.domain.quotation.*;
+import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationDocument;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationItem;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationType;
+import com.yhs.inventroysystem.domain.quotation.service.QuotationDomainService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,23 +26,24 @@ import static com.yhs.inventroysystem.application.quotation.QuotationCommands.*;
 @Slf4j
 public class QuotationService {
 
-    private final QuotationRepository quotationRepository;
+    private final QuotationDomainService quotationDomainService;
 
     private final FileStorageService fileStorageService;
 
-    public QuotationService(QuotationRepository quotationRepository,
+    public QuotationService(QuotationDomainService quotationDomainService,
                             FileStorageFactory fileStorageFactory) {
-        this.quotationRepository = quotationRepository;
+        this.quotationDomainService = quotationDomainService;
         this.fileStorageService = fileStorageFactory.getStorageService(FileStorageType.QUOTATION_DOCUMENT);
     }
     private static final String QUOTATION_RECEIPT_PREFIX = "SOLM-RECEIPT-";
     private static final String QUOTATION_ISSUANCE_PREFIX = "SOLM-ISSUANCE-";
 
+
     @Transactional
     public void createQuotation(CreateCommand command) {
         String quotationNumber = generateQuotationNumber(command.orderedAt(), command.quotationType());
 
-        Quotation quotation = new Quotation(
+        Quotation quotation = quotationDomainService.createQuotation(
                 quotationNumber,
                 command.quotationType(),
                 command.companyName(),
@@ -51,38 +54,27 @@ public class QuotationService {
                 command.orderedAt()
         );
 
-        List<QuotationItem> items = command.items().stream()
-                .map(item -> new QuotationItem(
-                            quotation,
-                            item.productName(),
-                            item.quantity(),
-                            item.unitPrice()
-                    ))
-                .toList();
-
+        List<QuotationItem> items = getItems(command.items(), quotation);
         quotation.addItems(items);
-
-        quotationRepository.save(quotation);
     }
 
     public Page<Quotation> searchQuotations(String keyword, int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return quotationRepository.searchByKeyword(keyword, pageable);
+        return quotationDomainService.searchByKeyword(keyword, pageable);
     }
 
     public Page<Quotation> findAllQuotationsPaged(int page, int size, String sortBy, String direction) {
         Pageable pageable = PageableUtils.createPageable(page, size, sortBy, direction);
-        return quotationRepository.findAllPaged(pageable);
+        return quotationDomainService.findAllPaged(pageable);
     }
 
     public Quotation findQuotationById(Long quotationId) {
-        return quotationRepository.findByIdWithItems(quotationId)
-                .orElseThrow(() -> ResourceNotFoundException.quotation(quotationId));
+        return quotationDomainService.findByIdWithItems(quotationId);
     }
 
     @Transactional
     public Quotation updateQuotation(Long quotationId, UpdateCommand command) {
-        Quotation quotation = findQuotationById(quotationId);
+        Quotation quotation = quotationDomainService.findByIdWithItems(quotationId);
 
         quotation.update(
                 command.quotationType(),
@@ -96,23 +88,16 @@ public class QuotationService {
 
         quotation.clearItems();
 
-        List<QuotationItem> newItems = command.items().stream()
-                .map(item -> new QuotationItem(
-                        quotation,
-                        item.productName(),
-                        item.quantity(),
-                        item.unitPrice()
-                ))
-                .toList();
-
+        List<QuotationItem> newItems = getItems(command.items(), quotation);
         quotation.addItems(newItems);
 
         return quotation;
     }
 
+
     @Transactional
     public void deleteQuotation(Long quotationId) {
-        Quotation quotation = findQuotationById(quotationId);
+        Quotation quotation = quotationDomainService.findByIdWithItems(quotationId);
         List<QuotationDocument> documents = quotation.getDocuments();
 
         for (QuotationDocument document : documents) {
@@ -122,19 +107,31 @@ public class QuotationService {
         quotation.markAsDeleted();
     }
 
+    private static List<QuotationItem> getItems(List<ItemCommand> itemCommands, Quotation quotation) {
+        return itemCommands.stream()
+                .map(item -> new QuotationItem(
+                        quotation,
+                        item.productName(),
+                        item.quantity(),
+                        item.unitPrice()
+                ))
+                .toList();
+    }
+
+
     private String generateQuotationNumber(LocalDate orderedAt, QuotationType type) {
         String year = orderedAt.format(DateTimeFormatter.ofPattern("yyyy"));
         String prefix = type == QuotationType.RECEIPT ? QUOTATION_RECEIPT_PREFIX : QUOTATION_ISSUANCE_PREFIX;
         prefix = prefix + year;
 
         synchronized (this) {
-            Integer lastSequence = quotationRepository.findLastSequenceByYearAndType(prefix, year);
+            Integer lastSequence = quotationDomainService.findLastSequenceByYearAndType(prefix, year);
             int nextSequence = (lastSequence == null) ? 1 : lastSequence + 1;
 
             String quotationNumber = String.format("%s-%04d", prefix, nextSequence);
 
             // 중복 체크 (만약을 위해)
-            while (quotationRepository.existsByQuotationNumber(quotationNumber)) {
+            while (quotationDomainService.existsByQuotationNumber(quotationNumber)) {
                 nextSequence++;
                 quotationNumber = String.format("%s-%04d", prefix, nextSequence);
             }

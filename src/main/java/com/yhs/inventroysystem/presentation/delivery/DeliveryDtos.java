@@ -1,11 +1,9 @@
 package com.yhs.inventroysystem.presentation.delivery;
 
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
-import com.yhs.inventroysystem.domain.delivery.DeliveryStatus;
-import com.yhs.inventroysystem.domain.exchange.Currency;
-import com.yhs.inventroysystem.domain.product.Product;
-import com.yhs.inventroysystem.presentation.product.ProductDtos;
+import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryItem;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryStatus;
+import com.yhs.inventroysystem.domain.exchange.entity.Currency;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.data.domain.Page;

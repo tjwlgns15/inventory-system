@@ -1,10 +1,8 @@
 package com.yhs.inventroysystem.application.quotation;
 
-import com.yhs.inventroysystem.domain.delivery.Delivery;
-import com.yhs.inventroysystem.domain.delivery.DeliveryItem;
-import com.yhs.inventroysystem.domain.quotation.Quotation;
-import com.yhs.inventroysystem.domain.quotation.QuotationItem;
-import com.yhs.inventroysystem.domain.quotation.QuotationRepository;
+import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
+import com.yhs.inventroysystem.domain.quotation.entity.QuotationItem;
+import com.yhs.inventroysystem.domain.quotation.service.QuotationDomainService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -22,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class QuotationExcelService {
 
-    private final QuotationRepository quotationRepository;
+    private final QuotationDomainService quotationDomainService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -35,8 +32,7 @@ public class QuotationExcelService {
             endDate = LocalDate.now();
         }
 
-        List<Quotation> quotations = quotationRepository.findQuotationsByPeriod(startDate, endDate);
-
+        List<Quotation> quotations = quotationDomainService.findQuotationsByPeriod(startDate, endDate);
 
         return generateExcel(quotations);
     }
