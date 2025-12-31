@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선적 문서 관리</title>
+    <style>
+        @import url('//fonts.googleapis.com/earlyaccess/notosanskr.css');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'notosanskr', sans-serif;
+            min-height: 100vh;
+            color: #1a202c;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(221, 221, 221, 0.3), transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(119, 119, 119, 0.2), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .shipments-section {
+            margin-top: 7vh;
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .shipments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .shipments-header .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .shipments-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        .btn {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.875rem;
+            letter-spacing: -0.2px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(4px);
+        }
+
+        .btn-info {
+            background: white;
+            color: #667eea;
+            padding: 8px 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-info:hover {
+            background: #f8f9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* 검색 및 필터 */
+        .search-filter-section {
+            margin-bottom: 24px;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        #sortIcon {
+            font-size: 0.75rem;
+            margin-left: 4px;
+            opacity: 0.8;
+        }
+
+        /* 테이블 */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            font-size: 0.875rem;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        th[style*="cursor: pointer"]:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.03) 0%, transparent 100%);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .font-weight-600 {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-export {
+            color: #6b46c1;
+        }
+
+        .badge-sample {
+            color: #c05621;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #718096;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            color: #4a5568;
+            margin-bottom: 12px;
+            font-size: 1.25rem;
+        }
+
+        .empty-state p {
+            color: #a0aec0;
+            font-size: 0.95rem;
+        }
+
+        /* 페이지네이션 */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            padding: 20px 0;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-size-select {
+            padding: 8px 12px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .page-size-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-button {
+            padding: 8px 14px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #667eea;
+            min-width: 38px;
+        }
+
+        .page-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .page-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .page-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid rgba(102, 126, 234, 0.1);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .shipments-section {
+                padding: 20px;
+            }
+
+            .shipments-title {
+                font-size: 1.5rem;
+            }
+
+            .shipments-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+
+            .shipments-header .btn-group {
+                flex-direction: column;
+            }
+
+            .filters-row {
+                flex-direction: column;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 900px;
+            }
+
+            .pagination {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        /* Excel 다운로드 드롭다운 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 220px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 10px;
+            z-index: 1;
+            padding: 8px 0;
+            margin-top: 5px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .date-range-inputs {
+            padding: 16px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f9fafb;
+        }
+
+        .date-range-inputs label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.75rem;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .date-range-inputs input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .date-range-inputs input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .date-range-inputs button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .date-range-inputs button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="shipments-section">
+        <!-- 헤더 -->
+        <div class="shipments-header">
+            <div>
+                <h1 class="shipments-title">🚢 선적 문서 관리</h1>
+                <p class="subtitle">Shipment Document Management</p>
+            </div>
+            <div class="btn-group">
+                <a href="/shipments/new" class="btn btn-primary">
+                    <span>➕ 새 문서 작성</span>
+                </a>
+
+                <div class="dropdown">
+                    <button class="btn btn-secondary">
+                        <span>📥 Excel 다운로드</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('thisYear')">올해 전체</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('12months')">최근 12개월</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('6months')">최근 6개월</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('3months')">최근 3개월</div>
+                        <div class="dropdown-item" onclick="exportExcelByPeriod('1month')">최근 1개월</div>
+                        <div class="date-range-inputs">
+                            <label>시작일</label>
+                            <input type="date" id="customStartDate">
+                            <label>종료일</label>
+                            <input type="date" id="customEndDate">
+                            <button onclick="exportExcelCustomRange()">다운로드</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색 및 필터 -->
+        <div class="content-card">
+            <div class="search-filter-section">
+                <!-- 거래 유형 필터 -->
+                <div class="filters-row">
+                    <button class="filter-btn active" data-type="" onclick="filterByType('')">
+                        전체
+                    </button>
+                    <button class="filter-btn" data-type="EXPORT" onclick="filterByType('EXPORT')">
+                        정식수출
+                    </button>
+                    <button class="filter-btn" data-type="SAMPLE" onclick="filterByType('SAMPLE')">
+                        무상샘플
+                    </button>
+                </div>
+
+                <!-- 검색바 -->
+                <div class="search-bar">
+                    <input
+                            type="text"
+                            class="search-input"
+                            id="searchInput"
+                            placeholder="거래처명으로 검색..."
+                            onkeyup="handleSearch(event)"
+                    >
+                </div>
+            </div>
+
+            <!-- 테이블 -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 12%;">Invoice No.</th>
+                        <th style="width: 10%; cursor: pointer;" onclick="toggleDateSort()">
+                            작성일 <span id="sortIcon">▼</span>
+                        </th>
+                        <th style="width: 15%;">거래처</th>
+                        <th style="width: 13%;">목적지</th>
+                        <th style="width: 10%;">발송일</th>
+                        <th style="width: 10%;">거래유형</th>
+                        <th style="width: 8%;">수량</th>
+                        <th style="width: 12%;">금액</th>
+                        <th style="width: 10%;">작업</th>
+                    </tr>
+                    </thead>
+                    <tbody id="shipmentTableBody">
+                    <tr>
+                        <td colspan="9" class="loading">
+                            <div class="spinner"></div>
+                            데이터를 불러오는 중...
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+                <div class="page-size-selector">
+                    <label for="pageSizeSelect">페이지당 항목:</label>
+                    <select id="pageSizeSelect" class="page-size-select" onchange="changePageSize()">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span id="pageInfo"></span>
+                </div>
+                <div class="pagination-controls" id="paginationControls"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="sidebar-container"></div>
+<script>
+    fetch("/infra/sidebar.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("sidebar-container").innerHTML = html;
+        })
+</script>
+
+<script src="/js/shipment-list.js"></script>
+</body>
+</html>

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선적 문서 수정 - Solmitech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 1.2em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        label .required {
+            color: #e53e3e;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #f56565;
+        }
+
+        .btn-add {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #38a169;
+        }
+
+        .item-row {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-number {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+
+        .info-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #bee3f8;
+            color: #2c5282;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .client-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .client-selector .btn {
+            flex: 1;
+        }
+
+        .product-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .product-item:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .product-item.selected {
+            border-color: #667eea;
+            background: #ebf4ff;
+        }
+
+        .product-item.priority {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .product-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #48bb78;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75em;
+            margin-left: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #2d3748;
+        }
+
+        .close-btn {
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #a0aec0;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #2d3748;
+        }
+
+        .remark-preview {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            white-space: pre-line;
+            font-family: monospace;
+            font-size: 0.9em;
+            border: 1px solid #e2e8f0;
+        }
+
+        .copy-btn {
+            margin-top: 10px;
+            background: #4299e1;
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #3182ce;
+        }
+
+        .box-template-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .box-template-item:hover {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .box-template-info {
+            flex: 1;
+        }
+
+        .box-template-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .box-template-specs {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .box-template-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-icon.btn-use {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-icon.btn-use:hover {
+            background: #5568d3;
+        }
+
+        .btn-icon.btn-edit {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-icon.btn-edit:hover {
+            background: #38a169;
+        }
+
+        .btn-icon.btn-delete {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-icon.btn-delete:hover {
+            background: #e53e3e;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>✏️ 선적 문서 수정</h1>
+    <p class="subtitle">Shipment Document Edit</p>
+
+    <form id="shipmentForm">
+        <!-- 1. Invoice 기본 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">📋</span>
+                <span>Invoice 기본 정보</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Invoice 작성일 <span class="required">*</span></label>
+                    <input type="date" id="invoiceDate" required>
+                </div>
+                <div class="form-group">
+                    <label>제품 발송일 <span class="required">*</span></label>
+                    <input type="date" id="freightDate" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Shipper/Exporter 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">🏢</span>
+                <span>Shipper / Exporter 정보</span>
+                <span class="info-badge">수정 가능</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>회사명 <span class="required">*</span></label>
+                    <input type="text" id="shipperCompanyName" value="Solmitech Co., Ltd." required>
+                </div>
+                <div class="form-group full-width">
+                    <label>주소 <span class="required">*</span></label>
+                    <input type="text" id="shipperAddress" value="B-622, Biz Center, 17, Techno 4-ro, Yuseong-gu, Daejeon 34013, Korea" required>
+                </div>
+                <div class="form-group">
+                    <label>담당자</label>
+                    <input type="text" id="shipperContactPerson" value="Mr. David Kim">
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <input type="text" id="shipperPhone" value="+82-70-7558-9877">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Client 선택 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">👥</span>
+                <span>거래처 선택</span>
+            </div>
+            <div class="client-selector">
+                <button type="button" class="btn btn-primary" id="selectClientBtn">
+                    거래처 목록에서 선택
+                </button>
+                <button type="button" class="btn btn-secondary" id="manualInputBtn">
+                    직접 입력
+                </button>
+            </div>
+
+            <!-- Sold To 정보 -->
+            <div class="section-title" style="margin-top: 20px; font-size: 1.1em;">
+                <span>Sold To 정보</span>
+            </div>
+            <input type="hidden" id="clientId">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>회사명 <span class="required">*</span></label>
+                    <input type="text" id="soldToCompanyName" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>주소 <span class="required">*</span></label>
+                    <input type="text" id="soldToAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>담당자</label>
+                    <input type="text" id="soldToContactPerson">
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <input type="text" id="soldToPhone">
+                </div>
+            </div>
+
+            <!-- Ship To 정보 -->
+            <div class="section-title" style="margin-top: 20px; font-size: 1.1em;">
+                <span>Ship To 정보</span>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="sameAsSoldTo">
+                <label for="sameAsSoldTo">Sold To와 동일</label>
+            </div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>회사명 <span class="required">*</span></label>
+                    <input type="text" id="shipToCompanyName" required>
+                </div>
+                <div class="form-group full-width">
+                    <label>주소 <span class="required">*</span></label>
+                    <input type="text" id="shipToAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>담당자</label>
+                    <input type="text" id="shipToContactPerson">
+                </div>
+                <div class="form-group">
+                    <label>연락처</label>
+                    <input type="text" id="shipToPhone">
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 운송 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">🚢</span>
+                <span>운송 정보</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>출발지 <span class="required">*</span></label>
+                    <input type="text" id="portOfLoading" value="Incheon, Korea" required>
+                </div>
+                <div class="form-group">
+                    <label>최종 목적지 <span class="required">*</span></label>
+                    <input type="text" id="finalDestination" required>
+                </div>
+                <div class="form-group">
+                    <label>운송사</label>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="selectCarrierBtn">
+                            운송사 선택
+                        </button>
+                        <input type="hidden" id="carrierId">
+                        <input type="text" id="carrierName" placeholder="운송사명">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 신용장 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">💳</span>
+                <span>신용장 정보</span>
+                <span class="info-badge">선택사항</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>L/C 번호</label>
+                    <input type="text" id="lcNo">
+                </div>
+                <div class="form-group">
+                    <label>L/C 발행일</label>
+                    <input type="date" id="lcDate">
+                </div>
+                <div class="form-group full-width">
+                    <label>발행 은행</label>
+                    <input type="text" id="lcIssuingBank">
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Remark 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">📝</span>
+                <span>Remark 정보</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>거래 유형 <span class="required">*</span></label>
+                    <select id="shipmentType" required>
+                        <option value="">선택하세요</option>
+                        <option value="EXPORT">정식수출 (Export)</option>
+                        <option value="SAMPLE">무상샘플 (Free Sample)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>무역 조건 <span class="required">*</span></label>
+                    <select id="tradeTerms" required>
+                        <option value="">선택하세요</option>
+                        <option value="FOB">본선인도 (FOB Korea)</option>
+                        <option value="CNF">정식수출 (CNF)</option>
+                        <option value="EXW">공장인도 (EXW Solmitech factory)</option>
+                        <option value="NA">해당없음 (N/A)</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>원산지 정보</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="useOriginTemplate" checked>
+                        <label for="useOriginTemplate">표준 원산지 문구 사용</label>
+                    </div>
+                    <textarea id="originDescription" rows="3">The exporter of the products covered by this document declares that, except where otherwise clearly indicated, these products are of the Republic of Korea preferential origin.</textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>추가 메모</label>
+                    <textarea id="additionalRemarks" rows="3" placeholder="추가 메모 사항을 입력하세요"></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <button type="button" class="btn btn-secondary" id="previewRemarkBtn">
+                        Remark 미리보기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 박스 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">📦</span>
+                <span>박스 정보</span>
+            </div>
+            <button type="button" class="btn btn-secondary" id="selectBoxBtn" style="margin-bottom: 15px;">
+                박스 템플릿 선택
+            </button>
+            <div id="boxesContainer"></div>
+            <button type="button" class="btn btn-add" id="addBoxBtn">
+                + 박스 추가
+            </button>
+        </div>
+
+        <!-- 8. 제품 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">🛍️</span>
+                <span>제품 정보</span>
+            </div>
+            <button type="button" class="btn btn-secondary" id="selectProductBtn" style="margin-bottom: 15px;">
+                제품 선택
+            </button>
+            <div id="itemsContainer"></div>
+            <button type="button" class="btn btn-add" id="addItemBtn">
+                + 제품 추가
+            </button>
+        </div>
+
+        <!-- 9. 통화 정보 -->
+        <div class="form-section">
+            <div class="section-title">
+                <span class="section-icon">💰</span>
+                <span>통화 정보</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>통화 <span class="required">*</span></label>
+                    <select id="currency" required>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="KRW">KRW (₩)</option>
+                    </select>
+                </div>
+            </div>
+            <p style="margin-top: 15px; color: #718096; font-size: 0.9em;">
+                💡 중량(Net Weight, Gross Weight) 및 CBM 정보는 각 제품별로 입력할 수 있습니다.
+            </p>
+        </div>
+
+        <!-- 제출 버튼 -->
+        <div class="button-group">
+            <button type="button" class="btn btn-secondary" id="cancelBtn">
+                취소
+            </button>
+            <button type="submit" class="btn btn-primary">
+                수정 완료
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 거래처 선택 모달 -->
+<div class="modal" id="clientModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>거래처 선택</h2>
+            <button class="close-btn" id="closeClientModal">&times;</button>
+        </div>
+        <div id="clientList"></div>
+    </div>
+</div>
+
+<!-- 제품 선택 모달 -->
+<div class="modal" id="productModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>제품 선택</h2>
+            <button class="close-btn" id="closeProductModal">&times;</button>
+        </div>
+        <div id="productList"></div>
+    </div>
+</div>
+
+<!-- 운송사 선택 모달 -->
+<div class="modal" id="carrierModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>운송사 선택</h2>
+            <button class="close-btn" id="closeCarrierModal">&times;</button>
+        </div>
+        <div id="carrierList"></div>
+    </div>
+</div>
+
+<!-- 박스 선택 모달 -->
+<div class="modal" id="boxModal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <h2>박스 템플릿 관리</h2>
+            <button class="close-btn" id="closeBoxModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #4a5568;">박스 템플릿 목록</h3>
+                <button type="button" class="btn btn-primary" id="createBoxBtn" style="padding: 8px 16px; font-size: 0.9em;">
+                    + 새 박스 템플릿
+                </button>
+            </div>
+            <div id="boxList">
+                <!-- 박스 템플릿 목록이 동적으로 추가됩니다 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 박스 템플릿 생성/수정 모달 -->
+<div class="modal" id="boxFormModal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2 id="boxFormModalTitle">박스 템플릿 등록</h2>
+            <button class="close-btn" id="closeBoxFormModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="boxForm">
+                <input type="hidden" id="boxFormId">
+                <div class="form-group">
+                    <label>박스명 <span class="required">*</span></label>
+                    <input type="text" id="boxFormTitleInput" class="form-input" required placeholder="예: 소형 박스">
+                </div>
+                <div class="form-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="form-group">
+                        <label>가로 (cm) <span class="required">*</span></label>
+                        <input type="number" id="boxFormWidth" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>세로 (cm) <span class="required">*</span></label>
+                        <input type="number" id="boxFormLength" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>높이 (cm) <span class="required">*</span></label>
+                        <input type="number" id="boxFormHeight" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>중량 (kg) <span class="required">*</span></label>
+                        <input type="number" id="boxFormWeight" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeBoxFormModal()">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Remark 미리보기 모달 -->
+<div class="modal" id="remarkModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Remark 미리보기</h2>
+            <button class="close-btn" id="closeRemarkModal">&times;</button>
+        </div>
+        <div class="remark-preview" id="remarkPreview"></div>
+        <button class="btn copy-btn" id="copyRemarkBtn">
+            📋 복사하기
+        </button>
+    </div>
+</div>
+
+<script src="/js/shipment-edit.js"></script>
+</body>
+</html>

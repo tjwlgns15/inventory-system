@@ -67,4 +67,16 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException quotation(Long quotationId) {
         return new ResourceNotFoundException("견적서 관련 정보를 찾을 수 없습니다. ID: " + quotationId);
     }
+
+    public static ResourceNotFoundException carrier(Long carrierId) {
+        return new ResourceNotFoundException("운수 회사 정보를 찾을 수 없습니다. ID: " + carrierId);
+    }
+
+    public static ResourceNotFoundException shipment(Long shipmentId) {
+        return new ResourceNotFoundException("선적 정보를 찾을 수 없습니다. ID: " + shipmentId);
+    }
+
+    public static ResourceNotFoundException box(Long boxId) {
+        return new ResourceNotFoundException("존재하지 않는 박스 템플릿입니다. ID: " + boxId);
+    }
 }

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <title>선적 문서 상세 - Solmitech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title {
+            flex: 1;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 0.95em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #f56565;
+        }
+
+        /* 상태 배지 */
+        .status-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .badge-large {
+            padding: 12px 24px;
+            font-size: 1.1em;
+        }
+
+        .badge-pending {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .badge-approved {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .badge-completed {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .badge-export {
+            background: #e9d8fd;
+            color: #6b46c1;
+        }
+
+        .badge-sample {
+            background: #feebc8;
+            color: #c05621;
+        }
+
+        /* 섹션 */
+        .detail-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 1.2em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #718096;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-size: 1em;
+            line-height: 1.5;
+        }
+
+        .info-value strong {
+            color: #1a202c;
+        }
+
+        /* 테이블 */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9em;
+        }
+
+        tbody tr:hover {
+            background-color: #f7fafc;
+        }
+
+        .table-footer {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Remark 표시 */
+        .remark-box {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-line;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+
+        /* 날짜 정보 */
+        .date-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #edf2f7;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #4a5568;
+            margin-left: 8px;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #2d3748;
+        }
+
+        .close-btn {
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #a0aec0;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: #2d3748;
+        }
+
+        .modal-body {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            .header-actions,
+            .btn {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .header {
+                flex-direction: column;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .status-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 로딩 표시 -->
+    <div id="loadingSection" class="loading">
+        <div class="spinner"></div>
+        <p>선적 문서를 불러오는 중...</p>
+    </div>
+
+    <!-- 메인 콘텐츠 (로딩 후 표시) -->
+    <div id="mainContent" style="display: none;">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="header-title">
+                <h1 id="pageTitle">🚢 선적 문서 상세</h1>
+                <p class="subtitle" id="invoiceNumber">Invoice No: -</p>
+            </div>
+            <div class="header-actions">
+                <a href="/shipments" class="btn btn-secondary">
+                    ← 목록으로
+                </a>
+
+<!--                <button class="btn btn-info" id="generateInvoiceBtn">-->
+<!--                    📄 Invoice PDF-->
+<!--                </button>-->
+<!--                <button class="btn btn-info" id="generatePackingBtn">-->
+<!--                    📦 Packing PDF-->
+<!--                </button>-->
+                <button class="btn btn-primary" id="generateCombinedBtn">
+                    📑 PDF
+                </button>
+
+                <a href="#" class="btn btn-primary" id="editBtn">
+                    ✏️ 수정
+                </a>
+                <button class="btn btn-danger" id="deleteBtn">
+                    🗑️ 삭제
+                </button>
+            </div>
+        </div>
+
+        <!-- 1. Invoice 기본 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">📋</span>
+                <span>Invoice 기본 정보</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Invoice 번호</div>
+                    <div class="info-value" id="detailInvoiceNumber">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">작성일</div>
+                    <div class="info-value" id="invoiceDate">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">발송일</div>
+                    <div class="info-value" id="freightDate">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">년도 / 순번</div>
+                    <div class="info-value" id="yearSequence">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Shipper/Exporter 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">🏢</span>
+                <span>Shipper / Exporter</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item full-width">
+                    <div class="info-label">회사명</div>
+                    <div class="info-value" id="shipperCompanyName">-</div>
+                </div>
+                <div class="info-item full-width">
+                    <div class="info-label">주소</div>
+                    <div class="info-value" id="shipperAddress">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">담당자</div>
+                    <div class="info-value" id="shipperContactPerson">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">연락처</div>
+                    <div class="info-value" id="shipperPhone">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Sold To 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">👥</span>
+                <span>Sold To</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item full-width">
+                    <div class="info-label">회사명</div>
+                    <div class="info-value" id="soldToCompanyName">-</div>
+                </div>
+                <div class="info-item full-width">
+                    <div class="info-label">주소</div>
+                    <div class="info-value" id="soldToAddress">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">담당자</div>
+                    <div class="info-value" id="soldToContactPerson">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">연락처</div>
+                    <div class="info-value" id="soldToPhone">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Ship To 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">📍</span>
+                <span>Ship To</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item full-width">
+                    <div class="info-label">회사명</div>
+                    <div class="info-value" id="shipToCompanyName">-</div>
+                </div>
+                <div class="info-item full-width">
+                    <div class="info-label">주소</div>
+                    <div class="info-value" id="shipToAddress">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">담당자</div>
+                    <div class="info-value" id="shipToContactPerson">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">연락처</div>
+                    <div class="info-value" id="shipToPhone">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 운송 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">🚢</span>
+                <span>운송 정보</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">출발지</div>
+                    <div class="info-value" id="portOfLoading">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">최종 목적지</div>
+                    <div class="info-value" id="finalDestination">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">운송사</div>
+                    <div class="info-value" id="carrierName">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 신용장 정보 -->
+        <div class="detail-section" id="lcSection" style="display: none;">
+            <div class="section-title">
+                <span class="section-icon">💳</span>
+                <span>신용장 정보</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">L/C 번호</div>
+                    <div class="info-value" id="lcNo">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">L/C 발행일</div>
+                    <div class="info-value" id="lcDate">-</div>
+                </div>
+                <div class="info-item full-width">
+                    <div class="info-label">발행 은행</div>
+                    <div class="info-value" id="lcIssuingBank">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. Remark -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">📝</span>
+                <span>Remark</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">거래 조건</div>
+                    <div class="info-value" id="tradeTerms">-</div>
+                </div>
+            </div>
+            <div class="remark-box" id="remarkContent">-</div>
+        </div>
+
+        <!-- 8. 박스 정보 -->
+        <div class="detail-section" id="boxSection">
+            <div class="section-title">
+                <span class="section-icon">📦</span>
+                <span>박스 정보</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>순번</th>
+                        <th>박스명</th>
+                        <th>치수 (cm)</th>
+                        <th>중량 (kg)</th>
+                        <th>수량</th>
+                    </tr>
+                    </thead>
+                    <tbody id="boxTableBody">
+                    </tbody>
+                    <tfoot>
+                    <tr class="table-footer">
+                        <td colspan="4" style="text-align: right;">총 박스 수:</td>
+                        <td id="totalBoxCount">-</td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- 9. 제품 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">🛍️</span>
+                <span>제품 정보</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>순번</th>
+                        <th>제품 코드</th>
+                        <th>설명</th>
+                        <th>HS Code</th>
+                        <th>단위</th>
+                        <th>수량</th>
+                        <th>단가</th>
+                        <th>금액</th>
+                        <th>순중량 (kg)</th>
+                        <th>총중량 (kg)</th>
+                        <th>CBM (m³)</th>
+                    </tr>
+                    </thead>
+                    <tbody id="itemTableBody">
+                    </tbody>
+                    <tfoot>
+                    <tr class="table-footer">
+                        <td colspan="5" style="text-align: right;">합계:</td>
+                        <td id="totalQuantity">-</td>
+                        <td></td>
+                        <td id="totalAmount">-</td>
+                        <td id="totalNetWeight">-</td>
+                        <td id="totalGrossWeight">-</td>
+                        <td id="totalCbm">-</td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- 10. 금액 및 합계 중량 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">⚖️</span>
+                <span>금액 및 합계 중량 정보</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">통화</div>
+                    <div class="info-value" id="currency">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">합계 순중량 (kg)</div>
+                    <div class="info-value" id="totalNetWeightSummary">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">합계 총중량 (kg)</div>
+                    <div class="info-value" id="totalGrossWeightSummary">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">합계 CBM (m³)</div>
+                    <div class="info-value" id="totalCbmSummary">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. 생성/수정 정보 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">🕐</span>
+                <span>문서 정보</span>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">생성일시</div>
+                    <div class="info-value" id="createdAt">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">최종 수정일시</div>
+                    <div class="info-value" id="updatedAt">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>선적 문서 삭제</h2>
+            <button class="close-btn" id="closeDeleteModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>정말로 이 선적 문서를 삭제하시겠습니까?</p>
+            <p style="color: #e53e3e; margin-top: 10px;">
+                <strong>Invoice No:</strong> <span id="deleteInvoiceNo"></span>
+            </p>
+            <p style="margin-top: 5px;">이 작업은 되돌릴 수 없습니다.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelDeleteBtn">취소</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">삭제</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/shipment-detail.js"></script>
+<script src="/js/pdf-generator.js"></script>
+
+</body>
+</html>

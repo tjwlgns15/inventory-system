@@ -448,7 +448,12 @@ public class BulkRegisterService {
                 data.address(),
                 data.contactNumber(),
                 data.email(),
-                currency
+                currency,
+                "",
+                "",
+                "",
+                "",
+                ""
         );
 
         clientRepository.save(client);
@@ -483,7 +488,12 @@ public class BulkRegisterService {
                 data.address(),
                 data.contactNumber(),
                 data.email(),
-                currency
+                currency,
+                "",
+                "",
+                "",
+                "",
+                ""
         );
 
         parentClient.addChildClient(childClient);

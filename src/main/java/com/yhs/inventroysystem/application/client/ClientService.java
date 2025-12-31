@@ -36,7 +36,12 @@ public class ClientService {
                 command.address(),
                 command.contactNumber(),
                 command.email(),
-                command.currency()
+                command.currency(),
+                command.shipmentDestination(),
+                command.shipmentAddress(),
+                command.shipmentRepresentative(),
+                command.shipmentContactNumber(),
+                command.finalDestination()
         );
 
         return clientDomainService.saveClient(parentClient);
@@ -59,7 +64,12 @@ public class ClientService {
                 command.address(),
                 command.contactNumber(),
                 command.email(),
-                command.currency()
+                command.currency(),
+                command.shipmentDestination(),
+                command.shipmentAddress(),
+                command.shipmentRepresentative(),
+                command.shipmentContactNumber(),
+                command.finalDestination()
         );
 
         parentClient.addChildClient(childClient);
@@ -87,7 +97,12 @@ public class ClientService {
                 command.address(),
                 command.contactNumber(),
                 command.email(),
-                command.currency()
+                command.currency(),
+                command.shipmentDestination(),
+                command.shipmentAddress(),
+                command.shipmentRepresentative(),
+                command.shipmentContactNumber(),
+                command.finalDestination()
         );
 
         return client;

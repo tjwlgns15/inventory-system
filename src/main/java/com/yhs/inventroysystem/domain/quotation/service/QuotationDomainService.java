@@ -19,11 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import static com.yhs.inventroysystem.application.quotation.QuotationCommands.CreateCommand;
-import static com.yhs.inventroysystem.application.quotation.QuotationCommands.UpdateCommand;
 
 @Service
 @RequiredArgsConstructor
@@ -62,14 +58,6 @@ public class QuotationDomainService {
                 .orElseThrow(() -> ResourceNotFoundException.quotation(quotationId));
     }
 
-    public Page<Quotation> searchByKeyword(String keyword, Pageable pageable) {
-        return quotationRepository.searchByKeyword(keyword, pageable);
-    }
-
-    public Page<Quotation> findAllPaged(Pageable pageable) {
-        return quotationRepository.findAllPaged(pageable);
-    }
-
     public Quotation findByIdWithItems(Long quotationId) {
         return quotationRepository.findByIdWithItems(quotationId)
                 .orElseThrow(() -> ResourceNotFoundException.quotation(quotationId));
@@ -91,7 +79,15 @@ public class QuotationDomainService {
         return quotationRepository.searchByKeywordAndType(keyword, quotationType, pageable);
     }
 
+    public Page<Quotation> searchByKeyword(String keyword, Pageable pageable) {
+        return quotationRepository.searchByKeyword(keyword, pageable);
+    }
+
     public Page<Quotation> findAllByType(QuotationType quotationType, Pageable pageable) {
         return quotationRepository.findAllByType(quotationType, pageable);
+    }
+
+    public Page<Quotation> findAllPaged(Pageable pageable) {
+        return quotationRepository.findAllPaged(pageable);
     }
 }

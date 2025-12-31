@@ -11,7 +11,14 @@ public class ClientCommands {
             String address,
             String contactNumber,
             String email,
-            Currency currency
+            Currency currency,
+
+
+            String shipmentDestination, // 선적처
+            String shipmentAddress, // 선적 주소
+            String shipmentRepresentative, // 선적처 담당자
+            String shipmentContactNumber, // 선적처 연락처
+            String finalDestination // 도착항
     ) {}
 
     public record ChildClientRegisterCommand(
@@ -22,7 +29,13 @@ public class ClientCommands {
             String address,
             String contactNumber,
             String email,
-            Currency currency
+            Currency currency,
+
+            String shipmentDestination,
+            String shipmentAddress,
+            String shipmentRepresentative,
+            String shipmentContactNumber,
+            String finalDestination
     ) {}
 
     public record ChildClientUpdateCommand(
@@ -31,6 +44,12 @@ public class ClientCommands {
             String address,
             String contactNumber,
             String email,
-            Currency currency
+            Currency currency,
+
+            String shipmentDestination,
+            String shipmentAddress,
+            String shipmentRepresentative,
+            String shipmentContactNumber,
+            String finalDestination
     ) {}
 }

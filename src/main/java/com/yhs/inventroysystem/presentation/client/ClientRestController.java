@@ -29,7 +29,12 @@ public class ClientRestController {
                 request.address(),
                 request.contactNumber(),
                 request.email(),
-                request.currency()
+                request.currency(),
+                request.shipmentDestination(),
+                request.shipmentAddress(),
+                request.shipmentRepresentative(),
+                request.shipmentContactNumber(),
+                request.finalDestination()
         );
 
         Client client = clientService.registerParentClient(command);
@@ -47,7 +52,12 @@ public class ClientRestController {
                 request.address(),
                 request.contactNumber(),
                 request.email(),
-                request.currency()
+                request.currency(),
+                request.shipmentDestination(),
+                request.shipmentAddress(),
+                request.shipmentRepresentative(),
+                request.shipmentContactNumber(),
+                request.finalDestination()
         );
 
         Client client = clientService.registerChildClient(command);
@@ -81,7 +91,12 @@ public class ClientRestController {
                 request.address(),
                 request.contactNumber(),
                 request.email(),
-                request.currency()
+                request.currency(),
+                request.shipmentDestination(),
+                request.shipmentAddress(),
+                request.shipmentRepresentative(),
+                request.shipmentContactNumber(),
+                request.finalDestination()
         );
         Client client = clientService.updateClient(clientId, command);
         return ResponseEntity.ok(ClientResponse.from(client));

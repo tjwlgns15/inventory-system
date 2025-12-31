@@ -46,28 +46,6 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
 
     boolean existsByQuotationNumber(String quotationNumber);
 
-    @Query(
-            value = "SELECT DISTINCT q " +
-                    "FROM Quotation q " +
-                    "WHERE  q.deletedAt IS NULL " +
-                    "AND (LOWER(q.companyName) LIKE LOWER(CONCAT('%', :keyword, '%')))",
-            countQuery = "SELECT COUNT(DISTINCT q) " +
-                    "FROM Quotation q " +
-                    "WHERE  q.deletedAt IS NULL " +
-                    "AND (LOWER(q.companyName) LIKE LOWER(CONCAT('%', :keyword, '%')))"
-    )
-    Page<Quotation> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
-
-    @Query(
-            value = "SELECT DISTINCT q " +
-                    "FROM Quotation q " +
-                    "WHERE q.deletedAt IS NULL",
-            countQuery = "SELECT COUNT(DISTINCT q) " +
-                    "FROM Quotation q " +
-                    "WHERE q.deletedAt IS NULL"
-    )
-    Page<Quotation> findAllPaged(Pageable pageable);
-
     @Query("SELECT q FROM Quotation q " +
             "LEFT JOIN FETCH q.items " +
             "WHERE q.id = :quotationId " +
@@ -100,4 +78,27 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
             "AND q.quotationType = :quotationType")
     Page<Quotation> findAllByType(@Param("quotationType") QuotationType quotationType,
                                   Pageable pageable);
+
+
+    @Query(
+            value = "SELECT DISTINCT q " +
+                    "FROM Quotation q " +
+                    "WHERE  q.deletedAt IS NULL " +
+                    "AND (LOWER(q.companyName) LIKE LOWER(CONCAT('%', :keyword, '%')))",
+            countQuery = "SELECT COUNT(DISTINCT q) " +
+                    "FROM Quotation q " +
+                    "WHERE  q.deletedAt IS NULL " +
+                    "AND (LOWER(q.companyName) LIKE LOWER(CONCAT('%', :keyword, '%')))"
+    )
+    Page<Quotation> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query(
+            value = "SELECT DISTINCT q " +
+                    "FROM Quotation q " +
+                    "WHERE q.deletedAt IS NULL",
+            countQuery = "SELECT COUNT(DISTINCT q) " +
+                    "FROM Quotation q " +
+                    "WHERE q.deletedAt IS NULL"
+    )
+    Page<Quotation> findAllPaged(Pageable pageable);
 }

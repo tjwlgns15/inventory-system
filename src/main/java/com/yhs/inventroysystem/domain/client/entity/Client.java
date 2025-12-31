@@ -44,6 +44,14 @@ public class Client extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private ClientType clientType;
 
+    // 배송지 정보
+    private String shipmentDestination; // 선적처
+    private String shipmentAddress; // 선적 주소
+    private String shipmentRepresentative; // 선적처 담당자
+    private String shipmentContactNumber; // 선적처 연락처
+    private String finalDestination; // 도착항
+
+
     // 계층 구조: 상위 거래처 (회사)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_client_id")
@@ -56,7 +64,9 @@ public class Client extends BaseTimeEntity {
     // 루트 거래처 생성
     public Client(String clientCode, Country country,
                   String name, String address, String contactNumber,
-                  String email, Currency currency) {
+                  String email, Currency currency, String shipmentDestination,
+                  String shipmentAddress, String shipmentRepresentative,
+                  String shipmentContactNumber, String finalDestination) {
         this.clientCode = clientCode;
         this.country = country;
         this.name = name;
@@ -65,12 +75,20 @@ public class Client extends BaseTimeEntity {
         this.email = email;
         this.currency = currency;
         this.clientType = ClientType.PARENT;
+
+        this.shipmentDestination = shipmentDestination;
+        this.shipmentAddress = shipmentAddress;
+        this.shipmentRepresentative = shipmentRepresentative;
+        this.shipmentContactNumber = shipmentContactNumber;
+        this.finalDestination = finalDestination;
     }
 
     // 하위 거래처 생성
     public Client(String clientCode, Client parentClient, Country country,
                   String name, String address, String contactNumber,
-                  String email, Currency currency) {
+                  String email, Currency currency, String shipmentDestination,
+                  String shipmentAddress, String shipmentRepresentative,
+                  String shipmentContactNumber, String finalDestination) {
         if (parentClient.isTeam()) {
             throw new IllegalArgumentException("팀 하위에는 팀을 생성할 수 없습니다.");
         }
@@ -83,15 +101,31 @@ public class Client extends BaseTimeEntity {
         this.email = email;
         this.currency = currency;
         this.clientType = ClientType.CHILD;
+
+        this.shipmentDestination = shipmentDestination;
+        this.shipmentAddress = shipmentAddress;
+        this.shipmentRepresentative = shipmentRepresentative;
+        this.shipmentContactNumber = shipmentContactNumber;
+        this.finalDestination = finalDestination;
     }
 
-    public void updateInfo(String name, Country country, String address, String contactNumber, String email, Currency currency) {
+    public void updateInfo(String name, Country country,
+                           String address, String contactNumber,
+                           String email, Currency currency, String shipmentDestination,
+                           String shipmentAddress, String shipmentRepresentative,
+                           String shipmentContactNumber, String finalDestination) {
         this.name = name;
         this.country = country;
         this.address = address;
         this.contactNumber = contactNumber;
         this.email = email;
         this.currency = currency;
+
+        this.shipmentDestination = shipmentDestination;
+        this.shipmentAddress = shipmentAddress;
+        this.shipmentRepresentative = shipmentRepresentative;
+        this.shipmentContactNumber = shipmentContactNumber;
+        this.finalDestination = finalDestination;
     }
 
     public void addChildClient(Client childClient) {

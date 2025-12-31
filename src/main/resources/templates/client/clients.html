@@ -478,16 +478,16 @@
             <div class="table-container">
                 <table id="clientsTable">
                     <thead>
-                        <tr>
-                            <th style="width: 13%;">거래처 코드</th>
-                            <th style="width: 15%;">거래처명</th>
-                            <th style="width: 13%;">연락처</th>
-                            <th style="width: 13%;">이메일</th>
-                            <th style="width: 20%;">주소</th>
-                            <th style="width: 8%;">국가</th>
-                            <th style="width: 6%;">통화</th>
-                            <th style="width: 12%;">작업</th>
-                        </tr>
+                    <tr>
+                        <th style="width: 13%;">거래처 코드</th>
+                        <th style="width: 15%;">거래처명</th>
+                        <th style="width: 13%;">연락처</th>
+                        <th style="width: 13%;">이메일</th>
+                        <th style="width: 20%;">주소</th>
+                        <th style="width: 8%;">국가</th>
+                        <th style="width: 6%;">통화</th>
+                        <th style="width: 12%;">작업</th>
+                    </tr>
                     </thead>
                     <tbody id="clientsTableBody">
                     </tbody>
@@ -550,6 +550,34 @@
                     <option value="JPY">엔화 (¥)</option>
                     <option value="CNY">위안 (¥)</option>
                 </select>
+            </div>
+
+            <!-- 배송지 정보 -->
+            <h3 style="margin-top: 20px; margin-bottom: 15px; font-size: 1.1rem; color: #4a5568; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">배송지 정보 (해외 거래처만 등록)</h3>
+
+            <div class="form-group">
+                <label class="form-label" for="parentShipmentDestination">선적처</label>
+                <input type="text" id="parentShipmentDestination" class="form-input" placeholder="예: 부산항">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="parentShipmentAddress">선적 주소</label>
+                <input type="text" id="parentShipmentAddress" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="parentShipmentRepresentative">선적처 담당자</label>
+                <input type="text" id="parentShipmentRepresentative" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="parentShipmentContactNumber">선적처 연락처</label>
+                <input type="tel" id="parentShipmentContactNumber" class="form-input" placeholder="예: 010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="parentFinalDestination">도착항</label>
+                <input type="text" id="parentFinalDestination" class="form-input" placeholder="예: Los Angeles, USA">
             </div>
 
             <div class="modal-footer">
@@ -616,6 +644,34 @@
                 </select>
             </div>
 
+            <!-- 배송지 정보 -->
+            <h3 style="margin-top: 20px; margin-bottom: 15px; font-size: 1.1rem; color: #4a5568; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">배송지 정보</h3>
+
+            <div class="form-group">
+                <label class="form-label" for="childShipmentDestination">선적처</label>
+                <input type="text" id="childShipmentDestination" class="form-input" placeholder="예: 부산항">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childShipmentAddress">선적 주소</label>
+                <input type="text" id="childShipmentAddress" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childShipmentRepresentative">선적처 담당자</label>
+                <input type="text" id="childShipmentRepresentative" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childShipmentContactNumber">선적처 연락처</label>
+                <input type="tel" id="childShipmentContactNumber" class="form-input" placeholder="예: 010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childFinalDestination">도착항</label>
+                <input type="text" id="childFinalDestination" class="form-input" placeholder="예: Los Angeles, USA">
+            </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeRegisterModal('child')">취소</button>
                 <button type="submit" class="btn btn-primary"><span>등록</span></button>
@@ -675,6 +731,34 @@
                     <option value="CNY">위안 (¥)</option>
                     <option value="GBP">파운드 (£)</option>
                 </select>
+            </div>
+
+            <!-- 배송지 정보 -->
+            <h3 style="margin-top: 20px; margin-bottom: 15px; font-size: 1.1rem; color: #4a5568; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">배송지 정보</h3>
+
+            <div class="form-group">
+                <label class="form-label" for="updateShipmentDestination">선적처</label>
+                <input type="text" id="updateShipmentDestination" class="form-input" placeholder="예: 부산항">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateShipmentAddress">선적 주소</label>
+                <input type="text" id="updateShipmentAddress" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateShipmentRepresentative">선적처 담당자</label>
+                <input type="text" id="updateShipmentRepresentative" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateShipmentContactNumber">선적처 연락처</label>
+                <input type="tel" id="updateShipmentContactNumber" class="form-input" placeholder="예: 010-1234-5678">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateFinalDestination">도착항</label>
+                <input type="text" id="updateFinalDestination" class="form-input" placeholder="예: Los Angeles, USA">
             </div>
 
             <div class="modal-footer">
@@ -991,7 +1075,12 @@
                 email: document.getElementById('parentEmail').value,
                 address: document.getElementById('parentAddress').value,
                 countryId: parseInt(document.getElementById('parentCountryId').value),
-                currency: document.getElementById('parentCurrency').value
+                currency: document.getElementById('parentCurrency').value,
+                shipmentDestination: document.getElementById('parentShipmentDestination').value || null,
+                shipmentAddress: document.getElementById('parentShipmentAddress').value || null,
+                shipmentRepresentative: document.getElementById('parentShipmentRepresentative').value || null,
+                shipmentContactNumber: document.getElementById('parentShipmentContactNumber').value || null,
+                finalDestination: document.getElementById('parentFinalDestination').value || null
             };
         } else if (type === 'child') {
             apiUrl = `${API_BASE_URL}/child`;
@@ -1003,7 +1092,12 @@
                 email: document.getElementById('childEmail').value,
                 address: document.getElementById('childAddress').value,
                 countryId: parseInt(document.getElementById('childCountryId').value),
-                currency: document.getElementById('childCurrency').value
+                currency: document.getElementById('childCurrency').value,
+                shipmentDestination: document.getElementById('childShipmentDestination').value || null,
+                shipmentAddress: document.getElementById('childShipmentAddress').value || null,
+                shipmentRepresentative: document.getElementById('childShipmentRepresentative').value || null,
+                shipmentContactNumber: document.getElementById('childShipmentContactNumber').value || null,
+                finalDestination: document.getElementById('childFinalDestination').value || null
             };
         }
 
@@ -1041,6 +1135,13 @@
         document.getElementById('updateAddress').value = client.address || '';
         document.getElementById('updateCurrency').value = client.currency || '';
 
+        // 배송지 정보
+        document.getElementById('updateShipmentDestination').value = client.shipmentDestination || '';
+        document.getElementById('updateShipmentAddress').value = client.shipmentAddress || '';
+        document.getElementById('updateShipmentRepresentative').value = client.shipmentRepresentative || '';
+        document.getElementById('updateShipmentContactNumber').value = client.shipmentContactNumber || '';
+        document.getElementById('updateFinalDestination').value = client.finalDestination || '';
+
         const countrySelect = document.getElementById('updateCountryId');
         countrySelect.innerHTML = '<option value="">국가 선택</option>' +
             allCountries.map(country => `
@@ -1071,7 +1172,12 @@
             email: document.getElementById('updateEmail').value,
             address: document.getElementById('updateAddress').value,
             countryId: parseInt(document.getElementById('updateCountryId').value),
-            currency: document.getElementById('updateCurrency').value
+            currency: document.getElementById('updateCurrency').value,
+            shipmentDestination: document.getElementById('updateShipmentDestination').value || null,
+            shipmentAddress: document.getElementById('updateShipmentAddress').value || null,
+            shipmentRepresentative: document.getElementById('updateShipmentRepresentative').value || null,
+            shipmentContactNumber: document.getElementById('updateShipmentContactNumber').value || null,
+            finalDestination: document.getElementById('updateFinalDestination').value || null
         };
 
         try {

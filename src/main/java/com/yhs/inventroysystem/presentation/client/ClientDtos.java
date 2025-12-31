@@ -26,7 +26,14 @@ public class ClientDtos {
             String email,
 
             @NotNull(message = "통화는 필수입니다")
-            Currency currency
+            Currency currency,
+
+            // 배송지 정보
+            String shipmentDestination, // 선적처
+            String shipmentAddress, // 선적 주소
+            String shipmentRepresentative, // 선적처 담당자
+            String shipmentContactNumber, // 선적처 연락처
+            String finalDestination // 도착항
     ) {}
 
     public record ChildClientRegisterRequest(
@@ -49,7 +56,14 @@ public class ClientDtos {
             String email,
 
             @NotNull(message = "통화는 필수입니다")
-            Currency currency
+            Currency currency,
+
+            // 배송지 정보
+            String shipmentDestination,
+            String shipmentAddress,
+            String shipmentRepresentative,
+            String shipmentContactNumber,
+            String finalDestination
     ) {}
 
     public record ClientResponse(
@@ -67,7 +81,14 @@ public class ClientDtos {
             String currencySymbol,
             ClientType clientType,
             Long parentClientId,
-            String parentClientName
+            String parentClientName,
+
+            // 배송지 정보
+            String shipmentDestination,
+            String shipmentAddress,
+            String shipmentRepresentative,
+            String shipmentContactNumber,
+            String finalDestination
     ) {
         public static ClientResponse from(Client client) {
             return new ClientResponse(
@@ -85,7 +106,12 @@ public class ClientDtos {
                     client.getCurrency().getSymbol(),
                     client.getClientType(),
                     client.getParentClient() != null ? client.getParentClient().getId() : null,
-                    client.getParentClient() != null ? client.getParentClient().getName() : null
+                    client.getParentClient() != null ? client.getParentClient().getName() : null,
+                    client.getShipmentDestination(),
+                    client.getShipmentAddress(),
+                    client.getShipmentRepresentative(),
+                    client.getShipmentContactNumber(),
+                    client.getFinalDestination()
             );
         }
     }
@@ -102,7 +128,13 @@ public class ClientDtos {
             String email,
 
             @NotNull(message = "통화는 필수입니다")
-            Currency currency
+            Currency currency,
+
+            String shipmentDestination,
+            String shipmentAddress,
+            String shipmentRepresentative,
+            String shipmentContactNumber,
+            String finalDestination
 
 
     ) {}
