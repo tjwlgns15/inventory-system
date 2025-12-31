@@ -35,7 +35,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/auth/**", "/auth/**").permitAll()
+                        .requestMatchers("/", "/api/auth/**", "/auth/**").permitAll() // 인증 관련
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/infra/**").permitAll() // 정적 리소스 (CSS, JS, 이미지 등)
                         .anyRequest().authenticated())
 
                 .exceptionHandling(exception -> exception
