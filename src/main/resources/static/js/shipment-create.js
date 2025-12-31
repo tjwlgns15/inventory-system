@@ -131,10 +131,10 @@ async function loadProducts() {
 async function loadCarriers() {
     try {
         const response = await fetch(`${API_BASE_URL}/carriers`);
-        if (!response.ok) throw new Error('운송사 목록을 불러올 수 없습니다.');
+        if (!response.ok) throw new Error('운송 방법 목록을 불러올 수 없습니다.');
         state.carriers = await response.json();
     } catch (error) {
-        console.error('운송사 로드 실패:', error);
+        console.error('운송 방법 로드 실패:', error);
     }
 }
 
@@ -264,8 +264,8 @@ function renderCarrierList() {
         carrierList.innerHTML = `
             <div style="text-align: center; padding: 40px; color: #718096;">
                 <div style="font-size: 3em; margin-bottom: 15px;">🚢</div>
-                <p>등록된 운송사가 없습니다.</p>
-                <p style="font-size: 0.9em; margin-top: 5px;">새 운송사 버튼을 클릭하여 추가해보세요.</p>
+                <p>등록된 운송 방법이 없습니다.</p>
+                <p style="font-size: 0.9em; margin-top: 5px;">새 운송 방법 버튼을 클릭하여 추가해보세요.</p>
             </div>
         `;
         return;
@@ -293,7 +293,7 @@ function renderCarrierList() {
 }
 
 function openCarrierCreateModal() {
-    document.getElementById('carrierFormModalTitle').textContent = '운송사 등록';
+    document.getElementById('carrierFormModalTitle').textContent = '운송 방법 등록';
     document.getElementById('carrierForm').reset();
     document.getElementById('carrierFormId').value = '';
     document.getElementById('carrierFormModal').classList.add('active');
@@ -303,7 +303,7 @@ function openCarrierEditModal(carrierId) {
     const carrier = state.carriers.find(c => c.id === carrierId);
     if (!carrier) return;
 
-    document.getElementById('carrierFormModalTitle').textContent = '운송사 수정';
+    document.getElementById('carrierFormModalTitle').textContent = '운송 방법 수정';
     document.getElementById('carrierFormId').value = carrier.id;
     document.getElementById('carrierFormName').value = carrier.name || '';
     document.getElementById('carrierFormNameEn').value = carrier.nameEn || '';
@@ -350,10 +350,10 @@ async function handleCarrierFormSubmit(e) {
         }
 
         if (!response.ok) {
-            throw new Error(carrierId ? '운송사 수정에 실패했습니다.' : '운송사 등록에 실패했습니다.');
+            throw new Error(carrierId ? '운송 방법 수정에 실패했습니다.' : '운송 방법 등록에 실패했습니다.');
         }
 
-        alert(carrierId ? '운송사가 수정되었습니다.' : '운송사가 등록되었습니다.');
+        alert(carrierId ? '운송 방법이 수정되었습니다.' : '운송 방법이 등록되었습니다.');
         closeCarrierFormModal();
         await loadCarriers();
         renderCarrierList();

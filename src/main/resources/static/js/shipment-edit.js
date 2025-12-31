@@ -229,10 +229,10 @@ async function loadProducts() {
 async function loadCarriers() {
     try {
         const response = await fetch(`${API_BASE_URL}/carriers`);
-        if (!response.ok) throw new Error('운송사 목록을 불러올 수 없습니다.');
+        if (!response.ok) throw new Error('운송 방법 목록을 불러올 수 없습니다.');
         state.carriers = await response.json();
     } catch (error) {
-        console.error('운송사 로드 실패:', error);
+        console.error('운송 방법 로드 실패:', error);
     }
 }
 

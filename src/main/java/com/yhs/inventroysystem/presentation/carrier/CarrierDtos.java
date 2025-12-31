@@ -31,8 +31,8 @@ public class CarrierDtos {
 
     public record CarrierRegister(
 
-            @NotBlank(message = "운송사명은 필수입니다.")
-            @Size(max = 50, message = "운송사명은 50자 이내여야 합니다.")
+            @NotBlank(message = "운송 방법은 필수입니다.")
+            @Size(max = 50, message = "운송 방법은 50자 이내여야 합니다.")
             String name,
 
             @Size(max = 50, message = "영문명은 50자 이내여야 합니다.")
@@ -62,7 +62,7 @@ public class CarrierDtos {
 
     public record CarrierUpdate(
 
-            @Size(max = 50, message = "운송사명은 50자 이내여야 합니다.")
+            @Size(max = 50, message = "운송 방법은 50자 이내여야 합니다.")
             String name,
 
             @Size(max = 50, message = "영문명은 50자 이내여야 합니다.")

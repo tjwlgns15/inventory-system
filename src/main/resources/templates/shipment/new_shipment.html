@@ -632,13 +632,13 @@
                     <input type="text" id="finalDestination" required>
                 </div>
                 <div class="form-group">
-                    <label>운송사 <span class="required">*</span></label>
+                    <label>운송 방법 <span class="required">*</span></label>
                     <div>
                         <button type="button" class="btn btn-secondary" id="selectCarrierBtn">
-                            운송사 선택
+                            운송 방법 선택
                         </button>
                         <input type="hidden" id="carrierId">
-                        <input type="text" id="carrierName" placeholder="운송사명" required>
+                        <input type="text" id="carrierName" placeholder="운송 방법" required>
                     </div>
                 </div>
             </div>
@@ -798,43 +798,43 @@
     </div>
 </div>
 
-<!-- 운송사 선택 모달 -->
+<!-- 운송 방법 선택 모달 -->
 <div class="modal" id="carrierModal">
     <div class="modal-content" style="max-width: 900px;">
         <div class="modal-header">
-            <h2>운송사 관리</h2>
+            <h2>운송 방법 관리</h2>
             <button class="close-btn" id="closeCarrierModal">&times;</button>
         </div>
         <div class="modal-body">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: #4a5568;">운송사 목록</h3>
+                <h3 style="margin: 0; color: #4a5568;">운송 방법 목록</h3>
                 <button type="button" class="btn btn-primary" id="createCarrierBtn" style="padding: 8px 16px; font-size: 0.9em;">
-                    + 새 운송사
+                    + 새 운송 방법
                 </button>
             </div>
             <div id="carrierList">
-                <!-- 운송사 목록이 동적으로 추가됩니다 -->
+                <!-- 운송 방법 목록이 동적으로 추가됩니다 -->
             </div>
         </div>
     </div>
 </div>
 
-<!-- 운송사 생성/수정 모달 -->
+<!-- 운송 방법 생성/수정 모달 -->
 <div class="modal" id="carrierFormModal">
     <div class="modal-content" style="max-width: 600px;">
         <div class="modal-header">
-            <h2 id="carrierFormModalTitle">운송사 등록</h2>
+            <h2 id="carrierFormModalTitle">운송 방법 등록</h2>
             <button class="close-btn" id="closeCarrierFormModal">&times;</button>
         </div>
         <div class="modal-body">
             <form id="carrierForm">
                 <input type="hidden" id="carrierFormId">
                 <div class="form-group">
-                    <label>운송사명 (한글) <span class="required">*</span></label>
+                    <label>운송 방법 (한글) <span class="required">*</span></label>
                     <input type="text" id="carrierFormName" class="form-input" required placeholder="예: 한진해운">
                 </div>
                 <div class="form-group">
-                    <label>운송사명 (영문)</label>
+                    <label>운송 방법 (영문)</label>
                     <input type="text" id="carrierFormNameEn" class="form-input" placeholder="예: Hanjin Shipping">
                 </div>
                 <div class="form-group">
@@ -908,7 +908,7 @@
                     </div>
                     <div class="form-group">
                         <label>중량 (kg) <span class="required">*</span></label>
-                        <input type="number" id="boxFormWeight" step="0.01" min="0" required>
+                        <input type="number" id="boxFormWeight" step="0.001" min="0" required>
                     </div>
                 </div>
                 <div class="modal-footer">
