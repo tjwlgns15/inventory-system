@@ -16,7 +16,7 @@ public class ShipmentViewController {
 
     @GetMapping
     public String shipmentsPage() {
-        return "/shipment/shipments";
+        return "shipment/shipments";
     }
 
     @GetMapping("/new")
@@ -24,16 +24,16 @@ public class ShipmentViewController {
         model.addAttribute("shipmentTypes", ShipmentType.values());
         model.addAttribute("tradeTerms", TradeTerms.values());
 
-        return "/shipment/new_shipment";
+        return "shipment/new_shipment";
     }
 
     @GetMapping("/{shipmentId}")
     public String shipmentsDetailPage(@PathVariable Long shipmentId) {
-        return "/shipment/detail_shipment";
+        return "shipment/detail_shipment";
     }
 
     @GetMapping("/{shipmentId}/edit")
     public String shipmentsEditPage(@PathVariable Long shipmentId) {
-        return "/shipment/edit_shipment";
+        return "shipment/edit_shipment";
     }
 }
