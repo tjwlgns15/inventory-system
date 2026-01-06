@@ -45,7 +45,10 @@ public class ShipmentDomainService {
      * 기간별 선적 목록 조회
      */
     public List<Shipment> findByDateRange(LocalDate startDate, LocalDate endDate) {
-        return shipmentRepository.findByInvoiceDateBetween(startDate, endDate);
+        List<Shipment> shipments = shipmentRepository.findByInvoiceDateBetween(startDate, endDate);
+        shipments.forEach(shipment -> shipment.getItems().size());
+
+        return shipments;
     }
     /**
      * 기간별 선적 목록 조회

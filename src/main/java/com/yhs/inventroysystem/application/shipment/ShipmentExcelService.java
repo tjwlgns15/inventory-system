@@ -8,6 +8,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -51,7 +52,7 @@ public class ShipmentExcelService {
             // 헤더 생성
             Row headerRow = sheet.createRow(0);
             String[] headers = {
-                    "Invoice No.", "작성일", "거래처", "목적지", "발송일", "거래유형", "수량", "금액"
+                    "작성일", "Invoice No.", "거래유형", "거래처", "제품명", "수량(총계)", "금액(화폐)", "목적지", "발송일", "운송장번호", "면장번호"
             };
 
             for (int i = 0; i < headers.length; i++) {
@@ -64,30 +65,32 @@ public class ShipmentExcelService {
             int rowNum = 1;
             for (Shipment shipment : shipments) {
                 Row row = sheet.createRow(rowNum++);
-
-                // Invoice No.
-                createCell(row, 0, shipment.getInvoiceNumber(), dataStyle);
+                BigDecimal totalAmount = shipment.getTotalAmount();
+                String currency = shipment.getCurrency();
 
                 // 작성일
-                createCell(row, 1, formatDate(shipment.getInvoiceDate()), dateStyle);
-
-                // 거래처 (Sold To Company Name)
-                createCell(row, 2, shipment.getSoldToCompanyName(), dataStyle);
-
-                // 목적지 (Final Destination)
-                createCell(row, 3, shipment.getFinalDestination(), dataStyle);
-
-                // 발송일 (Freight Date)
-                createCell(row, 4, formatDate(shipment.getFreightDate()), dateStyle);
-
+                createCell(row, 0, formatDate(shipment.getInvoiceDate()), dateStyle);
+                // Invoice No.
+                createCell(row, 1, shipment.getInvoiceNumber(), dataStyle);
                 // 거래유형
-                createCell(row, 5, getShipmentTypeText(shipment.getShipmentType().name()), dataStyle);
-
-                // 수량 (totalQuantity)
-                createCell(row, 6, shipment.getTotalQuantity(), numberStyle);
-
+                createCell(row, 2, getShipmentTypeText(shipment.getShipmentType().name()), dataStyle);
+                // 거래처 (Sold To Company Name)
+                createCell(row, 3, shipment.getSoldToCompanyName(), dataStyle);
+                // 제품명 (items의 productCode 리스트)
+                createCell(row, 4, getProductNames(shipment), dataStyle);
+                // 수량
+                createCell(row, 5, shipment.getTotalQuantity(), numberStyle);
                 // 금액 (totalAmount)
-                createCell(row, 7, shipment.getTotalAmount(), numberStyle);
+                createCell(row, 6, totalAmount + " (" + currency + ")", numberStyle);
+                // 목적지 (Final Destination)
+                createCell(row, 7, shipment.getFinalDestination(), dataStyle);
+                // 발송일 (Freight Date)
+                createCell(row, 8, formatDate(shipment.getFreightDate()), dateStyle);
+                // 운송장 번호
+                createCell(row, 9, shipment.getTrackingNumber(), dataStyle);
+                // 면장 번호
+                createCell(row, 10, shipment.getExportLicenseNumber(), dataStyle);
+
             }
 
             // 열 너비 자동 조정
@@ -209,5 +212,19 @@ public class ShipmentExcelService {
             case "SAMPLE" -> "무상샘플";
             default -> type;
         };
+    }
+
+    /**
+     * 제품명 리스트를 쉼표로 구분된 문자열로 반환
+     */
+    private String getProductNames(Shipment shipment) {
+        if (shipment.getItems() == null || shipment.getItems().isEmpty()) {
+            return "-";
+        }
+
+        return shipment.getItems().stream()
+                .map(item -> item.getProductCode())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("-");
     }
 }

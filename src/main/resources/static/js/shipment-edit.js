@@ -163,6 +163,8 @@ function fillFormWithShipmentData() {
         document.getElementById('carrierId').value = shipment.carrierId;
     }
     document.getElementById('carrierName').value = shipment.carrierName || '';
+    document.getElementById('trackingNumber').value = shipment.trackingNumber || '';
+    document.getElementById('exportLicenseNumber').value = shipment.exportLicenseNumber || '';
 
     // 5. 신용장 정보
     document.getElementById('lcNo').value = shipment.lcNo || '';
@@ -905,6 +907,8 @@ async function handleSubmit(e) {
         finalDestination: document.getElementById('finalDestination').value,
         carrierId: getNumberOrNull('carrierId'),
         carrierName: getValueOrNull('carrierName'),
+        trackingNumber: getValueOrNull('trackingNumber'),
+        exportLicenseNumber: getValueOrNull('exportLicenseNumber'),
 
         lcNo: getValueOrNull('lcNo'),
         lcDate: getValueOrNull('lcDate'),

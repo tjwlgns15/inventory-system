@@ -236,7 +236,7 @@
         }
 
         th {
-            padding: 14px 16px;
+            padding: 14px 10px;
             text-align: left;
             font-weight: 600;
             font-size: 0.75rem;
@@ -244,15 +244,21 @@
             text-transform: uppercase;
             letter-spacing: 0.8px;
         }
+        th:first-child {
+            padding: 14px;
+        }
 
         th[style*="cursor: pointer"]:hover {
             background: rgba(255, 255, 255, 0.1);
         }
 
         td {
-            padding: 16px;
+            padding: 12px 8px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             vertical-align: middle;
+        }
+        td:first-child {
+            padding: 12px;
         }
 
         tr:hover {
@@ -285,6 +291,27 @@
 
         .badge-sample {
             color: #c05621;
+        }
+
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            white-space: nowrap;
+            font-size: 0.875rem;
+        }
+
+        .item-badge strong {
+            color: #667eea;
+            font-weight: 600;
         }
 
         .empty-state {
@@ -590,22 +617,25 @@
                 <table>
                     <thead>
                     <tr>
-                        <th style="width: 12%;">Invoice No.</th>
-                        <th style="width: 10%; cursor: pointer;" onclick="toggleDateSort()">
+                        <th style="width: 6%; cursor: pointer;" onclick="toggleDateSort()">
                             작성일 <span id="sortIcon">▼</span>
                         </th>
-                        <th style="width: 15%;">거래처</th>
-                        <th style="width: 13%;">목적지</th>
-                        <th style="width: 10%;">발송일</th>
-                        <th style="width: 10%;">거래유형</th>
-                        <th style="width: 8%;">수량</th>
-                        <th style="width: 12%;">금액</th>
-                        <th style="width: 10%;">작업</th>
+                        <th style="width: 10%;">Invoice No.</th>
+                        <th style="width: 5%;">거래유형</th>
+                        <th style="width: 12%;">거래처</th>
+                        <th style="width: 13%;">제품명</th>
+                        <th style="width: 4%;">수량</th>
+                        <th style="width: 9%;">금액</th>
+                        <th style="width: 10%;">목적지</th>
+                        <th style="width: 6%;">발송일</th>
+                        <th style="width: 10%;">운송장번호</th>
+                        <th style="width: 10%;">면장번호</th>
+                        <th style="width: 5%;">작업</th>
                     </tr>
                     </thead>
                     <tbody id="shipmentTableBody">
                     <tr>
-                        <td colspan="9" class="loading">
+                        <td colspan="12" class="loading">
                             <div class="spinner"></div>
                             데이터를 불러오는 중...
                         </td>

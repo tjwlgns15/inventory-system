@@ -1712,14 +1712,15 @@
 
             const data = await response.json();
 
-            // 금년 제품별 누적 판매량 계산 및 표시
-            if (year === new Date().getFullYear()) {
-                renderYearlyTotalSales(data.clientSales);
-            } else {
-                document.getElementById('yearlyTotalTable').querySelector('tbody').innerHTML =
-                    '<tr><td colspan="4" class="empty-state">금년 데이터만 표시됩니다</td></tr>';
-                document.getElementById('yearlyTotalPeriod').textContent = '';
-            }
+            renderYearlyTotalSales(data.clientSales);
+            // // 금년 제품별 누적 판매량 계산 및 표시
+            // if (year === new Date().getFullYear()) {
+            //     renderYearlyTotalSales(data.clientSales);
+            // } else {
+            //     document.getElementById('yearlyTotalTable').querySelector('tbody').innerHTML =
+            //         '<tr><td colspan="4" class="empty-state">금년 데이터만 표시됩니다</td></tr>';
+            //     document.getElementById('yearlyTotalPeriod').textContent = '';
+            // }
 
             renderYearlySales(data.clientSales);
         } catch (error) {

@@ -2,7 +2,6 @@ package com.yhs.inventroysystem.application.shipment;
 
 import com.yhs.inventroysystem.domain.carrier.entity.Carrier;
 import com.yhs.inventroysystem.domain.carrier.service.CarrierDomainService;
-import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
 import com.yhs.inventroysystem.domain.shipment.entity.*;
 import com.yhs.inventroysystem.domain.shipment.service.ShipmentBoxDomainService;
 import com.yhs.inventroysystem.domain.shipment.service.ShipmentDomainService;
@@ -71,6 +70,8 @@ public class ShipmentService {
                 carrier,
                 command.carrierName(),
                 command.freightDate(),
+                command.trackingNumber(),
+                command.exportLicenseNumber(),
                 command.lcNo(),
                 command.lcDate(),
                 command.lcIssuingBank(),
@@ -143,6 +144,11 @@ public class ShipmentService {
             shipmentPage = shipmentDomainService.searchByKeyword(keyword, pageable);
         }
 
+        // 명시적으로 items 컬렉션 로딩 (배치사이즈 활용)
+        shipmentPage.getContent().forEach(shipment -> {
+            shipment.getItems().size();
+        });
+
         return shipmentPage;
     }
 
@@ -155,6 +161,11 @@ public class ShipmentService {
         } else {
             shipmentPage = shipmentDomainService.findAllPaged(pageable);
         }
+
+        // 명시적으로 items 컬렉션 로딩 (배치사이즈 활용)
+        shipmentPage.getContent().forEach(shipment -> {
+            shipment.getItems().size();
+        });
 
         return shipmentPage;
     }
@@ -205,7 +216,11 @@ public class ShipmentService {
                 command.shipToContactPerson(),
                 command.shipToPhone()
         );
-        shipment.updateShippingInfo(command.portOfLoading(), command.finalDestination());
+        shipment.updateShippingInfo(command.portOfLoading(),
+                command.finalDestination(),
+                command.trackingNumber(),
+                command.exportLicenseNumber()
+        );
         shipment.assignCarrier(carrier, command.carrierName());
         shipment.updateRemarks(
                 command.shipmentType(),

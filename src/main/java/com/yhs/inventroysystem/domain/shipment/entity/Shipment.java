@@ -96,6 +96,11 @@ public class Shipment extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDate freightDate;
 
+    @Column(length = 100)
+    private String trackingNumber; // 운송장 번호
+
+    @Column(length = 100)
+    private String exportLicenseNumber; // 수출면장 번호
 
     // ========== 신용장 정보 (선택) ==========
     @Column(length = 100)
@@ -160,6 +165,7 @@ public class Shipment extends BaseTimeEntity {
                      Long clientId, String soldToCompanyName, String soldToAddress, String soldToContactPerson, String soldToPhone,
                      String shipToCompanyName, String shipToAddress, String shipToContactPerson, String shipToPhone,
                      String portOfLoading, String finalDestination, Carrier carrier, String carrierName, LocalDate freightDate,
+                     String trackingNumber, String exportLicenseNumber,
                      String lcNo, LocalDate lcDate, String lcIssuingBank,
                      ShipmentType shipmentType, TradeTerms tradeTerms, String originDescription, String additionalRemarks,
                      String currency) {
@@ -185,6 +191,8 @@ public class Shipment extends BaseTimeEntity {
         this.carrier = carrier;
         this.carrierName = carrierName;
         this.freightDate = freightDate;
+        this.trackingNumber = trackingNumber;
+        this.exportLicenseNumber = exportLicenseNumber;
         this.lcNo = lcNo;
         this.lcDate = lcDate;
         this.lcIssuingBank = lcIssuingBank;
@@ -213,6 +221,7 @@ public class Shipment extends BaseTimeEntity {
                                   String shipToContactPerson, String shipToPhone,
                                   String portOfLoading, String finalDestination,
                                   Carrier carrier, String carrierName, LocalDate freightDate,
+                                  String trackingNumber, String exportLicenseNumber,
                                   String lcNo, LocalDate lcDate, String lcIssuingBank,
                                   ShipmentType shipmentType, TradeTerms tradeTerms,
                                   String originDescription, String additionalRemarks,
@@ -240,6 +249,8 @@ public class Shipment extends BaseTimeEntity {
                 carrier,
                 carrierName,
                 freightDate,
+                trackingNumber,
+                exportLicenseNumber,
                 lcNo,
                 lcDate,
                 lcIssuingBank,
@@ -414,9 +425,12 @@ public class Shipment extends BaseTimeEntity {
     /**
      * 운송 정보 수정
      */
-    public void updateShippingInfo(String portOfLoading, String finalDestination) {
+    public void updateShippingInfo(String portOfLoading, String finalDestination,
+                                   String trackingNumber, String exportLicenseNumber) {
         this.portOfLoading = portOfLoading;
         this.finalDestination = finalDestination;
+        this.trackingNumber = trackingNumber;
+        this.exportLicenseNumber = exportLicenseNumber;
     }
 
     /**

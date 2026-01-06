@@ -38,6 +38,8 @@ public class ShipmentCommand {
             String finalDestination,
             Long carrierId,
             String carrierName,
+            String trackingNumber,
+            String exportLicenseNumber,
 
             // ========== 신용장 정보 ==========
             String lcNo,
@@ -118,6 +120,8 @@ public class ShipmentCommand {
             String finalDestination,
             Long carrierId,
             String carrierName,
+            String trackingNumber,
+            String exportLicenseNumber,
 
             // ========== 신용장 정보 ==========
             String lcNo,

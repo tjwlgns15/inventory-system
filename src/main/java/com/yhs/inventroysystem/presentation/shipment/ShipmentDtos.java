@@ -43,6 +43,8 @@ public class ShipmentDtos {
             Long carrierId,
             String carrierName,
             LocalDate freightDate,
+            String trackingNumber,
+            String exportLicenseNumber,
 
             String lcNo,
             LocalDate lcDate,
@@ -97,6 +99,8 @@ public class ShipmentDtos {
                     shipment.getCarrier() != null ? shipment.getCarrier().getId() : null,
                     shipment.getCarrierName(),
                     shipment.getFreightDate(),
+                    shipment.getTrackingNumber(),
+                    shipment.getExportLicenseNumber(),
                     shipment.getLcNo(),
                     shipment.getLcDate(),
                     shipment.getLcIssuingBank(),
@@ -150,12 +154,16 @@ public class ShipmentDtos {
             ShipmentType shipmentType,
             String shipmentTypeDisplay,
 
+            String trackingNumber,
+            String exportLicenseNumber,
+
             // 금액 정보
             Integer totalQuantity,
             BigDecimal totalAmount,
             String currency,
 
-
+            // 제품 정보
+            List<ShipmentItemResponse> items,
             // 생성/수정 시간
             LocalDateTime createdAt,
             LocalDateTime updatedAt
@@ -174,9 +182,14 @@ public class ShipmentDtos {
                     shipment.getFreightDate(),
                     shipment.getShipmentType(),
                     shipment.getShipmentType().getKorean(),
+                    shipment.getTrackingNumber(),
+                    shipment.getExportLicenseNumber(),
                     shipment.getTotalQuantity(),
                     shipment.getTotalAmount(),
                     shipment.getCurrency(),
+                    shipment.getItems().stream()
+                            .map(ShipmentItemResponse::from)
+                            .toList(),
                     shipment.getCreatedAt(),
                     shipment.getLastModifiedAt()
             );
@@ -355,6 +368,12 @@ public class ShipmentDtos {
             @Size(max = 200)
             String carrierName,
 
+            @Size(max = 200)
+            String trackingNumber,
+
+            @Size(max = 200)
+            String exportLicenseNumber,
+
             // ========== 신용장 정보 ==========
 
             @Size(max = 100)
@@ -415,6 +434,8 @@ public class ShipmentDtos {
                     finalDestination,
                     carrierId,
                     carrierName,
+                    trackingNumber,
+                    exportLicenseNumber,
                     lcNo,
                     lcDate,
                     lcIssuingBank,
@@ -619,6 +640,12 @@ public class ShipmentDtos {
             @Size(max = 200)
             String carrierName,
 
+            @Size(max = 200)
+            String trackingNumber,
+
+            @Size(max = 200)
+            String exportLicenseNumber,
+
             // ========== 신용장 정보 ==========
 
             @Size(max = 100)
@@ -679,6 +706,8 @@ public class ShipmentDtos {
                     finalDestination,
                     carrierId,
                     carrierName,
+                    trackingNumber,
+                    exportLicenseNumber,
                     lcNo,
                     lcDate,
                     lcIssuingBank,

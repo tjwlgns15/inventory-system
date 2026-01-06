@@ -98,12 +98,8 @@ function filterByType(type) {
 }
 
 function toggleDateSort() {
-    if (currentSortBy === 'createdAt') {
-        currentDirection = currentDirection === 'desc' ? 'asc' : 'desc';
-    } else {
-        currentSortBy = 'createdAt';
-        currentDirection = 'desc';
-    }
+    currentSortBy = 'invoiceDate';
+    currentDirection = currentDirection === 'desc' ? 'asc' : 'desc';
 
     const sortIcon = document.getElementById('sortIcon');
     sortIcon.textContent = currentDirection === 'desc' ? '▼' : '▲';
@@ -120,7 +116,7 @@ function renderShipments(shipments) {
     if (shipments.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9">
+                <td colspan="12">
                     <div class="empty-state">
                         <div class="empty-state-icon">📭</div>
                         <h3>선적 문서가 없습니다</h3>
@@ -134,24 +130,27 @@ function renderShipments(shipments) {
 
     const rows = shipments.map(shipment => `
         <tr>
+            <td>${formatDate(shipment.invoiceDate)}</td>
             <td>
                 <strong style="color: #667eea;">${escapeHtml(shipment.invoiceNumber)}</strong>
             </td>
-            <td>${formatDate(shipment.invoiceDate)}</td>
-            <td>
-                <div class="font-weight-600">${escapeHtml(shipment.soldToCompanyName)}</div>
-            </td>
-            <td>${escapeHtml(shipment.finalDestination || '-')}</td>
-            <td>${formatDate(shipment.freightDate)}</td>
             <td>
                 <span class="badge ${getTypeBadgeClass(shipment.shipmentType)}">
                     ${escapeHtml(shipment.shipmentTypeDisplay)}
                 </span>
             </td>
-            <td>${formatNumber(shipment.totalQuantity || 0)}</td>
+            <td>
+                <div class="font-weight-600">${escapeHtml(shipment.soldToCompanyName)}</div>
+            </td>
+            <td>${formatProductNames(shipment.items)}</td>
+            <td>${formatProductQuantities(shipment.items)}</td>
             <td>
                 <div class="font-weight-600">${escapeHtml(shipment.currency)} ${formatCurrency(shipment.totalAmount)}</div>
             </td>
+            <td>${escapeHtml(shipment.finalDestination || '-')}</td>
+            <td>${formatDate(shipment.freightDate)}</td>
+            <td>${escapeHtml(shipment.trackingNumber || '-')}</td>
+            <td>${escapeHtml(shipment.exportLicenseNumber || '-')}</td>
             <td>
                 <div class="action-buttons">
                     <button class="btn btn-info" onclick="viewShipment(${shipment.id})">
@@ -253,6 +252,57 @@ function formatNumber(num) {
     return new Intl.NumberFormat('ko-KR').format(num);
 }
 
+function formatProductNames(items) {
+    if (!items || items.length === 0) return '-';
+
+    const maxDisplay = 3;
+    const displayItems = items.slice(0, maxDisplay);
+
+    let html = `<div class="items-list">
+        ${displayItems.map(item => `
+            <span class="item-badge">
+                ${escapeHtml(item.productCode)}
+            </span>
+        `).join('')}`;
+
+    if (items.length > maxDisplay) {
+        html += `
+            <span class="item-badge" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); color: #4338ca;">
+                외 ${items.length - maxDisplay}건
+            </span>`;
+    }
+
+    html += `</div>`;
+    return html;
+}
+
+function formatProductQuantities(items) {
+    if (!items || items.length === 0) return '-';
+
+    const maxDisplay = 3;
+    const displayItems = items.slice(0, maxDisplay);
+
+    let html = `<div class="items-list">
+        ${displayItems.map(item => `
+            <span class="item-badge">
+                <strong>${formatNumber(item.quantity)}</strong>
+            </span>
+        `).join('')}`;
+
+    if (items.length > maxDisplay) {
+        // 앞 3개 제외한 나머지 수량 합계
+        const remainingItems = items.slice(maxDisplay);
+        const remainingQty = remainingItems.reduce((sum, item) => sum + item.quantity, 0);
+        html += `
+            <span class="item-badge" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);">
+                <strong style="color: #4338ca;">${formatNumber(remainingQty)}</strong>
+            </span>`;
+    }
+
+    html += `</div>`;
+    return html;
+}
+
 function getTypeBadgeClass(type) {
     const classes = {
         'EXPORT': 'badge-export',
@@ -272,7 +322,7 @@ function showLoading() {
     const tbody = document.getElementById('shipmentTableBody');
     tbody.innerHTML = `
         <tr>
-            <td colspan="9" class="loading">
+            <td colspan="12" class="loading">
                 <div class="spinner"></div>
                 데이터를 불러오는 중...
             </td>
@@ -284,7 +334,7 @@ function showError(message) {
     const tbody = document.getElementById('shipmentTableBody');
     tbody.innerHTML = `
         <tr>
-            <td colspan="9">
+            <td colspan="12">
                 <div class="empty-state">
                     <div class="empty-state-icon">⚠️</div>
                     <h3>오류가 발생했습니다</h3>

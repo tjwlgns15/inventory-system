@@ -177,6 +177,8 @@ function renderShipmentDetail() {
     document.getElementById('portOfLoading').textContent = shipment.portOfLoading || '-';
     document.getElementById('finalDestination').textContent = shipment.finalDestination || '-';
     document.getElementById('carrierName').textContent = shipment.carrierName || '-';
+    document.getElementById('trackingNumber').textContent = shipment.trackingNumber || '-';
+    document.getElementById('exportLicenseNumber').textContent = shipment.exportLicenseNumber || '-';
 
     // 6. 신용장 정보 (있는 경우만 표시)
     if (shipment.lcNo || shipment.lcDate || shipment.lcIssuingBank) {

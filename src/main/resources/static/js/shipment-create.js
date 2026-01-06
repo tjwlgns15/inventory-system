@@ -957,6 +957,8 @@ async function handleSubmit(e) {
         finalDestination: document.getElementById('finalDestination').value,
         carrierId: getNumberOrNull('carrierId'),
         carrierName: getValueOrNull('carrierName'),
+        trackingNumber: getValueOrNull('trackingNumber'),
+        exportLicenseNumber: getValueOrNull('exportLicenseNumber'),
 
         lcNo: getValueOrNull('lcNo'),
         lcDate: getValueOrNull('lcDate'),
