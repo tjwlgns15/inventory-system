@@ -1,8 +1,10 @@
 package com.yhs.inventroysystem.presentation.shipment;
 
-import com.yhs.inventroysystem.application.shipment.ShipmentCommand.*;
+import com.yhs.inventroysystem.application.shipment.ShipmentCommand.ShipmentBoxItemCommand;
+import com.yhs.inventroysystem.application.shipment.ShipmentCommand.ShipmentCreateCommand;
+import com.yhs.inventroysystem.application.shipment.ShipmentCommand.ShipmentItemCommand;
+import com.yhs.inventroysystem.application.shipment.ShipmentCommand.ShipmentUpdateCommand;
 import com.yhs.inventroysystem.domain.shipment.entity.*;
-import com.yhs.inventroysystem.presentation.quotation.QuotationDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.data.domain.Page;
@@ -234,7 +236,6 @@ public class ShipmentDtos {
             BigDecimal width,
             BigDecimal length,
             BigDecimal height,
-            BigDecimal weight,
             Integer quantity,
             String dimensionString
     ) {
@@ -247,7 +248,6 @@ public class ShipmentDtos {
                     box.getWidth(),
                     box.getLength(),
                     box.getHeight(),
-                    box.getWeight(),
                     box.getQuantity(),
                     box.getDimensionString()
             );
@@ -481,10 +481,6 @@ public class ShipmentDtos {
             @DecimalMin(value = "0.0", inclusive = false)
             BigDecimal height,
 
-            @NotNull(message = "박스 중량은 필수입니다")
-            @DecimalMin(value = "0.0", inclusive = false)
-            BigDecimal weight,
-
             @NotNull(message = "박스 수량은 필수입니다")
             @Positive(message = "박스 수량은 양수여야 합니다")
             Integer quantity,
@@ -500,7 +496,6 @@ public class ShipmentDtos {
                     width,
                     length,
                     height,
-                    weight,
                     quantity
             );
         }

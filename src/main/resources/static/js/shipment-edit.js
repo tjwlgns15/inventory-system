@@ -188,8 +188,7 @@ function fillFormWithShipmentData() {
                 title: box.title,
                 width: box.width,
                 length: box.length,
-                height: box.height,
-                weight: box.weight
+                height: box.height
             }, box.quantity);
         });
     }
@@ -477,7 +476,7 @@ function renderBoxList() {
             <div class="box-template-info">
                 <div class="box-template-title">${box.title}</div>
                 <div class="box-template-specs">
-                    규격: ${box.width} × ${box.length} × ${box.height} cm | 중량: ${box.weight} kg
+                    규격: ${box.width} × ${box.length} × ${box.height} cm
                 </div>
             </div>
             <div class="box-template-actions">
@@ -512,7 +511,6 @@ function openBoxEditModal(boxId) {
     document.getElementById('boxFormWidth').value = box.width;
     document.getElementById('boxFormLength').value = box.length;
     document.getElementById('boxFormHeight').value = box.height;
-    document.getElementById('boxFormWeight').value = box.weight;
 
     document.getElementById('boxFormModal').classList.add('active');
 }
@@ -531,7 +529,6 @@ async function handleBoxFormSubmit(e) {
         width: parseFloat(document.getElementById('boxFormWidth').value),
         length: parseFloat(document.getElementById('boxFormLength').value),
         height: parseFloat(document.getElementById('boxFormHeight').value),
-        weight: parseFloat(document.getElementById('boxFormWeight').value)
     };
 
     try {
@@ -632,12 +629,8 @@ function addBoxRow(boxTemplate = null, quantity = null) {
                 <input type="number" class="box-height" step="0.01" value="${boxTemplate?.height || ''}" required>
             </div>
             <div class="form-group">
-                <label>중량 (kg) <span class="required">*</span></label>
-                <input type="number" class="box-weight" step="0.01" value="${boxTemplate?.weight || ''}" required>
-            </div>
-            <div class="form-group">
                 <label>수량 <span class="required">*</span></label>
-                <input type="number" class="box-quantity" min="1" value="${quantity || ''}" required>
+                <input type="number" class="box-quantity" min="1" value="${quantity || 1}" required>
             </div>
         </div>
     `;
@@ -848,7 +841,6 @@ async function handleSubmit(e) {
             width: parseFloat(boxDiv.querySelector('.box-width').value),
             length: parseFloat(boxDiv.querySelector('.box-length').value),
             height: parseFloat(boxDiv.querySelector('.box-height').value),
-            weight: parseFloat(boxDiv.querySelector('.box-weight').value),
             quantity: parseInt(boxDiv.querySelector('.box-quantity').value)
         });
     });

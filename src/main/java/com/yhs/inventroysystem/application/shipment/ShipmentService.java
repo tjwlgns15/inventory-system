@@ -287,8 +287,7 @@ public class ShipmentService {
             ShipmentBox template = shipmentBoxDomainService.getShipmentBoxActivate(command.boxTemplateId());
 
             // 사이즈 커스터마이징 여부 확인
-            boolean isCustomized = command.width() != null || command.length() != null
-                    || command.height() != null || command.weight() != null;
+            boolean isCustomized = command.width() != null || command.length() != null || command.height() != null;
 
             if (isCustomized) {
                 // 템플릿 기반 + 사이즈 커스터마이징
@@ -298,7 +297,6 @@ public class ShipmentService {
                         command.width() != null ? command.width() : template.getWidth(),
                         command.length() != null ? command.length() : template.getLength(),
                         command.height() != null ? command.height() : template.getHeight(),
-                        command.weight() != null ? command.weight() : template.getWeight(),
                         command.quantity()
                 );
             } else {
@@ -317,7 +315,6 @@ public class ShipmentService {
                     command.width(),
                     command.length(),
                     command.height(),
-                    command.weight(),
                     command.quantity()
             );
         }

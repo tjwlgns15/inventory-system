@@ -68,7 +68,6 @@ public class ShipmentCommand {
             BigDecimal width,
             BigDecimal length,
             BigDecimal height,
-            BigDecimal weight,
             Integer quantity
     ) {
         public boolean isFromTemplate() {

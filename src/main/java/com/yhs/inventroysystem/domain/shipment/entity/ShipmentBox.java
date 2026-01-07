@@ -36,22 +36,18 @@ public class ShipmentBox extends BaseTimeEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal height;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal weight;
-
     @Column(nullable = false)
     private Boolean isActive = true;
 
     // ========== 정적 팩토리 메서드 ==========
 
     public static ShipmentBox create(String title, BigDecimal width, BigDecimal length,
-                                     BigDecimal height, BigDecimal weight) {
+                                     BigDecimal height) {
         ShipmentBox box = new ShipmentBox();
         box.title = title;
         box.width = width;
         box.length = length;
         box.height = height;
-        box.weight = weight;
         box.isActive = true;
 
         return box;
@@ -60,12 +56,11 @@ public class ShipmentBox extends BaseTimeEntity {
     // ========== 비즈니스 메서드 ==========
 
     public void update(String title, BigDecimal width, BigDecimal length,
-                       BigDecimal height, BigDecimal weight) {
+                       BigDecimal height) {
         this.title = title;
         this.width = width;
         this.length = length;
         this.height = height;
-        this.weight = weight;
     }
 
     public void activate() {

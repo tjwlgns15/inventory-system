@@ -13,8 +13,7 @@ public class ShipmentBoxCommand {
             String title,
             BigDecimal width,
             BigDecimal length,
-            BigDecimal height,
-            BigDecimal weight
+            BigDecimal height
     ) {
     }
 
@@ -22,8 +21,7 @@ public class ShipmentBoxCommand {
             String title,
             BigDecimal width,
             BigDecimal length,
-            BigDecimal height,
-            BigDecimal weight
+            BigDecimal height
     ) {
     }
 

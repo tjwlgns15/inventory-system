@@ -33,8 +33,7 @@ public class ShipmentBoxService {
                 command.title(),
                 command.width(),
                 command.length(),
-                command.height(),
-                command.weight()
+                command.height()
         );
 
         ShipmentBox savedTemplate = shipmentBoxDomainService.save(template);
@@ -72,7 +71,12 @@ public class ShipmentBoxService {
         log.info("Updating box template: {}", templateId);
 
         ShipmentBox template = findBoxTemplate(templateId);
-        template.update(command.title(), command.width(), command.length(), command.height(), command.weight());
+        template.update(
+                command.title(),
+                command.width(),
+                command.length(),
+                command.height()
+        );
 
         log.info("Box template updated successfully: {}", templateId);
         return template;

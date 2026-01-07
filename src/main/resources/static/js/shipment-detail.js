@@ -215,7 +215,6 @@ function renderShipmentDetail() {
                 <td>${box.sequence}</td>
                 <td>${box.title}</td>
                 <td>${box.dimensionString}</td>
-                <td>${box.weight}</td>
                 <td>${box.quantity}</td>
             </tr>
         `).join('');

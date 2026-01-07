@@ -24,7 +24,6 @@ public class ShipmentBoxDtos {
         BigDecimal width,
         BigDecimal length,
         BigDecimal height,
-        BigDecimal weight,
         Boolean isActivate,
         String dimensionString
     ){
@@ -35,7 +34,6 @@ public class ShipmentBoxDtos {
                     box.getWidth(),
                     box.getLength(),
                     box.getHeight(),
-                    box.getWeight(),
                     box.getIsActive(),
                     box.getDimensionString()
             );
@@ -59,19 +57,14 @@ public class ShipmentBoxDtos {
 
             @NotNull(message = "박스 높이는 필수입니다")
             @DecimalMin(value = "0.0", inclusive = false)
-            BigDecimal height,
-
-            @NotNull(message = "박스 중량은 필수입니다")
-            @DecimalMin(value = "0.0", inclusive = false)
-            BigDecimal weight
+            BigDecimal height
     ) {
         public ShipmentBoxCreateCommand toCommand() {
             return new ShipmentBoxCreateCommand(
                     title,
                     width,
                     length,
-                    height,
-                    weight
+                    height
             );
         }
     }
@@ -94,19 +87,14 @@ public class ShipmentBoxDtos {
 
             @NotNull(message = "박스 높이는 필수입니다")
             @DecimalMin(value = "0.0", inclusive = false)
-            BigDecimal height,
-
-            @NotNull(message = "박스 중량은 필수입니다")
-            @DecimalMin(value = "0.0", inclusive = false)
-            BigDecimal weight
+            BigDecimal height
     ) {
         public ShipmentBoxUpdateCommand toCommand() {
             return new ShipmentBoxUpdateCommand(
                     title,
                     width,
                     length,
-                    height,
-                    weight
+                    height
             );
         }
     }
