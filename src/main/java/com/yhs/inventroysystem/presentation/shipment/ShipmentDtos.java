@@ -74,7 +74,9 @@ public class ShipmentDtos {
             BigDecimal totalCbm,
 
             LocalDateTime createdAt,
-            LocalDateTime updatedAt
+            LocalDateTime updatedAt,
+
+            String memo
     ) {
         public static ShipmentResponse from(Shipment shipment) {
             return new ShipmentResponse(
@@ -128,7 +130,8 @@ public class ShipmentDtos {
                     shipment.getTotalGrossWeight(),
                     shipment.getTotalCbm(),
                     shipment.getCreatedAt(),
-                    shipment.getLastModifiedAt()
+                    shipment.getLastModifiedAt(),
+                    shipment.getMemo()
             );
         }
     }
@@ -166,6 +169,8 @@ public class ShipmentDtos {
 
             // 제품 정보
             List<ShipmentItemResponse> items,
+            String memo,
+
             // 생성/수정 시간
             LocalDateTime createdAt,
             LocalDateTime updatedAt
@@ -192,6 +197,7 @@ public class ShipmentDtos {
                     shipment.getItems().stream()
                             .map(ShipmentItemResponse::from)
                             .toList(),
+                    shipment.getMemo(),
                     shipment.getCreatedAt(),
                     shipment.getLastModifiedAt()
             );
@@ -291,6 +297,15 @@ public class ShipmentDtos {
         }
     }
 
+    public record ShipmentMemoResponse(
+            String memo
+    ) {
+        public static ShipmentMemoResponse from(Shipment shipment) {
+            return new ShipmentMemoResponse(
+                    shipment.getMemo()
+            );
+        }
+    }
     /**
      * Shipment 생성 요청 DTO
      */
@@ -719,6 +734,12 @@ public class ShipmentDtos {
                             .toList()
             );
         }
+    }
+
+    public record ShipmentMemoUpdateRequest(
+            @NotNull(message = "메모는 필수입니다")
+            String memo
+    ) {
     }
 }
 

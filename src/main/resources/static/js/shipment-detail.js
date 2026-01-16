@@ -112,6 +112,19 @@ function setupEventListeners() {
             closeModal('deleteModal');
         }
     });
+
+    // 메모 관련
+    document.getElementById('closeMemoModal').addEventListener('click', closeMemoModal);
+    document.getElementById('cancelMemoBtn').addEventListener('click', closeMemoModal);
+    document.getElementById('saveMemoBtn').addEventListener('click', saveMemo);
+    document.getElementById('memoText').addEventListener('input', updateMemoCharCount);
+
+    // 메모 모달 외부 클릭 시 닫기
+    document.getElementById('memoModal').addEventListener('click', (e) => {
+        if (e.target.id === 'memoModal') {
+            closeMemoModal();
+        }
+    });
 }
 
 // ===== 데이터 로드 =====
@@ -258,6 +271,8 @@ function renderShipmentDetail() {
     // 11. 생성/수정 정보
     document.getElementById('createdAt').textContent = formatDateTime(shipment.createdAt);
     document.getElementById('updatedAt').textContent = formatDateTime(shipment.updatedAt);
+    // 12. 메모
+    document.getElementById('memoContent').textContent = shipment.memo || '-';
 }
 
 // ===== 액션 함수들 =====
@@ -329,4 +344,54 @@ function showError(message) {
             <a href="/shipments" class="btn btn-primary" style="margin-top: 20px;">목록으로 돌아가기</a>
         </div>
     `;
+}
+// ===== 메모 관련 함수들 =====
+
+function openMemoModal() {
+    const memoText = document.getElementById('memoText');
+    memoText.value = currentShipment.memo || '';
+    updateMemoCharCount();
+    document.getElementById('memoModal').classList.add('active');
+}
+
+function closeMemoModal() {
+    document.getElementById('memoModal').classList.remove('active');
+}
+
+function updateMemoCharCount() {
+    const memoText = document.getElementById('memoText');
+    const charCount = document.getElementById('memoCharCount');
+    charCount.textContent = memoText.value.length;
+}
+
+async function saveMemo() {
+    const memo = document.getElementById('memoText').value;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/shipments/${currentShipmentId}/memo`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ memo: memo })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '메모 업데이트에 실패했습니다');
+        }
+
+        // 현재 shipment 객체 업데이트
+        currentShipment.memo = memo;
+
+        // 화면에 반영
+        document.getElementById('memoContent').textContent = memo || '-';
+
+        alert('메모가 저장되었습니다.');
+        closeMemoModal();
+
+    } catch (error) {
+        console.error('메모 저장 실패:', error);
+        alert('메모 저장에 실패했습니다: ' + error.message);
+    }
 }

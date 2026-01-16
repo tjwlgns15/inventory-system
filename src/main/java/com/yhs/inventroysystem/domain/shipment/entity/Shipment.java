@@ -159,6 +159,9 @@ public class Shipment extends BaseTimeEntity {
     @Column(precision = 10, scale = 3)
     private BigDecimal totalCbm; // CBM (Cubic Meter)
 
+    @Column(length = 500)
+    private String memo;
+
 
     private Shipment(String invoiceNumber, LocalDate invoiceDate, int year, int sequence,
                      String shipperCompanyName, String shipperAddress, String shipperContactPerson, String shipperPhone,
@@ -451,5 +454,12 @@ public class Shipment extends BaseTimeEntity {
         this.lcNo = lcNo;
         this.lcDate = lcDate;
         this.lcIssuingBank = lcIssuingBank;
+    }
+
+    /**
+     * 메모 작성/업데이트
+     */
+    public void updateMemo(String memo) {
+        this.memo = memo;
     }
 }

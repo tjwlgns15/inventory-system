@@ -262,6 +262,13 @@ public class ShipmentService {
         return shipment;
     }
 
+    @Transactional
+    public Shipment updateMemo(Long shipmentId, String newMemo) {
+        Shipment shipment = shipmentDomainService.getShipment(shipmentId);
+
+        shipment.updateMemo(newMemo);
+        return shipment;
+    }
     /**
      * 선적 삭제
      */

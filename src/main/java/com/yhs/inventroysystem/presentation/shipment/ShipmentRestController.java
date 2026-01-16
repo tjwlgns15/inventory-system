@@ -117,6 +117,15 @@ public class ShipmentRestController {
         return ResponseEntity.ok(ShipmentResponse.from(shipment));
     }
 
+    @PatchMapping("/{shipmentId}/memo")
+    public ResponseEntity<ShipmentMemoResponse> updateShipmentMemo(
+            @PathVariable Long shipmentId,
+            @Valid @RequestBody ShipmentMemoUpdateRequest request) {
+        Shipment shipment = shipmentService.updateMemo(shipmentId, request.memo());
+        return ResponseEntity.ok(ShipmentMemoResponse.from(shipment));
+    }
+
+
     /**
      * 선적 삭제
      */

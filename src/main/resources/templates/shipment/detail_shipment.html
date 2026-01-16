@@ -452,6 +452,130 @@
                 align-items: stretch;
             }
         }
+
+        /* 메모 관련 스타일 */
+        .btn-edit-memo {
+            margin-left: auto;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-edit-memo:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .memo-content {
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            min-height: 80px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 28px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #667eea;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 20px 28px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
     </style>
 </head>
 <body>
@@ -475,12 +599,12 @@
                     ← 목록으로
                 </a>
 
-<!--                <button class="btn btn-info" id="generateInvoiceBtn">-->
-<!--                    📄 Invoice PDF-->
-<!--                </button>-->
-<!--                <button class="btn btn-info" id="generatePackingBtn">-->
-<!--                    📦 Packing PDF-->
-<!--                </button>-->
+                <!--                <button class="btn btn-info" id="generateInvoiceBtn">-->
+                <!--                    📄 Invoice PDF-->
+                <!--                </button>-->
+                <!--                <button class="btn btn-info" id="generatePackingBtn">-->
+                <!--                    📦 Packing PDF-->
+                <!--                </button>-->
                 <button class="btn btn-primary" id="generateCombinedBtn">
                     📑 PDF
                 </button>
@@ -775,6 +899,47 @@
                     <div class="info-value" id="updatedAt">-</div>
                 </div>
             </div>
+        </div>
+
+        <!-- 12. 메모 -->
+        <div class="detail-section">
+            <div class="section-title">
+                <span class="section-icon">📝</span>
+                <span>메모</span>
+                <button class="btn-edit-memo" id="editMemoBtn" onclick="openMemoModal()">수정</button>
+            </div>
+            <div class="memo-content" id="memoContent">-</div>
+        </div>
+    </div>
+</div>
+
+<!-- 메모 수정 모달 -->
+<div class="modal" id="memoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>메모 수정</h2>
+            <button class="close-btn" id="closeMemoModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="memoForm">
+                <div class="form-group">
+                    <label for="memoText">메모</label>
+                    <textarea
+                            id="memoText"
+                            rows="5"
+                            maxlength="500"
+                            placeholder="메모를 입력하세요 (최대 500자)"
+                            style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; resize: vertical; min-height: 120px; font-family: inherit;"
+                    ></textarea>
+                    <small style="color: #6b7280; font-size: 0.875rem;">
+                        <span id="memoCharCount">0</span>/500자
+                    </small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelMemoBtn">취소</button>
+            <button class="btn btn-primary" id="saveMemoBtn">저장</button>
         </div>
     </div>
 </div>

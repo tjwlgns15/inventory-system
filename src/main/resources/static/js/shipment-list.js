@@ -11,6 +11,8 @@ let currentKeyword = '';
 let currentSortBy = 'createdAt';
 let currentDirection = 'desc';
 
+let memoTargetId = null;
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
     initializePage();
@@ -31,6 +33,7 @@ function setupEventListeners() {
         }
     });
 }
+
 
 // ===== 데이터 로드 =====
 
@@ -156,6 +159,10 @@ function renderShipments(shipments) {
                     <button class="btn btn-info" onclick="viewShipment(${shipment.id})">
                         보기
                     </button>
+                    <button class="btn btn-info"
+                            data-shipment-id="${shipment.id}"
+                            data-memo="${escapeHtml(shipment.memo || '')}"
+                            onclick="openMemoModalFromButton(this)">메모</button>
                 </div>
             </td>
         </tr>
@@ -228,6 +235,79 @@ function viewShipment(id) {
     window.location.href = `/shipments/${id}`;
 }
 
+function openMemoModalFromButton(button) {
+
+    const shipmentId = parseInt(button.dataset.shipmentId);
+
+    let rawMemo = button.dataset.memo || '';
+
+    try {
+        if (rawMemo.startsWith('"') && rawMemo.endsWith('"')) {
+            rawMemo = JSON.parse(rawMemo);
+        }
+    } catch (e) {
+        console.log('Not a JSON string, using as is');
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = rawMemo;
+    const currentMemo = textarea.value;
+
+    openMemoModal(shipmentId, currentMemo);
+}
+
+
+function openMemoModal(shipmentId, currentMemo) {
+    memoTargetId = shipmentId;
+    const memoText = document.getElementById('memoText');
+    memoText.value = currentMemo || '';
+    updateCharCount();
+    document.getElementById('memoModal').style.display = 'block';
+}
+
+function closeMemoModal() {
+    document.getElementById('memoModal').style.display = 'none';
+    memoTargetId = null;
+}
+
+function updateCharCount() {
+    const memoText = document.getElementById('memoText');
+    const charCount = document.getElementById('memoCharCount');
+    charCount.textContent = memoText.value.length;
+}
+
+async function updateMemo(event) {
+    event.preventDefault();
+
+    if (!memoTargetId) {
+        return;
+    }
+
+    const memo = document.getElementById('memoText').value;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/${memoTargetId}/memo`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ memo: memo })
+        });
+
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '메모 업데이트에 실패했습니다');
+        }
+
+        showNotification('메모가 저장되었습니다', 'success');
+        closeMemoModal();
+        await loadShipments();
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message, 'error');
+    }
+}
 // ===== 유틸리티 함수들 =====
 
 function formatDate(dateString) {
@@ -453,3 +533,12 @@ function formatDateForAPI(date) {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 }
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' || event.key === 'Esc') {
+        const memoModal = document.getElementById('memoModal');
+        if (memoModal && memoModal.style.display === 'block') {
+            closeMemoModal();
+        }
+    }
+});
