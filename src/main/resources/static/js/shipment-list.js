@@ -12,6 +12,7 @@ let currentSortBy = 'createdAt';
 let currentDirection = 'desc';
 
 let memoTargetId = null;
+let currentShipmentId = null; // 문서 관리용 현재 선적 ID
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', () => {
@@ -132,7 +133,7 @@ function renderShipments(shipments) {
     }
 
     const rows = shipments.map(shipment => `
-        <tr>
+        <tr onclick="viewShipmentDetail(${shipment.id})" style="cursor: pointer;">
             <td>${formatDate(shipment.invoiceDate)}</td>
             <td>
                 <strong style="color: #667eea;">${escapeHtml(shipment.invoiceNumber)}</strong>
@@ -154,10 +155,10 @@ function renderShipments(shipments) {
             <td>${formatDate(shipment.freightDate)}</td>
             <td>${escapeHtml(shipment.trackingNumber || '-')}</td>
             <td>${escapeHtml(shipment.exportLicenseNumber || '-')}</td>
-            <td>
+            <td onclick="event.stopPropagation();">
                 <div class="action-buttons">
-                    <button class="btn btn-info" onclick="viewShipment(${shipment.id})">
-                        보기
+                    <button class="btn btn-info" onclick="window.location.href='/shipments/${shipment.id}'">
+                        수정
                     </button>
                     <button class="btn btn-info"
                             data-shipment-id="${shipment.id}"
@@ -229,14 +230,359 @@ function changePageSize() {
     loadShipments();
 }
 
-// ===== 액션 함수들 =====
+// ===== 상세 정보 모달 =====
 
-function viewShipment(id) {
-    window.location.href = `/shipments/${id}`;
+/**
+ * 선적 상세 정보 조회 및 모달 표시
+ */
+async function viewShipmentDetail(shipmentId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/${shipmentId}`);
+        if (!response.ok) throw new Error('선적 상세 정보를 불러오는데 실패했습니다');
+
+        const shipment = await response.json();
+        const detailContent = document.getElementById('detailContent');
+
+        detailContent.innerHTML = `
+            <div class="detail-form-container">
+                <!-- 좌측: 기본 정보 -->
+                <div class="detail-left-column">
+                    <div class="detail-info">
+                        <p><strong>Invoice No:</strong> ${escapeHtml(shipment.invoiceNumber)}</p>
+                        <p><strong>Invoice 작성일:</strong> ${formatDate(shipment.invoiceDate)}</p>
+                        <p><strong>거래 유형:</strong> ${escapeHtml(shipment.shipmentTypeDisplay)}</p>
+                        <p><strong>거래 조건:</strong> ${escapeHtml(shipment.tradeTermsDisplay)}</p>
+                        <p><strong>통화:</strong> ${escapeHtml(shipment.currency)}</p>
+                        <hr style="margin: 12px 0; border: none; border-top: 1px solid #e5e7eb;">
+                        <p><strong>Shipper:</strong> ${escapeHtml(shipment.shipperCompanyName)}</p>
+                        <p><strong>Sold To:</strong> ${escapeHtml(shipment.soldToCompanyName)}</p>
+                        <p><strong>Ship To:</strong> ${escapeHtml(shipment.shipToCompanyName)}</p>
+                        <hr style="margin: 12px 0; border: none; border-top: 1px solid #e5e7eb;">
+                        <p><strong>출발지:</strong> ${escapeHtml(shipment.portOfLoading || '-')}</p>
+                        <p><strong>최종 목적지:</strong> ${escapeHtml(shipment.finalDestination || '-')}</p>
+                        <p><strong>발송일:</strong> ${formatDate(shipment.freightDate)}</p>
+                        <p><strong>운송사:</strong> ${escapeHtml(shipment.carrierName || '-')}</p>
+                        <p><strong>운송장번호:</strong> ${escapeHtml(shipment.trackingNumber || '-')}</p>
+                        <p><strong>면장번호:</strong> ${escapeHtml(shipment.exportLicenseNumber || '-')}</p>
+                        ${shipment.lcNo ? `<p><strong>L/C No:</strong> ${escapeHtml(shipment.lcNo)}</p>` : ''}
+                        <hr style="margin: 12px 0; border: none; border-top: 1px solid #e5e7eb;">
+                        <p><strong>총 수량:</strong> ${shipment.totalQuantity}</p>
+                        <p><strong>총 금액:</strong> ${formatCurrencyWithSymbol(shipment.totalAmount, shipment.currency)}</p>
+                        ${shipment.totalNetWeight ? `<p><strong>순중량:</strong> ${shipment.totalNetWeight} kg</p>` : ''}
+                        ${shipment.totalGrossWeight ? `<p><strong>총중량:</strong> ${shipment.totalGrossWeight} kg</p>` : ''}
+                        ${shipment.totalCbm ? `<p><strong>CBM:</strong> ${shipment.totalCbm} m³</p>` : ''}
+                        ${shipment.memo ? `<hr style="margin: 12px 0; border: none; border-top: 1px solid #e5e7eb;"><p><strong>메모:</strong> ${escapeHtml(shipment.memo)}</p>` : ''}
+                    </div>
+                </div>
+
+                <!-- 중앙: 제품 목록 -->
+                <div class="detail-right-column">
+                    <div class="detail-info">
+                        <h3 style="margin-bottom: 16px; color: #667eea; font-size: 1rem; font-weight: 700;">제품 목록</h3>
+                        ${shipment.items.map((item, index) => `
+                            <div style="margin-bottom: 16px; padding-bottom: 16px; ${index < shipment.items.length - 1 ? 'border-bottom: 1px solid #e5e7eb;' : ''}">
+                                <p style="font-weight: 600; color: #374151;"><strong>${index + 1}. ${escapeHtml(item.productCode)}</strong></p>
+                                ${item.productDescription ? `<p style="margin-left: 16px; color: #6b7280; font-size: 0.8rem; margin-top: 4px;">${escapeHtml(item.productDescription)}</p>` : ''}
+                                <p style="margin-left: 16px; margin-top: 4px;"><strong>수량:</strong> ${formatNumber(item.quantity)} ${item.unit}</p>
+                                <p style="margin-left: 16px;"><strong>단가:</strong> ${formatCurrencyWithSymbol(item.unitPrice, shipment.currency)}</p>
+                                <p style="margin-left: 16px;"><strong>금액:</strong> ${formatCurrencyWithSymbol(item.amount, shipment.currency)}</p>
+                                ${item.hsCode ? `<p style="margin-left: 16px;"><strong>HS Code:</strong> ${escapeHtml(item.hsCode)}</p>` : ''}
+                                ${item.netWeight ? `<p style="margin-left: 16px;"><strong>순중량:</strong> ${item.netWeight} kg</p>` : ''}
+                                ${item.grossWeight ? `<p style="margin-left: 16px;"><strong>총중량:</strong> ${item.grossWeight} kg</p>` : ''}
+                            </div>
+                        `).join('')}
+                        
+                        ${shipment.boxes && shipment.boxes.length > 0 ? `
+                            <hr style="margin: 16px 0; border: none; border-top: 2px solid #e5e7eb;">
+                            <h3 style="margin-bottom: 12px; color: #667eea; font-size: 1rem; font-weight: 700;">박스 정보</h3>
+                            ${shipment.boxes.map((box, index) => `
+                                <div style="margin-bottom: 12px; padding: 12px; background: #f9fafb; border-radius: 8px;">
+                                    <p style="font-weight: 600;"><strong>${box.title || `Box ${index + 1}`}</strong></p>
+                                    <p style="margin-left: 12px; font-size: 0.85rem; color: #6b7280;">
+                                        ${box.dimensionString} × ${box.quantity}개
+                                    </p>
+                                </div>
+                            `).join('')}
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- 우측: 문서 관리 -->
+                <div class="detail-documents-column">
+                    <div class="documents-section">
+                        <div class="documents-header">
+                            <h3 class="documents-title">관련 문서</h3>
+                            <button class="btn-upload" onclick="toggleUploadArea()">
+                                + 업로드
+                            </button>
+                        </div>
+
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-input-group">
+                                <input type="file" id="documentFile" accept="*/*">
+                                <textarea id="documentDescription" placeholder="문서 설명 (선택사항, 최대 500자)" maxlength="500"></textarea>
+                                <div class="upload-buttons">
+                                    <button class="btn-small btn-secondary" onclick="cancelUpload()">취소</button>
+                                    <button class="btn-small btn-primary" onclick="uploadDocument()">완료</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="documents-list" id="documentsList">
+                            <div class="no-documents">문서가 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('detailModal').style.display = 'block';
+
+        // 현재 선적 ID 저장 및 문서 목록 로드
+        currentShipmentId = shipmentId;
+        await loadDocuments(shipmentId);
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-function openMemoModalFromButton(button) {
+/**
+ * 상세 모달 닫기
+ */
+function closeDetailModal() {
+    document.getElementById('detailModal').style.display = 'none';
+    currentShipmentId = null;
 
+    // 업로드 영역 초기화
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) {
+        uploadArea.classList.remove('active');
+    }
+}
+
+// ===== 문서 관리 함수 =====
+
+/**
+ * 업로드 영역 토글
+ */
+function toggleUploadArea() {
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.classList.toggle('active');
+
+    if (!uploadArea.classList.contains('active')) {
+        document.getElementById('documentFile').value = '';
+        document.getElementById('documentDescription').value = '';
+    }
+}
+
+/**
+ * 업로드 취소
+ */
+function cancelUpload() {
+    document.getElementById('documentFile').value = '';
+    document.getElementById('documentDescription').value = '';
+    document.getElementById('uploadArea').classList.remove('active');
+}
+
+/**
+ * 문서 업로드
+ */
+async function uploadDocument() {
+    const fileInput = document.getElementById('documentFile');
+    const description = document.getElementById('documentDescription').value;
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showNotification('파일을 선택해주세요', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    if (description) {
+        formData.append('description', description);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/${currentShipmentId}/documents`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '문서 업로드에 실패했습니다');
+        }
+
+        showNotification('문서가 업로드되었습니다', 'success');
+        cancelUpload();
+        await loadDocuments(currentShipmentId);
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+/**
+ * 문서 목록 로드
+ */
+async function loadDocuments(shipmentId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/${shipmentId}/documents`);
+        if (!response.ok) throw new Error('문서 목록을 불러오는데 실패했습니다');
+
+        const data = await response.json();
+        const documents = data.documents;
+        const documentsList = document.getElementById('documentsList');
+
+        if (!documents || documents.length === 0) {
+            documentsList.innerHTML = '<div class="no-documents">문서가 없습니다</div>';
+            return;
+        }
+
+        documentsList.innerHTML = documents.map(doc => `
+            <div class="document-item">
+                <div class="document-header">
+                    <div class="document-filename">${escapeHtml(doc.originalFileName)}</div>
+                    <div class="document-actions">
+                        <button class="btn-icon btn-download" onclick="downloadDocument(${doc.id})" title="다운로드">
+                            다운로드
+                        </button>
+                        <button class="btn-icon btn-delete-doc" onclick="confirmDeleteDocument(${doc.id})" title="삭제">
+                            삭제
+                        </button>
+                    </div>
+                </div>
+                ${doc.description ? `<div class="document-description">${escapeHtml(doc.description)}</div>` : ''}
+                <div class="document-info">
+                    <span>${formatFileSize(doc.fileSize)}</span>
+                    <span>${formatDateTime(doc.createdAt)}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('문서 목록을 불러오는데 실패했습니다', 'error');
+    }
+}
+
+/**
+ * 문서 다운로드
+ */
+async function downloadDocument(documentId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/${currentShipmentId}/documents/${documentId}/download`);
+        if (!response.ok) throw new Error('문서 다운로드에 실패했습니다');
+
+        const blob = await response.blob();
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'document';
+
+        if (contentDisposition) {
+            // filename*=UTF-8''%EC%B2... 형태 우선 파싱
+            const filenameStarMatch = contentDisposition.match(/filename\*\=UTF-8''([^;]+)/);
+            if (filenameStarMatch) {
+                filename = decodeURIComponent(filenameStarMatch[1]);
+            } else {
+                // fallback: filename="..."
+                const filenameMatch = contentDisposition.match(/filename=\"([^"]+)\"/);
+                if (filenameMatch) {
+                    filename = filenameMatch[1];
+                }
+            }
+        }
+
+        const url = window.URL.createObjectURL(blob);
+
+        // Content-Disposition이 inline이면 새 탭에서 열기
+        const isInline = contentDisposition && contentDisposition.toLowerCase().startsWith('inline');
+
+        if (isInline) {
+            // 새 탭에서 열기
+            window.open(url, '_blank');
+            showNotification('문서가 새 탭에서 열렸습니다', 'success');
+
+            // 일정 시간 후 URL 해제
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        } else {
+            // 다운로드
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showNotification('문서가 다운로드되었습니다', 'success');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+/**
+ * 문서 삭제 확인
+ */
+function confirmDeleteDocument(documentId) {
+    if (confirm('이 문서를 삭제하시겠습니까?')) {
+        deleteDocument(documentId);
+    }
+}
+
+/**
+ * 문서 삭제
+ */
+async function deleteDocument(documentId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/${currentShipmentId}/documents/${documentId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || '문서 삭제에 실패했습니다');
+        }
+
+        showNotification('문서가 삭제되었습니다', 'success');
+        await loadDocuments(currentShipmentId);
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+/**
+ * 파일 크기 포맷팅
+ */
+function formatFileSize(bytes) {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
+/**
+ * 날짜+시간 포맷팅
+ */
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) return '-';
+    const date = new Date(dateTimeString);
+    return date.toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ===== 메모 관리 =====
+
+function openMemoModalFromButton(button) {
     const shipmentId = parseInt(button.dataset.shipmentId);
 
     let rawMemo = button.dataset.memo || '';
@@ -308,6 +654,7 @@ async function updateMemo(event) {
         showNotification(error.message, 'error');
     }
 }
+
 // ===== 유틸리티 함수들 =====
 
 function formatDate(dateString) {
@@ -326,6 +673,26 @@ function formatCurrency(amount) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+}
+
+function formatCurrencyWithSymbol(amount, currency) {
+    if (!amount) return '-';
+
+    const localeMap = {
+        'USD': 'en-US',
+        'KRW': 'ko-KR',
+        'JPY': 'ja-JP',
+        'EUR': 'de-DE',
+        'CNY': 'zh-CN',
+        'GBP': 'en-GB'
+    };
+
+    const locale = localeMap[currency] || 'en-US';
+
+    return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: currency || 'USD'
+    }).format(amount);
 }
 
 function formatNumber(num) {
@@ -534,10 +901,15 @@ function formatDateForAPI(date) {
     return `${year}-${month}-${day}`;
 }
 
+// ESC 키로 모달 닫기
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' || event.key === 'Esc') {
+        const detailModal = document.getElementById('detailModal');
         const memoModal = document.getElementById('memoModal');
-        if (memoModal && memoModal.style.display === 'block') {
+
+        if (detailModal && detailModal.style.display === 'block') {
+            closeDetailModal();
+        } else if (memoModal && memoModal.style.display === 'block') {
             closeMemoModal();
         }
     }

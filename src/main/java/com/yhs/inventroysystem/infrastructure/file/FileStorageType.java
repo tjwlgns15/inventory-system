@@ -3,7 +3,8 @@ package com.yhs.inventroysystem.infrastructure.file;
 public enum FileStorageType {
     PART_IMAGE("uploads/parts/images", "localFileStorage"),
     DELIVERY_DOCUMENT("uploads/delivery/documents", "localFileStorage"),
-    QUOTATION_DOCUMENT("uploads/quotation/documents", "localFileStorage")
+    QUOTATION_DOCUMENT("uploads/quotation/documents", "localFileStorage"),
+    SHIPMENT_DOCUMENT("uploads/shipment/documents", "localFileStorage")
 
     ;
 

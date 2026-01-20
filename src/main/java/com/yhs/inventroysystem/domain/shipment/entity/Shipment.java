@@ -1,6 +1,7 @@
 package com.yhs.inventroysystem.domain.shipment.entity;
 
 import com.yhs.inventroysystem.domain.carrier.entity.Carrier;
+import com.yhs.inventroysystem.domain.delivery.entity.DeliveryDocument;
 import com.yhs.inventroysystem.infrastructure.model.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -162,6 +163,9 @@ public class Shipment extends BaseTimeEntity {
     @Column(length = 500)
     private String memo;
 
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
+    private List<ShipmentDocument> documents = new ArrayList<>();
 
     private Shipment(String invoiceNumber, LocalDate invoiceDate, int year, int sequence,
                      String shipperCompanyName, String shipperAddress, String shipperContactPerson, String shipperPhone,
