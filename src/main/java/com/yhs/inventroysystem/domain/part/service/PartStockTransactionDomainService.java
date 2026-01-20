@@ -49,7 +49,12 @@ public class PartStockTransactionDomainService {
         int afterStock = beforeStock + changeQuantity;
 
         PartStockTransaction transaction = PartStockTransaction.createWithNote(
-                part, type, beforeStock, changeQuantity, afterStock, note
+                part,
+                type,
+                beforeStock,
+                changeQuantity,
+                afterStock,
+                note
         );
 
         partStockTransactionRepository.save(transaction);

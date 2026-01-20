@@ -26,7 +26,8 @@ public class ProductCommands {
 
     public record ProductProduceCommand(
             Long productId,
-            Integer quantity
+            Integer quantity,
+            String note
     ) {}
 
     public record ProductUpdateCommand(

@@ -1,6 +1,8 @@
 package com.yhs.inventroysystem.application.part;
 
 
+import com.yhs.inventroysystem.application.part.PartCommands.PartStockDecreaseCommand;
+import com.yhs.inventroysystem.application.part.PartCommands.PartStockIncreaseCommand;
 import com.yhs.inventroysystem.application.part.PartCommands.PartStockUpdateCommand;
 import com.yhs.inventroysystem.domain.exception.PartInUseException;
 import com.yhs.inventroysystem.domain.part.entity.Part;
@@ -173,23 +175,25 @@ public class PartService {
     }
 
     @Transactional
-    public void increaseStock(Long partId, Integer quantity) {
+    public void increaseStock(Long partId, PartStockIncreaseCommand command) {
         Part part = findPartById(partId);
         Integer beforeStock = part.getStockQuantity();
 
-        part.increaseStock(quantity);
+        Integer increaseStock = command.quantity();
+        part.increaseStock(increaseStock);
 
-        partStockTransactionDomainService.recordTransaction(part, TransactionType.INBOUND, beforeStock, quantity);
+        partStockTransactionDomainService.recordTransactionWithNote(part, TransactionType.INBOUND, beforeStock, increaseStock, command.note());
     }
 
     @Transactional
-    public void decreaseStock(Long partId, Integer quantity) {
+    public void decreaseStock(Long partId, PartStockDecreaseCommand command) {
         Part part = findPartById(partId);
         Integer beforeStock = part.getStockQuantity();
 
-        part.decreaseStock(quantity);
+        Integer decreaseStock = command.quantity();
+        part.decreaseStock(decreaseStock);
 
-        partStockTransactionDomainService.recordTransaction(part, TransactionType.OUTBOUND, beforeStock, -quantity);
+        partStockTransactionDomainService.recordTransactionWithNote(part, TransactionType.OUTBOUND, beforeStock, -decreaseStock,  command.note());
 
     }
 

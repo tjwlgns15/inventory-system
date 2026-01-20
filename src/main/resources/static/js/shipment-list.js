@@ -158,7 +158,7 @@ function renderShipments(shipments) {
             <td onclick="event.stopPropagation();">
                 <div class="action-buttons">
                     <button class="btn btn-info" onclick="window.location.href='/shipments/${shipment.id}'">
-                        수정
+                        상세
                     </button>
                     <button class="btn btn-info"
                             data-shipment-id="${shipment.id}"

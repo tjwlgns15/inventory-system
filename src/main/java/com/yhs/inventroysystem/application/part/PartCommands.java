@@ -25,4 +25,14 @@ public class PartCommands {
             Integer adjustmentQuantity,
             String note
     ) {}
+
+    public record PartStockIncreaseCommand(
+            Integer quantity,
+            String note
+    ) {}
+
+    public record PartStockDecreaseCommand(
+            Integer quantity,
+            String note
+    ) {}
 }

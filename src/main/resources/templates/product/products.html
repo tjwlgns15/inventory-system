@@ -1094,18 +1094,18 @@
             <div class="table-container">
                 <table id="productsTable">
                     <thead>
-                        <tr>
-                            <th style="width: 11%;">제품 코드</th>
-                            <th style="width: 11%;">제품명</th>
-                            <th style="width: 7%;">카테고리</th>
-                            <th style="width: 6%;">제품라인</th>
-                            <th style="width: 9%;">기본 단가</th>
-                            <th style="width: 6%;">재고</th>
-                            <th style="width: 16%;">설명</th>
-                            <th style="width: 8%;">재고 조정</th>
-                            <th style="width: 10%;">생산</th>
-                            <th style="width: 12%;">작업</th>
-                        </tr>
+                    <tr>
+                        <th style="width: 11%;">제품 코드</th>
+                        <th style="width: 11%;">제품명</th>
+                        <th style="width: 7%;">카테고리</th>
+                        <th style="width: 6%;">제품라인</th>
+                        <th style="width: 9%;">기본 단가</th>
+                        <th style="width: 6%;">재고</th>
+                        <th style="width: 16%;">설명</th>
+                        <th style="width: 8%;">재고 조정</th>
+                        <th style="width: 10%;">생산</th>
+                        <th style="width: 12%;">작업</th>
+                    </tr>
                     </thead>
                     <tbody id="productsTableBody">
                     </tbody>
@@ -1246,6 +1246,22 @@
                 </label>
                 <input type="number" id="productionQuantity" class="form-input" min="1" required
                        oninput="validateProductionQuantity()">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="productionNote">비고 (선택사항)</label>
+                <textarea
+                        id="productionNote"
+                        class="form-input"
+                        rows="3"
+                        maxlength="200"
+                        placeholder="생산 관련 메모나 비고를 입력하세요 (최대 200자)"
+                        style="resize: vertical; min-height: 60px;"
+                        oninput="updateProductionNoteCharCount()"
+                ></textarea>
+                <small style="color: #6b7280; font-size: 0.75rem;">
+                    <span id="productionNoteCharCount">0</span>/200자
+                </small>
             </div>
 
             <!-- 부족 부품 안내 영역 -->
@@ -2304,6 +2320,8 @@
     async function openProductionModal(productId) {
         document.getElementById('productionProductId').value = productId;
         document.getElementById('productionForm').reset();
+        document.getElementById('productionNote').value = '';
+        updateProductionNoteCharCount();
         document.getElementById('productionModal').style.display = 'block';
 
         // 부족 부품 알림 숨기기
@@ -2511,19 +2529,34 @@
     }
 
 
+    function updateProductionNoteCharCount() {
+        const noteText = document.getElementById('productionNote');
+        const charCount = document.getElementById('productionNoteCharCount');
+        if (noteText && charCount) {
+            charCount.textContent = noteText.value.length;
+        }
+    }
+
     async function produceProduct(event) {
         event.preventDefault();
         const productId = document.getElementById('productionProductId').value;
         const quantity = parseInt(document.getElementById('productionQuantity').value);
+        const note = document.getElementById('productionNote').value.trim();
+
+        const requestBody = {
+            id: parseInt(productId),
+            quantity: quantity
+        };
+
+        if (note) {
+            requestBody.note = note;
+        }
 
         try {
             const response = await fetch(`${API_BASE_URL}/produce`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: parseInt(productId),
-                    quantity: quantity
-                })
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {

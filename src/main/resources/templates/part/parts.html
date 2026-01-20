@@ -156,6 +156,7 @@
             padding: 8px 16px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .btn-info:hover {
             background: #f8f9ff;
             transform: translateY(-1px);
@@ -774,17 +775,17 @@
             <div class="table-container">
                 <table id="partsTable">
                     <thead>
-                        <tr>
-                            <th style="width: 7%;">이미지</th>
-                            <th style="width: 11%;">부품 코드</th>
-                            <th style="width: 14%;">부품명</th>
-                            <th style="width: 16%;">규격</th>
-                            <th style="width: 10%;">재고 수량</th>
-                            <th style="width: 6%;">단위</th>
-                            <th style="width: 10%;">재고 조정</th>
-                            <th style="width: 14%;">입/출고</th>
-                            <th style="width: 12%;">작업</th>
-                        </tr>
+                    <tr>
+                        <th style="width: 7%;">이미지</th>
+                        <th style="width: 11%;">부품 코드</th>
+                        <th style="width: 14%;">부품명</th>
+                        <th style="width: 16%;">규격</th>
+                        <th style="width: 10%;">재고 수량</th>
+                        <th style="width: 6%;">단위</th>
+                        <th style="width: 10%;">재고 조정</th>
+                        <th style="width: 14%;">입/출고</th>
+                        <th style="width: 12%;">작업</th>
+                    </tr>
                     </thead>
                     <tbody id="partsTableBody">
                     </tbody>
@@ -887,6 +888,22 @@
                 <input type="number" id="stockQuantity" class="form-input" min="1" required>
             </div>
 
+            <div class="form-group">
+                <label class="form-label" for="stockNote">비고 (선택사항)</label>
+                <textarea
+                        id="stockNote"
+                        class="form-input"
+                        rows="3"
+                        maxlength="200"
+                        placeholder="입고/출고 사유나 비고를 입력하세요 (최대 200자)"
+                        style="resize: vertical; min-height: 60px;"
+                        oninput="updateStockNoteCharCount()"
+                ></textarea>
+                <small style="color: #6b7280; font-size: 0.75rem;">
+                    <span id="stockNoteCharCount">0</span>/200자
+                </small>
+            </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeStockModal()">취소</button>
                 <button type="submit" class="btn btn-primary"><span>확인</span></button>
@@ -961,12 +978,14 @@
 
             <div class="form-group">
                 <label class="form-label">부품명</label>
-                <input type="text" id="adjustmentPartName" class="form-input" readonly style="background-color: #f8f9fa;">
+                <input type="text" id="adjustmentPartName" class="form-input" readonly
+                       style="background-color: #f8f9fa;">
             </div>
 
             <div class="form-group">
                 <label class="form-label">현재 재고</label>
-                <input type="number" id="adjustmentCurrentStock" class="form-input" readonly style="background-color: #f8f9fa;">
+                <input type="number" id="adjustmentCurrentStock" class="form-input" readonly
+                       style="background-color: #f8f9fa;">
             </div>
 
             <div class="form-group">
@@ -984,7 +1003,8 @@
 
             <div class="form-group">
                 <label class="form-label">조정 후 재고</label>
-                <input type="number" id="adjustmentAfterStock" class="form-input" readonly style="background-color: #f8f9fa; font-weight: 600;">
+                <input type="number" id="adjustmentAfterStock" class="form-input" readonly
+                       style="background-color: #f8f9fa; font-weight: 600;">
             </div>
 
             <div class="form-group">
@@ -1041,7 +1061,7 @@
     let totalElements = 0;
     let deleteTargetId = null;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         loadParts();
     });
 
@@ -1133,12 +1153,12 @@
                 <td>
                     <div class="part-image-cell">
                         ${part.imagePath
-                ? `<img src="${API_BASE_URL}/${part.id}/image"
+            ? `<img src="${API_BASE_URL}/${part.id}/image"
                                     alt="${escapeHtml(part.name)}"
                                     class="part-thumbnail"
                                     onclick="viewPartImage(${part.id})">`
-                : '<div class="no-image">이미지<br>없음</div>'
-            }
+            : '<div class="no-image">이미지<br>없음</div>'
+        }
                     </div>
                 </td>
                 <td><strong>${escapeHtml(part.partCode)}</strong></td>
@@ -1312,6 +1332,8 @@
         document.getElementById('stockModalTitle').textContent =
             action === 'increase' ? '재고 입고' : '재고 출고';
         document.getElementById('stockForm').reset();
+        document.getElementById('stockNote').value = '';
+        updateStockNoteCharCount();
         document.getElementById('stockModal').style.display = 'block';
 
         setTimeout(() => {
@@ -1323,18 +1345,32 @@
         document.getElementById('stockModal').style.display = 'none';
     }
 
+    function updateStockNoteCharCount() {
+        const noteText = document.getElementById('stockNote');
+        const charCount = document.getElementById('stockNoteCharCount');
+        if (noteText && charCount) {
+            charCount.textContent = noteText.value.length;
+        }
+    }
+
     async function updateStock(event) {
         event.preventDefault();
 
         const partId = document.getElementById('stockPartId').value;
         const action = document.getElementById('stockAction').value;
         const quantity = parseInt(document.getElementById('stockQuantity').value);
+        const note = document.getElementById('stockNote').value.trim();
+
+        const requestBody = { quantity };
+        if (note) {
+            requestBody.note = note;
+        }
 
         try {
             const response = await fetch(`${API_BASE_URL}/${partId}/stock/${action}`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ quantity })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(requestBody)
             });
 
             if (!response.ok) {
@@ -1526,7 +1562,7 @@
             }
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 preview.innerHTML = `<img src="${e.target.result}" alt="미리보기">`;
                 preview.style.display = 'block';
             };
@@ -1588,7 +1624,7 @@
             `;
             document.body.appendChild(modal);
 
-            modal.onclick = function(event) {
+            modal.onclick = function (event) {
                 if (event.target === modal) {
                     modal.remove();
                 }
@@ -1674,13 +1710,13 @@
         const note = document.getElementById('adjustmentNote').value.trim();
         const afterStock = parseInt(document.getElementById('adjustmentAfterStock').value);
 
-// 음수 재고 검증
+        // 음수 재고 검증
         if (afterStock < 0) {
             showNotification('조정 후 재고가 0보다 작을 수 없습니다', 'error');
             return;
         }
 
-// 조정 수량이 0인 경우
+        // 조정 수량이 0인 경우
         if (adjustmentQuantity === 0) {
             showNotification('조정 수량을 입력해주세요', 'error');
             return;
@@ -1719,7 +1755,7 @@
     }
 
     // ESC 키로 모달 닫기
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
             // 열려있는 모달 확인 및 닫기
             const registerModal = document.getElementById('registerModal');

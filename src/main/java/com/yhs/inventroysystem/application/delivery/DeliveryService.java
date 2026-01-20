@@ -515,11 +515,12 @@ public class DeliveryService {
             // 제품 재고 차감
             product.decreaseStock(item.getQuantity());
 
-            productStockTransactionDomainService.recordTransaction(
+            productStockTransactionDomainService.recordTransactionWithNote(
                     product,
                     ProductTransactionType.DELIVERY,
                     beforeStock,
-                    -item.getQuantity()
+                    -item.getQuantity(),
+                    delivery.getClient().getName()
             );
         }
     }

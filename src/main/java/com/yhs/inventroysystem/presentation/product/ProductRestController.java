@@ -149,7 +149,8 @@ public class ProductRestController {
 
         ProductProduceCommand command = new ProductProduceCommand(
                 request.id(),
-                request.quantity()
+                request.quantity(),
+                request.note()
         );
 
         Product product = productService.produceProduct(command, currentUser);

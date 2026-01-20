@@ -181,7 +181,9 @@ public class ProductDtos {
 
             @NotNull(message = "생산 수량은 필수입니다")
             @Positive(message = "생산 수량은 0보다 커야 합니다")
-            Integer quantity
+            Integer quantity,
+
+            String note
     ) {}
 
     public record ProductUpdateRequest(

@@ -1,5 +1,6 @@
 package com.yhs.inventroysystem.presentation.part;
 
+import com.yhs.inventroysystem.application.part.PartCommands;
 import com.yhs.inventroysystem.application.part.PartCommands.PartStockUpdateCommand;
 import com.yhs.inventroysystem.application.part.PartService;
 import com.yhs.inventroysystem.domain.part.entity.Part;
@@ -23,6 +24,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static com.yhs.inventroysystem.application.part.PartCommands.*;
 import static com.yhs.inventroysystem.application.part.PartCommands.PartRegisterCommand;
 import static com.yhs.inventroysystem.application.part.PartCommands.PartUpdateCommand;
 
@@ -166,7 +168,11 @@ public class PartRestController {
     public ResponseEntity<Void> increaseStock(
             @PathVariable Long partId,
             @Valid @RequestBody StockUpdateRequest request) {
-        partService.increaseStock(partId, request.quantity());
+        PartStockIncreaseCommand command = new PartStockIncreaseCommand(
+                request.quantity(),
+                request.note()
+        );
+        partService.increaseStock(partId, command);
         return ResponseEntity.ok().build();
     }
 
@@ -174,7 +180,11 @@ public class PartRestController {
     public ResponseEntity<Void> decreaseStock(
             @PathVariable Long partId,
             @Valid @RequestBody StockUpdateRequest request) {
-        partService.decreaseStock(partId, request.quantity());
+        PartStockDecreaseCommand command = new PartStockDecreaseCommand(
+                request.quantity(),
+                request.note()
+        );
+        partService.decreaseStock(partId, command);
         return ResponseEntity.ok().build();
     }
 

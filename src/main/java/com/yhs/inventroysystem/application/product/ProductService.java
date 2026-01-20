@@ -118,11 +118,12 @@ public class ProductService {
 
         // 3. 제품 재고 증가
         Integer beforeStock = product.getStockQuantity();
-        product.increaseStock(command.quantity());
+        Integer quantity = command.quantity();
+        product.increaseStock(quantity);
 
-        productStockTransactionDomainService.recordTransaction(product, ProductTransactionType.PRODUCE, beforeStock, command.quantity());
+        productStockTransactionDomainService.recordTransactionWithNote(product, ProductTransactionType.PRODUCE, beforeStock, quantity, command.note());
 
-        createTaskForProduct(product, command.quantity(), currentUser);
+        createTaskForProduct(product, quantity, currentUser);
 
         return product;
     }

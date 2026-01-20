@@ -45,7 +45,12 @@ public class ProductStockTransactionDomainService {
         int afterStock = beforeStock + changeQuantity;
 
         ProductStockTransaction transaction = ProductStockTransaction.createWithNote(
-                product, type, beforeStock, changeQuantity, afterStock, note
+                product,
+                type,
+                beforeStock,
+                changeQuantity,
+                afterStock,
+                note
         );
 
         productStockTransactionRepository.save(transaction);
