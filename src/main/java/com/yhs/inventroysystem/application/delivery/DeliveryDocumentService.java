@@ -7,6 +7,7 @@ import com.yhs.inventroysystem.domain.delivery.entity.Delivery;
 import com.yhs.inventroysystem.domain.delivery.entity.DeliveryDocument;
 import com.yhs.inventroysystem.domain.delivery.service.DeliveryDocumentDomainService;
 import com.yhs.inventroysystem.domain.delivery.service.DeliveryDomainService;
+import com.yhs.inventroysystem.domain.shipment.entity.ShipmentDocument;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -79,10 +81,16 @@ public class DeliveryDocumentService {
         return deliveryDocumentDomainService.getDocumentsByDeliveryId(deliveryId);
     }
 
-    public byte[] getDocumentFile(Long documentId) {
+//    public byte[] getDocumentFile(Long documentId) {
+//        DeliveryDocument document = deliveryDocumentDomainService.findById(documentId);
+//        return fileStorageService.load(document.getFilePath());
+//    }
+
+    public InputStream getDocumentFileStream(Long documentId) {
         DeliveryDocument document = deliveryDocumentDomainService.findById(documentId);
-        return fileStorageService.load(document.getFilePath());
+        return fileStorageService.loadAsStream(document.getFilePath());
     }
+
     @Transactional
     public DeliveryDocument updateDocumentDescription(DeliveryDocumentUpdateCommand command) {
         DeliveryDocument document = deliveryDocumentDomainService.findById(command.documentId());
@@ -116,21 +124,21 @@ public class DeliveryDocumentService {
             throw new IllegalArgumentException("파일 형식을 확인할 수 없습니다");
         }
 
-//        // 허용되는 문서 타입 (PDF, Word, Excel, 이미지 등)
-//        boolean isValidType = contentType.equals("application/pdf")
-//                || contentType.equals("application/msword")
-//                || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-//                || contentType.equals("application/vnd.ms-excel")
-//                || contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-//                || contentType.startsWith("image/");
-//
-//        if (!isValidType) {
-//            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다");
-//        }
-//
-//        long maxSize = 50 * 1024 * 1024; // 50MB
-//        if (file.getSize() > maxSize) {
-//            throw new IllegalArgumentException("파일 크기는 50MB를 초과할 수 없습니다");
-//        }
+        // 허용되는 문서 타입 (PDF, Word, Excel, 이미지 등)
+        boolean isValidType = contentType.equals("application/pdf")
+                || contentType.equals("application/msword")
+                || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                || contentType.equals("application/vnd.ms-excel")
+                || contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                || contentType.startsWith("image/");
+
+        if (!isValidType) {
+            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다");
+        }
+
+        long maxSize = 50 * 1024 * 1024; // 50MB
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException("파일 크기는 50MB를 초과할 수 없습니다");
+        }
     }
 }

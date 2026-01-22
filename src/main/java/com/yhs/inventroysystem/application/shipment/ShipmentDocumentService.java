@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static com.yhs.inventroysystem.application.shipment.ShipmentDocumentCommands.*;
@@ -78,10 +79,16 @@ public class ShipmentDocumentService {
         return shipmentDocumentDomainService.getDocumentsByShipmentId(shipmentId);
     }
 
-    public byte[] getDocumentFile(Long documentId) {
+//    public byte[] getDocumentFile(Long documentId) {
+//        ShipmentDocument document = shipmentDocumentDomainService.findById(documentId);
+//        return fileStorageService.load(document.getFilePath());
+//    }
+
+    public InputStream getDocumentFileStream(Long documentId) {
         ShipmentDocument document = shipmentDocumentDomainService.findById(documentId);
-        return fileStorageService.load(document.getFilePath());
+        return fileStorageService.loadAsStream(document.getFilePath());
     }
+
     @Transactional
     public ShipmentDocument updateDocumentDescription(ShipmentDocumentUpdateCommand command) {
         ShipmentDocument document = shipmentDocumentDomainService.findById(command.documentId());

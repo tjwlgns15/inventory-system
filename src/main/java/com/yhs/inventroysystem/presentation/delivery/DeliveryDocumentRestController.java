@@ -7,6 +7,7 @@ import com.yhs.inventroysystem.presentation.delivery.DeliveryDocumentDtos.Delive
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static com.yhs.inventroysystem.application.delivery.DeliveryDocumentCommands.*;
@@ -80,22 +82,50 @@ public class DeliveryDocumentRestController {
         return ResponseEntity.noContent().build();
     }
 
+//    @GetMapping("/{documentId}/download")
+//    public ResponseEntity<Resource> downloadDocument(
+//            @PathVariable Long deliveryId,
+//            @PathVariable Long documentId) {
+//
+//        DeliveryDocument document = deliveryDocumentService.getDocument(documentId);
+//        byte[] fileData = deliveryDocumentService.getDocumentFile(documentId);
+//
+//        ByteArrayResource resource = new ByteArrayResource(fileData);
+//
+//        String contentType = document.getContentType() != null
+//                ? document.getContentType()
+//                : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+//
+//        boolean shouldDisplayInline = FileDownloadUtils.shouldDisplayInline(contentType);
+//
+//        String contentDisposition = FileDownloadUtils.createContentDisposition(
+//                document.getOriginalFileName(),
+//                shouldDisplayInline
+//        );
+//
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.parseMediaType(contentType))
+//                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+//                .contentLength(fileData.length)
+//                .body(resource);
+//    }
+
     @GetMapping("/{documentId}/download")
     public ResponseEntity<Resource> downloadDocument(
             @PathVariable Long deliveryId,
             @PathVariable Long documentId) {
 
         DeliveryDocument document = deliveryDocumentService.getDocument(documentId);
-        byte[] fileData = deliveryDocumentService.getDocumentFile(documentId);
 
-        ByteArrayResource resource = new ByteArrayResource(fileData);
+        InputStream inputStream = deliveryDocumentService.getDocumentFileStream(documentId);
+        InputStreamResource resource = new InputStreamResource(inputStream);
+
 
         String contentType = document.getContentType() != null
                 ? document.getContentType()
                 : MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
         boolean shouldDisplayInline = FileDownloadUtils.shouldDisplayInline(contentType);
-
         String contentDisposition = FileDownloadUtils.createContentDisposition(
                 document.getOriginalFileName(),
                 shouldDisplayInline
@@ -104,7 +134,7 @@ public class DeliveryDocumentRestController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
-                .contentLength(fileData.length)
+                .contentLength(document.getFileSize())
                 .body(resource);
     }
 }

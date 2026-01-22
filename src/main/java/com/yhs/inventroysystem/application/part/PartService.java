@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static com.yhs.inventroysystem.application.part.PartCommands.PartRegisterCommand;
@@ -225,5 +226,15 @@ public class PartService {
 
     public Part findPartById(Long partId) {
         return partDomainService.findById(partId);
+    }
+
+    public InputStream getPartImageStream(Long partId) {
+        Part part = findPartById(partId);
+
+        if (part.getImagePath() == null) {
+            throw new IllegalArgumentException("이미지가 존재하지 않습니다.");
+        }
+
+        return fileStorageService.loadAsStream(part.getImagePath());
     }
 }

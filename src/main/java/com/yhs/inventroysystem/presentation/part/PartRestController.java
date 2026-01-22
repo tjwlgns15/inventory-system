@@ -11,6 +11,7 @@ import com.yhs.inventroysystem.presentation.part.PartTransactionDtos.PartTransac
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -142,13 +144,8 @@ public class PartRestController {
     public ResponseEntity<Resource> getPartImage(@PathVariable Long partId) {
         Part part = partService.findPartById(partId);
 
-        if (part.getImagePath() == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // 파일 데이터 로드
-        byte[] imageData = fileStorageService.load(part.getImagePath());
-        ByteArrayResource resource = new ByteArrayResource(imageData);
+        InputStream imageStream = partService.getPartImageStream(partId);
+        InputStreamResource resource = new InputStreamResource(imageStream);
 
         // 한글 파일명을 URL 인코딩
         String encodedFileName = URLEncoder.encode(
@@ -160,7 +157,6 @@ public class PartRestController {
                 .contentType(MediaType.IMAGE_JPEG)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "inline; filename*=UTF-8''" + encodedFileName)
-                .contentLength(imageData.length)
                 .body(resource);
     }
 

@@ -4,6 +4,7 @@ import com.yhs.inventroysystem.domain.quotation.entity.Quotation;
 import com.yhs.inventroysystem.domain.quotation.entity.QuotationDocument;
 import com.yhs.inventroysystem.domain.quotation.service.QuotationDocumentDomainService;
 import com.yhs.inventroysystem.domain.quotation.service.QuotationDomainService;
+import com.yhs.inventroysystem.domain.shipment.entity.ShipmentDocument;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
 import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static com.yhs.inventroysystem.application.quotation.QuotationDocumentCommands.*;
@@ -96,9 +98,14 @@ public class QuotationDocumentService {
         return quotationDocumentDomainService.findById(documentId);
     }
 
-    public byte[] getDocumentFile(Long documentId) {
+//    public byte[] getDocumentFile(Long documentId) {
+//        QuotationDocument document = quotationDocumentDomainService.findById(documentId);
+//        return fileStorageService.load(document.getFilePath());
+//    }
+
+    public InputStream getDocumentFileStream(Long documentId) {
         QuotationDocument document = quotationDocumentDomainService.findById(documentId);
-        return fileStorageService.load(document.getFilePath());
+        return fileStorageService.loadAsStream(document.getFilePath());
     }
 
     private void validateDocumentFile(MultipartFile file) {
