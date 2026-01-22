@@ -122,21 +122,21 @@ public class ShipmentDocumentService {
             throw new IllegalArgumentException("파일 형식을 확인할 수 없습니다");
         }
 
-//        // 허용되는 문서 타입 (PDF, Word, Excel, 이미지 등)
-//        boolean isValidType = contentType.equals("application/pdf")
-//                || contentType.equals("application/msword")
-//                || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-//                || contentType.equals("application/vnd.ms-excel")
-//                || contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-//                || contentType.startsWith("image/");
-//
-//        if (!isValidType) {
-//            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다");
-//        }
-//
-//        long maxSize = 50 * 1024 * 1024; // 50MB
-//        if (file.getSize() > maxSize) {
-//            throw new IllegalArgumentException("파일 크기는 50MB를 초과할 수 없습니다");
-//        }
+        // 허용되는 문서 타입 (PDF, Word, Excel, 이미지 등)
+        boolean isValidType = contentType.equals("application/pdf")
+                || contentType.equals("application/msword")
+                || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                || contentType.equals("application/vnd.ms-excel")
+                || contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                || contentType.startsWith("image/");
+
+        if (!isValidType) {
+            throw new IllegalArgumentException("지원하지 않는 파일 형식입니다");
+        }
+
+        long maxSize = 50 * 1024 * 1024; // 50MB
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException("파일 크기는 50MB를 초과할 수 없습니다");
+        }
     }
 }
