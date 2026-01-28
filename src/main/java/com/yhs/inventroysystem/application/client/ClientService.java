@@ -33,9 +33,11 @@ public class ClientService {
                 command.clientCode(),
                 country,
                 command.name(),
+                command.shortName(),
                 command.address(),
                 command.contactNumber(),
                 command.email(),
+                command.representative(),
                 command.currency(),
                 command.shipmentDestination(),
                 command.shipmentAddress(),
@@ -61,9 +63,11 @@ public class ClientService {
                 parentClient,
                 country,
                 command.name(),
+                command.shortName(),
                 command.address(),
                 command.contactNumber(),
                 command.email(),
+                command.representative(),
                 command.currency(),
                 command.shipmentDestination(),
                 command.shipmentAddress(),
@@ -93,10 +97,12 @@ public class ClientService {
 
         client.updateInfo(
                 command.name(),
+                command.shortName(),
                 country,
                 command.address(),
                 command.contactNumber(),
                 command.email(),
+                command.representative(),
                 command.currency(),
                 command.shipmentDestination(),
                 command.shipmentAddress(),
@@ -113,5 +119,4 @@ public class ClientService {
         Client client = findClientById(clientId);
         client.markAsDeleted();
     }
-
 }

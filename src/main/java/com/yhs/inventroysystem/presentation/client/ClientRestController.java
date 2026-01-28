@@ -20,15 +20,18 @@ public class ClientRestController {
 
     private final ClientService clientService;
 
+
     @PostMapping
     public ResponseEntity<ClientResponse> registerParentClient(@Valid @RequestBody ParentClientRegisterRequest request) {
         ParentClientRegisterCommand command = new ParentClientRegisterCommand(
                 request.clientCode(),
                 request.countryId(),
                 request.name(),
+                request.shortName(),
                 request.address(),
                 request.contactNumber(),
                 request.email(),
+                request.representative(),
                 request.currency(),
                 request.shipmentDestination(),
                 request.shipmentAddress(),
@@ -49,9 +52,11 @@ public class ClientRestController {
                 request.clientCode(),
                 request.countryId(),
                 request.name(),
+                request.shortName(),
                 request.address(),
                 request.contactNumber(),
                 request.email(),
+                request.representative(),
                 request.currency(),
                 request.shipmentDestination(),
                 request.shipmentAddress(),
@@ -87,10 +92,12 @@ public class ClientRestController {
 
         ChildClientUpdateCommand command = new ChildClientUpdateCommand(
                 request.name(),
+                request.shortName(),
                 request.countryId(),
                 request.address(),
                 request.contactNumber(),
                 request.email(),
+                request.representative(),
                 request.currency(),
                 request.shipmentDestination(),
                 request.shipmentAddress(),
@@ -98,6 +105,7 @@ public class ClientRestController {
                 request.shipmentContactNumber(),
                 request.finalDestination()
         );
+
         Client client = clientService.updateClient(clientId, command);
         return ResponseEntity.ok(ClientResponse.from(client));
     }

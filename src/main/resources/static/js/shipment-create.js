@@ -196,7 +196,7 @@ function selectClient(clientId) {
     // Sold To 정보 채우기
     document.getElementById('soldToCompanyName').value = client.name;
     document.getElementById('soldToAddress').value = client.address || '';
-    document.getElementById('soldToContactPerson').value = client.contactNumber || '';
+    document.getElementById('soldToContactPerson').value = client.representative || '';
     document.getElementById('soldToPhone').value = client.contactNumber || '';
 
     // Ship To에도 동일하게 채우기

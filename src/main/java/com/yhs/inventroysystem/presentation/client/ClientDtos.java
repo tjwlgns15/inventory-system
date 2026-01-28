@@ -19,11 +19,15 @@ public class ClientDtos {
             @NotBlank(message = "거래처명은 필수입니다")
             String name,
 
+            String shortName,
+
             String address,
             String contactNumber,
 
             @Email(message = "올바른 이메일 형식이 아닙니다")
             String email,
+
+            String representative,
 
             @NotNull(message = "통화는 필수입니다")
             Currency currency,
@@ -49,11 +53,15 @@ public class ClientDtos {
             @NotBlank(message = "거래처명은 필수입니다")
             String name,
 
+            String shortName,
+
             String address,
             String contactNumber,
 
             @Email(message = "올바른 이메일 형식이 아닙니다")
             String email,
+
+            String representative,
 
             @NotNull(message = "통화는 필수입니다")
             Currency currency,
@@ -73,9 +81,11 @@ public class ClientDtos {
             String countryName,
             String countryCode,
             String name,
+            String shortName,
             String address,
             String contactNumber,
             String email,
+            String representative,
             Currency currency,
             String currencyName,
             String currencySymbol,
@@ -98,9 +108,11 @@ public class ClientDtos {
                     client.getCountry() != null ? client.getCountry().getName() : null,
                     client.getCountry() != null ? client.getCountry().getCode() : null,
                     client.getName(),
+                    client.getShortName(),
                     client.getAddress(),
                     client.getContactNumber(),
                     client.getEmail(),
+                    client.getRepresentative(),
                     client.getCurrency(),
                     client.getCurrency().getName(),
                     client.getCurrency().getSymbol(),
@@ -120,12 +132,16 @@ public class ClientDtos {
             @NotBlank(message = "거래처명은 필수입니다")
             String name,
 
+            String shortName,
+
             @NotNull(message = "국가는 필수입니다")
             Long countryId,
 
             String address,
             String contactNumber,
             String email,
+
+            String representative,
 
             @NotNull(message = "통화는 필수입니다")
             Currency currency,
@@ -135,7 +151,5 @@ public class ClientDtos {
             String shipmentRepresentative,
             String shipmentContactNumber,
             String finalDestination
-
-
     ) {}
 }

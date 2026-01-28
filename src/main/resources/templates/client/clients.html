@@ -479,14 +479,15 @@
                 <table id="clientsTable">
                     <thead>
                     <tr>
-                        <th style="width: 13%;">거래처 코드</th>
-                        <th style="width: 15%;">거래처명</th>
-                        <th style="width: 13%;">연락처</th>
-                        <th style="width: 13%;">이메일</th>
+                        <th style="width: 14%;">거래처 코드</th>
+                        <th style="width: 14%;">거래처명</th>
+                        <th style="width: 8%;">담당자</th>
+                        <th style="width: 10%;">연락처</th>
+                        <th style="width: 10%;">이메일</th>
                         <th style="width: 20%;">주소</th>
                         <th style="width: 8%;">국가</th>
-                        <th style="width: 6%;">통화</th>
-                        <th style="width: 12%;">작업</th>
+                        <th style="width: 5%;">통화</th>
+                        <th style="width: 11%;">작업</th>
                     </tr>
                     </thead>
                     <tbody id="clientsTableBody">
@@ -515,7 +516,17 @@
 
             <div class="form-group">
                 <label class="form-label" for="parentName">고객명 *</label>
-                <input type="text" id="parentName" class="form-input" required>
+                <input type="text" id="parentName" class="form-input" placeholder="솔미테크" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="parentShortName">고객명 (약칭)</label>
+                <input type="text" id="parentShortName" class="form-input" placeholder="솔미">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="parentRepresentative">담당자</label>
+                <input type="text" id="parentRepresentative" class="form-input" placeholder="예: 홍길동">
             </div>
 
             <div class="form-group">
@@ -607,7 +618,17 @@
 
             <div class="form-group">
                 <label class="form-label" for="childName">고객명 *</label>
-                <input type="text" id="childName" class="form-input" required>
+                <input type="text" id="childName" class="form-input" placeholder="솔미테크" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childShortName">고객명 (약칭)</label>
+                <input type="text" id="childShortName" class="form-input" placeholder="솔미">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="childRepresentative">대표자</label>
+                <input type="text" id="childRepresentative" class="form-input" placeholder="예: 홍길동">
             </div>
 
             <div class="form-group">
@@ -693,10 +714,19 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="updateName">거래처명 *</label>
-                <input type="text" id="updateName" class="form-input" required>
+                <label class="form-label" for="updateName">고객명 *</label>
+                <input type="text" id="updateName" class="form-input" placeholder="솔미테크" required>
             </div>
 
+            <div class="form-group">
+                <label class="form-label" for="updateShortName">고객명 (약칭)</label>
+                <input type="text" id="updateShortName" class="form-input" placeholder="솔미">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="updateRepresentative">대표자</label>
+                <input type="text" id="updateRepresentative" class="form-input" placeholder="예: 홍길동">
+            </div>
 
             <div class="form-group">
                 <label class="form-label" for="updateContactNumber">연락처</label>
@@ -876,6 +906,7 @@
                     <strong>${escapeHtml(parent.clientCode)}</strong>
                 </td>
                 <td><strong>${escapeHtml(parent.name)}</strong></td>
+                <td>${escapeHtml(parent.representative || '-')}</td>
                 <td>${escapeHtml(parent.contactNumber || '-')}</td>
                 <td>${escapeHtml(parent.email || '-')}</td>
                 <td>${escapeHtml(parent.address || '-')}</td>
@@ -900,6 +931,7 @@
                     <strong>${escapeHtml(child.clientCode)}</strong>
                 </td>
                 <td>${escapeHtml(child.name)}</td>
+                <td>${escapeHtml(child.representative || '-')}</td>
                 <td>${escapeHtml(child.contactNumber || '-')}</td>
                 <td>${escapeHtml(child.email || '-')}</td>
                 <td>${escapeHtml(child.address || '-')}</td>
@@ -1027,40 +1059,6 @@
         }
     }
 
-
-    // async function registerClient(event) {
-    //     event.preventDefault();
-    //
-    //     const clientData = {
-    //         clientCode: document.getElementById('clientCode').value,
-    //         name: document.getElementById('name').value,
-    //         contactNumber: document.getElementById('contactNumber').value,
-    //         email: document.getElementById('email').value,
-    //         address: document.getElementById('address').value,
-    //         countryId: parseInt(document.getElementById('countryId').value),
-    //         currency: document.getElementById('currency').value
-    //     };
-    //
-    //     try {
-    //         const response = await fetch(API_BASE_URL, {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify(clientData)
-    //         });
-    //
-    //         if (!response.ok) {
-    //             const errorData = await response.json();
-    //             throw new Error(errorData.message || '거래처 등록에 실패했습니다');
-    //         }
-    //
-    //         showNotification('거래처가 성공적으로 등록되었습니다', 'success');
-    //         closeRegisterModal();
-    //         await loadClients();
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         showNotification(error.message, 'error');
-    //     }
-    // }
     async function registerClient(event, type) {
         event.preventDefault();
 
@@ -1071,8 +1069,10 @@
             clientData = {
                 clientCode: document.getElementById('parentClientCode').value,
                 name: document.getElementById('parentName').value,
+                shortName: document.getElementById('parentShortName').value || null,
                 contactNumber: document.getElementById('parentContactNumber').value,
                 email: document.getElementById('parentEmail').value,
+                representative: document.getElementById('parentRepresentative').value || null,
                 address: document.getElementById('parentAddress').value,
                 countryId: parseInt(document.getElementById('parentCountryId').value),
                 currency: document.getElementById('parentCurrency').value,
@@ -1088,8 +1088,10 @@
                 parentClientId: parseInt(document.getElementById('childParentClientId').value),
                 clientCode: document.getElementById('childClientCode').value,
                 name: document.getElementById('childName').value,
+                shortName: document.getElementById('childShortName').value || null,
                 contactNumber: document.getElementById('childContactNumber').value,
                 email: document.getElementById('childEmail').value,
+                representative: document.getElementById('childRepresentative').value || null,
                 address: document.getElementById('childAddress').value,
                 countryId: parseInt(document.getElementById('childCountryId').value),
                 currency: document.getElementById('childCurrency').value,
@@ -1130,8 +1132,10 @@
         document.getElementById('updateClientId').value = clientId;
         document.getElementById('updateClientCode').value = client.clientCode;
         document.getElementById('updateName').value = client.name;
+        document.getElementById('updateShortName').value = client.shortName || '';
         document.getElementById('updateContactNumber').value = client.contactNumber || '';
         document.getElementById('updateEmail').value = client.email || '';
+        document.getElementById('updateRepresentative').value = client.representative || '';
         document.getElementById('updateAddress').value = client.address || '';
         document.getElementById('updateCurrency').value = client.currency || '';
 
@@ -1168,8 +1172,10 @@
         const clientId = document.getElementById('updateClientId').value;
         const clientData = {
             name: document.getElementById('updateName').value,
+            shortName: document.getElementById('updateShortName').value || null,
             contactNumber: document.getElementById('updateContactNumber').value,
             email: document.getElementById('updateEmail').value,
+            representative: document.getElementById('updateRepresentative').value || null,
             address: document.getElementById('updateAddress').value,
             countryId: parseInt(document.getElementById('updateCountryId').value),
             currency: document.getElementById('updateCurrency').value,

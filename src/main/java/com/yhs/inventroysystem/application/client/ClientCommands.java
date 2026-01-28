@@ -8,11 +8,12 @@ public class ClientCommands {
             String clientCode,
             Long countryId,
             String name,
+            String shortName,
             String address,
             String contactNumber,
             String email,
+            String representative,
             Currency currency,
-
 
             String shipmentDestination, // 선적처
             String shipmentAddress, // 선적 주소
@@ -26,9 +27,11 @@ public class ClientCommands {
             String clientCode,
             Long countryId,
             String name,
+            String shortName,
             String address,
             String contactNumber,
             String email,
+            String representative,
             Currency currency,
 
             String shipmentDestination,
@@ -40,10 +43,12 @@ public class ClientCommands {
 
     public record ChildClientUpdateCommand(
             String name,
+            String shortName,
             Long countryId,
             String address,
             String contactNumber,
             String email,
+            String representative,
             Currency currency,
 
             String shipmentDestination,

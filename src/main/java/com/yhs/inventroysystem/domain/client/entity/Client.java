@@ -30,11 +30,16 @@ public class Client extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column
+    private String shortName;
+
     private String address;
 
     private String contactNumber;
 
     private String email;
+
+    private String representative;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
@@ -63,16 +68,18 @@ public class Client extends BaseTimeEntity {
 
     // 루트 거래처 생성
     public Client(String clientCode, Country country,
-                  String name, String address, String contactNumber,
-                  String email, Currency currency, String shipmentDestination,
+                  String name, String shortName, String address, String contactNumber,
+                  String email, String representative, Currency currency, String shipmentDestination,
                   String shipmentAddress, String shipmentRepresentative,
                   String shipmentContactNumber, String finalDestination) {
         this.clientCode = clientCode;
         this.country = country;
         this.name = name;
+        this.shortName = shortName;
         this.address = address;
         this.contactNumber = contactNumber;
         this.email = email;
+        this.representative = representative;
         this.currency = currency;
         this.clientType = ClientType.PARENT;
 
@@ -85,8 +92,8 @@ public class Client extends BaseTimeEntity {
 
     // 하위 거래처 생성
     public Client(String clientCode, Client parentClient, Country country,
-                  String name, String address, String contactNumber,
-                  String email, Currency currency, String shipmentDestination,
+                  String name, String shortName, String address, String contactNumber,
+                  String email, String representative, Currency currency, String shipmentDestination,
                   String shipmentAddress, String shipmentRepresentative,
                   String shipmentContactNumber, String finalDestination) {
         if (parentClient.isTeam()) {
@@ -96,9 +103,11 @@ public class Client extends BaseTimeEntity {
         this.parentClient = parentClient;
         this.country = country;
         this.name = name;
+        this.shortName = shortName;
         this.address = address;
         this.contactNumber = contactNumber;
         this.email = email;
+        this.representative = representative;
         this.currency = currency;
         this.clientType = ClientType.CHILD;
 
@@ -109,16 +118,18 @@ public class Client extends BaseTimeEntity {
         this.finalDestination = finalDestination;
     }
 
-    public void updateInfo(String name, Country country,
+    public void updateInfo(String name, String shortName, Country country,
                            String address, String contactNumber,
-                           String email, Currency currency, String shipmentDestination,
+                           String email, String representative, Currency currency, String shipmentDestination,
                            String shipmentAddress, String shipmentRepresentative,
                            String shipmentContactNumber, String finalDestination) {
         this.name = name;
+        this.shortName = shortName;
         this.country = country;
         this.address = address;
         this.contactNumber = contactNumber;
         this.email = email;
+        this.representative = representative;
         this.currency = currency;
 
         this.shipmentDestination = shipmentDestination;
