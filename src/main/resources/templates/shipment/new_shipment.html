@@ -746,10 +746,10 @@
                 <span class="section-icon">📦</span>
                 <span>박스 정보</span>
             </div>
+            <div id="boxesContainer"></div>
             <button type="button" class="btn btn-secondary" id="selectBoxBtn" style="margin-bottom: 15px;">
                 박스 템플릿 선택
             </button>
-            <div id="boxesContainer"></div>
             <button type="button" class="btn btn-add" id="addBoxBtn">
                 + 박스 추가
             </button>
@@ -761,10 +761,10 @@
                 <span class="section-icon">🛍️</span>
                 <span>제품 정보</span>
             </div>
+            <div id="itemsContainer"></div>
             <button type="button" class="btn btn-secondary" id="selectProductBtn" style="margin-bottom: 15px;">
                 제품 선택
             </button>
-            <div id="itemsContainer"></div>
             <button type="button" class="btn btn-add" id="addItemBtn">
                 + 제품 추가
             </button>
@@ -809,6 +809,41 @@
         </div>
         <div class="modal-body" id="clientList">
             <!-- 거래처 목록이 동적으로 추가됩니다 -->
+        </div>
+    </div>
+</div>
+
+<!-- 거래처명 선택 모달 -->
+<div class="modal" id="clientNameTypeModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>거래처명 선택</h2>
+            <button class="close-btn" id="closeClientNameTypeModal">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 20px; color: #666; text-align: center;">사용할 거래처명을 선택해주세요</p>
+
+            <div id="namePreview" style="margin-bottom: 25px; padding: 20px; background: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #4a5568;">정식명칭:</strong>
+                    <span id="previewName" style="color: #2d3748; margin-left: 8px;"></span>
+                </div>
+                <div>
+                    <strong style="color: #4a5568;">약칭:</strong>
+                    <span id="previewShortName" style="color: #718096; margin-left: 8px;"></span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button type="button" class="btn btn-primary" onclick="selectClientNameType('name')"
+                        style="padding: 15px; font-size: 1em; justify-content: center;">
+                    ✓ 정식명칭 사용
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="selectClientNameType('shortName')"
+                        style="padding: 15px; font-size: 1em; justify-content: center;">
+                    ✓ 약칭 사용
+                </button>
+            </div>
         </div>
     </div>
 </div>

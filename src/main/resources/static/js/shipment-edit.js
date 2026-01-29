@@ -72,6 +72,7 @@ function setupEventListeners() {
     document.getElementById('selectClientBtn').addEventListener('click', showClientModal);
     document.getElementById('manualInputBtn').addEventListener('click', enableManualInput);
     document.getElementById('closeClientModal').addEventListener('click', () => closeModal('clientModal'));
+    document.getElementById('closeClientNameTypeModal').addEventListener('click', closeClientNameTypeModal);
     document.getElementById('sameAsSoldTo').addEventListener('change', copySoldToShipTo);
 
     // 제품 관련
@@ -287,18 +288,41 @@ function selectClient(clientId) {
     const client = state.clients.find(c => c.id === clientId);
     if (!client) return;
 
-    state.selectedClientId = clientId;
-    document.getElementById('clientId').value = clientId;
+    // 선택된 거래처 정보를 임시 저장
+    state.tempSelectedClient = client;
 
-    document.getElementById('soldToCompanyName').value = client.name;
+    // 미리보기 정보 표시
+    document.getElementById('previewName').textContent = client.name || '(없음)';
+    document.getElementById('previewShortName').textContent = client.shortName || '(없음)';
+
+    // 거래처 모달 닫기
+    closeModal('clientModal');
+
+    // 거래처명 선택 모달 표시
+    showModal('clientNameTypeModal');
+}
+
+function selectClientNameType(nameType) {
+    const client = state.tempSelectedClient;
+    if (!client) return;
+
+    state.selectedClientId = client.id;
+    document.getElementById('clientId').value = client.id;
+
+    // 선택된 이름 타입에 따라 회사명 설정
+    const companyName = nameType === 'name' ? client.name : (client.shortName || client.name);
+
+    document.getElementById('soldToCompanyName').value = companyName;
     document.getElementById('soldToAddress').value = client.address || '';
     document.getElementById('soldToContactPerson').value = client.contactNumber || '';
     document.getElementById('soldToPhone').value = client.contactNumber || '';
 
-    document.getElementById('shipToCompanyName').value = client.name;
-    document.getElementById('shipToAddress').value = client.address || '';
-    document.getElementById('shipToContactPerson').value = client.contactNumber || '';
-    document.getElementById('shipToPhone').value = client.contactNumber || '';
+    document.getElementById('shipToCompanyName').value = client.shipmentDestination;
+    document.getElementById('shipToAddress').value = client.shipmentAddress || '';
+    document.getElementById('shipToContactPerson').value = client.shipmentRepresentative || '';
+    document.getElementById('shipToPhone').value = client.shipmentContactNumber || '';
+    document.getElementById('finalDestination').value = client.finalDestination || '';
+
 
     if (client.currency) {
         const currencyMap = { 'USD': 'USD', 'EUR': 'EUR', 'KRW': 'KRW' };
@@ -308,7 +332,16 @@ function selectClient(clientId) {
         }
     }
 
-    closeModal('clientModal');
+    // 임시 저장 데이터 삭제
+    delete state.tempSelectedClient;
+
+    // 모달 닫기
+    closeModal('clientNameTypeModal');
+}
+
+function closeClientNameTypeModal() {
+    delete state.tempSelectedClient;
+    closeModal('clientNameTypeModal');
 }
 
 function enableManualInput() {
@@ -789,6 +822,10 @@ function copyRemarkToClipboard() {
 }
 
 // ===== 모달 관련 함수들 =====
+
+function showModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+}
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('active');

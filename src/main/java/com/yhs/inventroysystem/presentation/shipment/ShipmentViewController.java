@@ -33,7 +33,9 @@ public class ShipmentViewController {
     }
 
     @GetMapping("/{shipmentId}/edit")
-    public String shipmentsEditPage(@PathVariable Long shipmentId) {
+    public String shipmentsEditPage(@PathVariable Long shipmentId, Model model) {
+        model.addAttribute("shipmentTypes", ShipmentType.values());
+        model.addAttribute("tradeTerms", TradeTerms.values());
         return "shipment/edit_shipment";
     }
 }

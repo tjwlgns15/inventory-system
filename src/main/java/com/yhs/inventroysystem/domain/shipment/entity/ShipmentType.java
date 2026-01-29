@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ShipmentType {
 
-    EXPORT("정식수출", "Export"),
+    EXPORT("정식수출", "Export licenses"),
     SAMPLE("무상샘플", "Free Sample");
 
     private final String korean;

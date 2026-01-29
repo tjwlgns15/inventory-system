@@ -63,16 +63,19 @@ class ShipmentPDFGenerator {
         let currentY = 10;
 
         // 헤더 - 파란색 배경
-        doc.setFillColor(0, 0, 128);
+        doc.setFillColor(255, 255, 255);
         doc.rect(marginLeft, currentY, contentWidth, 10, 'F');
 
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text('Solmith Co., Ltd.', marginLeft + 3, currentY + 6.5);
+        doc.text('Solmith Co., Ltd.', marginLeft, currentY + 6.5);
         doc.text('COMMERCIAL INVOICE', pageWidth - marginRight - 75, currentY + 6.5);
 
-        currentY += 14;
+        currentY += 7;
+        doc.line(marginLeft, currentY, pageWidth - marginRight, currentY);
+
+        currentY += 7;
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
@@ -125,16 +128,19 @@ class ShipmentPDFGenerator {
         let currentY = 10;
 
         // 헤더
-        doc.setFillColor(0, 0, 128);
+        doc.setFillColor(255, 255, 255);
         doc.rect(marginLeft, currentY, contentWidth, 10, 'F');
 
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
-        doc.text('Solmith Co., Ltd.', marginLeft + 3, currentY + 6.5);
+        doc.text('Solmith Co., Ltd.', marginLeft, currentY + 6.5);
         doc.text('PACKING LIST', pageWidth - marginRight - 55, currentY + 6.5);
 
-        currentY += 14;  // 12 → 14로 증가 (간격 더 띄움)
+        currentY += 7;
+        doc.line(marginLeft, currentY, pageWidth - marginRight, currentY);
+
+        currentY += 7;
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(9);
         doc.setFont(undefined, 'normal');
@@ -204,8 +210,8 @@ class ShipmentPDFGenerator {
         doc.text(this.data.shipperAddress, marginLeft + 2, currentY);
         currentY += 4;
 
-        doc.text(this.data.shipperContactPerson, marginLeft + 2, currentY);
-        doc.text(this.data.shipperPhone, marginLeft + 90, currentY);
+        doc.text(this.data.shipperContactPerson + "\t" + this.data.shipperPhone, marginLeft + 2, currentY);
+        // doc.text(this.data.shipperPhone, marginLeft + 90, currentY);
 
         let rightY = startY + 9;
         doc.setFont(undefined, 'bold');
@@ -250,8 +256,8 @@ class ShipmentPDFGenerator {
         doc.text(this.data.shipperAddress, marginLeft + 2, currentY);
         currentY += 4;
 
-        doc.text(this.data.shipperContactPerson, marginLeft + 2, currentY);
-        doc.text(this.data.shipperPhone, marginLeft + 90, currentY);
+        doc.text(this.data.shipperContactPerson + "\t" + this.data.shipperPhone, marginLeft + 2, currentY);
+        // doc.text(this.data.shipperPhone, marginLeft + 90, currentY);
         currentY += 5;
 
         // 좌우 구분 세로선 (1번과 8번 사이)
@@ -290,8 +296,8 @@ class ShipmentPDFGenerator {
             leftY += 4;
         });
 
-        doc.text(this.data.soldToContactPerson || '', marginLeft + 2, leftY);
-        doc.text(this.data.soldToPhone || '', marginLeft + 90, leftY);
+        doc.text(this.data.soldToContactPerson + "\t" + this.data.soldToPhone, marginLeft + 2, leftY);
+        // doc.text(this.data.soldToPhone || '', marginLeft + 90, leftY);
         leftY += 4;
 
         // L/C Issuing Bank (오른쪽)
@@ -340,8 +346,8 @@ class ShipmentPDFGenerator {
             leftY += 4;
         });
 
-        doc.text(this.data.soldToContactPerson || '', marginLeft + 2, leftY);
-        doc.text(this.data.soldToPhone || '', marginLeft + 90, leftY);
+        doc.text(this.data.soldToContactPerson + "\t" + this.data.soldToPhone, marginLeft + 2, leftY);
+        // doc.text(this.data.soldToPhone || '', marginLeft + 90, leftY);
         leftY += 4;
 
         // Remarks
@@ -407,8 +413,8 @@ class ShipmentPDFGenerator {
             leftY += 4;
         });
 
-        doc.text(this.data.shipToContactPerson || '', marginLeft + 2, leftY);
-        doc.text(this.data.shipToPhone || '', marginLeft + 90, leftY);
+        doc.text(this.data.shipToContactPerson + "\t" + this.data.shipToPhone, marginLeft + 2, leftY);
+        // doc.text(this.data.shipToPhone || '', marginLeft + 90, leftY);
         leftY += 4;
 
         // Remarks
@@ -471,8 +477,8 @@ class ShipmentPDFGenerator {
             currentY += 4;
         });
 
-        doc.text(this.data.shipToContactPerson || '', marginLeft + 2, currentY);
-        doc.text(this.data.shipToPhone || '', marginLeft + 90, currentY);
+        doc.text(this.data.shipToContactPerson + "\t" + this.data.shipToPhone, marginLeft + 2, currentY);
+        // doc.text(this.data.shipToPhone || '', marginLeft + 90, currentY);
         currentY += 4;
 
         return currentY;
@@ -568,9 +574,9 @@ class ShipmentPDFGenerator {
                 row.push(item.hsCode || '');
                 row.push(`${item.quantity}${item.unit}`);
                 row.push(this.data.currency);
-                row.push(item.unitPrice.toFixed(2));
+                row.push(this._formatNumberWithComma(item.unitPrice));
                 row.push(this.data.currency);
-                row.push(item.amount.toFixed(2));
+                row.push(this._formatNumberWithComma(item.amount));
             } else {
                 row.push('', '', '', '', '', '', '', '', '');
             }
@@ -584,18 +590,16 @@ class ShipmentPDFGenerator {
             : 0;
 
         tableData.push([
-            'Total :',
-            '',
-            `${totalBoxes}box`,
+            { content: 'Total :'+ `${totalBoxes}` + 'box', colSpan: 3 },
             '',
             '',
             '',
             '',
-            `${this.data.totalQuantity}ea`,
+            `${this.data.totalQuantity}EA`,
             '',
             '',
             this.data.currency,
-            this.data.totalAmount.toFixed(2)
+            this._formatNumberWithComma(this.data.totalAmount)
         ]);
 
         doc.autoTable({
@@ -614,7 +618,7 @@ class ShipmentPDFGenerator {
             body: tableData,
             theme: 'grid',
             styles: {
-                fontSize: 8,
+                fontSize: 9,
                 cellPadding: 1.5,
                 lineColor: [0, 0, 0],
                 lineWidth: 0.2,
@@ -622,6 +626,7 @@ class ShipmentPDFGenerator {
                 valign: 'middle'
             },
             headStyles: {
+                fontSize: 8,
                 fillColor: [255, 255, 255],
                 textColor: [0, 0, 0],
                 fontStyle: 'bold',
@@ -629,9 +634,9 @@ class ShipmentPDFGenerator {
                 valign: 'middle'
             },
             columnStyles: {
-                0: { cellWidth: 12, halign: 'center', fontSize: 7 },   // Box 명
-                1: { cellWidth: 21, halign: 'center', fontSize: 7 },   // 사이즈
-                2: { cellWidth: 12, halign: 'center', fontSize: 7 },    // Box 수량
+                0: { cellWidth: 12, halign: 'center' },    // Box 명
+                1: { cellWidth: 21, halign: 'center' },    // 사이즈
+                2: { cellWidth: 12, halign: 'center' },    // Box 수량
                 3: { cellWidth: 13, halign: 'center' },                // No.
                 4: { cellWidth: 34, halign: 'left' },                  // Model
                 5: { cellWidth: 70, halign: 'left' },                  // Description
@@ -685,9 +690,9 @@ class ShipmentPDFGenerator {
                 row.push(item.productCode || item.model);
                 row.push(item.productDescription || item.description);
                 row.push(`${item.quantity}${item.unit}`);
-                row.push(item.netWeight ? `${item.netWeight}kg` : '');
-                row.push(item.grossWeight ? `${item.grossWeight}kg` : '');
-                row.push(item.cbm ? `${item.cbm}m³` : '');
+                row.push(item.netWeight ? `${this._formatWeight(item.netWeight)}kg` : '');
+                row.push(item.grossWeight ? `${this._formatWeight(item.grossWeight)}kg` : '');
+                row.push(item.cbm ? `${this._formatWeight(item.cbm)}m³` : '');
             } else {
                 row.push('', '', '', '', '', '', '');
             }
@@ -701,17 +706,26 @@ class ShipmentPDFGenerator {
             : 0;
 
         packingData.push([
-            'Total :',
-            '',
-            `${totalBoxes}box`,
+            { content: 'Total :'+ `${totalBoxes}` + 'box', colSpan: 3 },
             '',
             '',
             '',
-            `${this.data.totalQuantity}ea`,
-            this.data.totalNetWeight ? `${this.data.totalNetWeight}kg` : '',
-            this.data.totalGrossWeight ? `${this.data.totalGrossWeight}kg` : '',
-            this.data.totalCbm ? `${this.data.totalCbm}m³` : ''
+            `${this.data.totalQuantity}EA`,
+            this.data.totalNetWeight ? `${this._formatWeight(this.data.totalNetWeight)}kg` : '',
+            this.data.totalGrossWeight ? `${this._formatWeight(this.data.totalGrossWeight)}kg` : '',
+            this.data.totalCbm ? `${this._formatWeight(this.data.totalCbm)}m³` : ''
         ]);
+
+        head: [[
+            { content: '12.Marks and No.of PKGS', colSpan: 3 },
+            '13.No.',
+            '14.Model',
+            '15.Description of Goods',
+            '16.H.S.Code',
+            '17.Quantity',
+            { content: '18.Unit Price', colSpan: 2 },
+            { content: '19.Amount', colSpan: 2 }
+        ]],
 
         doc.autoTable({
             startY: startY,
@@ -729,7 +743,7 @@ class ShipmentPDFGenerator {
             body: packingData,
             theme: 'grid',
             styles: {
-                fontSize: 8,
+                fontSize: 9,
                 cellPadding: 1.5,
                 lineColor: [0, 0, 0],
                 lineWidth: 0.2,
@@ -737,6 +751,7 @@ class ShipmentPDFGenerator {
                 valign: 'middle'
             },
             headStyles: {
+                fontSize: 8,
                 fillColor: [255, 255, 255],
                 textColor: [0, 0, 0],
                 fontStyle: 'bold',
@@ -744,9 +759,9 @@ class ShipmentPDFGenerator {
                 valign: 'middle'
             },
             columnStyles: {
-                0: { cellWidth: 14, halign: 'center', fontSize: 7 },   // Box 명
-                1: { cellWidth: 24, halign: 'center', fontSize: 7 },   // 사이즈
-                2: { cellWidth: 14, halign: 'center', fontSize: 7 },   // Box 수량
+                0: { cellWidth: 14, halign: 'center' },   // Box 명
+                1: { cellWidth: 24, halign: 'center' },   // 사이즈
+                2: { cellWidth: 14, halign: 'center' },   // Box 수량
                 3: { cellWidth: 12, halign: 'center' },                // No.
                 4: { cellWidth: 35, halign: 'left' },                  // Model
                 5: { cellWidth: 77, halign: 'left' },                 // Description
@@ -809,6 +824,49 @@ class ShipmentPDFGenerator {
      */
     setSignatureImage(imageDataUrl) {
         this.signatureImage = imageDataUrl;
+    }
+
+    /**
+     * 숫자를 천단위 콤마 형식으로 변환 (소수점 자릿수 지정)
+     * @param {number|string} value - 변환할 숫자 값
+     * @param {number} decimalPlaces - 소수점 자릿수 (기본값: 2)
+     * @returns {string} 천단위 콤마가 적용된 문자열
+     */
+    _formatNumberWithComma(value, decimalPlaces = 2) {
+        if (value === null || value === undefined || value === '') {
+            return '';
+        }
+
+        const number = typeof value === 'number' ? parseFloat(value) : value;
+
+        if (isNaN(number)) {
+            return '';
+        }
+
+        // 천단위 콤마 적용
+        return number.toLocaleString('en-US', {
+            minimumFractionDigits: decimalPlaces,
+            maximumFractionDigits: decimalPlaces
+        });
+    }
+
+    /**
+     * 중량을 소수점 2자리까지 포맷팅
+     * @param {number|string} weight - 중량 값
+     * @returns {string} 소수점 2자리로 포맷된 문자열
+     */
+    _formatWeight(weight) {
+        if (weight === null || weight === undefined || weight === '') {
+            return '';
+        }
+
+        const number = typeof weight === 'string' ? parseFloat(weight) : weight;
+
+        if (isNaN(number)) {
+            return '';
+        }
+
+        return number.toFixed(2);
     }
 }
 
