@@ -148,7 +148,7 @@ function fillFormWithShipmentData() {
 
     document.getElementById('soldToCompanyName').value = shipment.soldToCompanyName || '';
     document.getElementById('soldToAddress').value = shipment.soldToAddress || '';
-    document.getElementById('soldToContactPerson').value = shipment.representative || '';
+    document.getElementById('soldToContactPerson').value = shipment.soldToContactPerson || '';
     document.getElementById('soldToPhone').value = shipment.soldToPhone || '';
 
     document.getElementById('shipToCompanyName').value = shipment.shipToCompanyName || '';
