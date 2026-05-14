@@ -10,7 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,17 +65,34 @@ public class TaskCategoryMappingService {
     public void updateTaskCategories(Long taskId, List<Long> taskCategoryIds) {
         Task task = findTaskById(taskId);
 
-        task.clearCategories();
+        // null 방어 + 중복 제거
+        Set<Long> newCategoryIds = taskCategoryIds == null
+                ? Collections.emptySet()
+                : new HashSet<>(taskCategoryIds);
 
-        // 새로운 카테고리들 추가
-        if (taskCategoryIds != null && !taskCategoryIds.isEmpty()) {
-            taskCategoryIds.stream()
-                    .map(this::findTaskCategoryById)
-                    .forEach(task::addCategory);
-        }
+        Set<Long> currentCategoryIds = task.getCategories().stream()
+                .map(TaskCategory::getId)
+                .collect(Collectors.toSet());
 
-        log.info("작업의 카테고리가 업데이트되었습니다. taskId: {}, 카테고리 개수: {}",
-                taskId, taskCategoryIds != null ? taskCategoryIds.size() : 0);
+        // 제거대상
+        currentCategoryIds.stream()
+                .filter(id -> !newCategoryIds.contains(id))
+                .map(this::findTaskCategoryById)
+                .forEach(task::removeCategory);
+
+
+        // 추가 대상: 새 요청에는 있는데 기존에는 없음
+        newCategoryIds.stream()
+                .filter(id -> !currentCategoryIds.contains(id))
+                .map(this::findTaskCategoryById)
+                .forEach(task::addCategory);
+
+
+        log.info(
+                "작업의 카테고리가 업데이트되었습니다. taskId: {}, category 개수: {}",
+                taskId,
+                newCategoryIds.size()
+        );
     }
 
     /**
