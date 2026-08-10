@@ -1835,7 +1835,7 @@
                            class="form-input product-price-input"
                            placeholder="단가 (기본값: ${formatNumber(product.unitPrice)})"
                            min="0"
-                           step="0.01"
+                           step="any"
                            data-product-id="${product.productId}"
                            value="${selectedProducts.get(product.productId)?.unitPrice || ''}"
                            onchange="updateProductData(${product.productId}, 'unitPrice', this.value)">
@@ -2094,7 +2094,7 @@
                 <input type="number" class="form-input manual-item-input" id="quantity${itemCount}" placeholder="수량" min="1">
             </div>
             <div class="form-group" style="margin: 0;">
-                <input type="number" class="form-input manual-item-input" id="unitPrice${itemCount}" placeholder="단가" min="0" step="0.01">
+                <input type="number" class="form-input manual-item-input" id="unitPrice${itemCount}" placeholder="단가" min="0" step="any">
             </div>
             <button type="button" class="btn-remove" onclick="removeItemRow(${itemCount})">삭제</button>
         `;
@@ -2330,7 +2330,7 @@
                             <input type="number" class="form-input update-item-input" id="updateQuantity${updateItemCount}" placeholder="수량" min="1" value="${item.quantity}">
                         </div>
                         <div class="form-group" style="margin: 0;">
-                            <input type="number" class="form-input update-item-input" id="updateUnitPrice${updateItemCount}" placeholder="단가" min="0" step="0.01" value="${item.unitPrice}">
+                            <input type="number" class="form-input update-item-input" id="updateUnitPrice${updateItemCount}" placeholder="단가" min="0" step="any" value="${item.unitPrice}">
                         </div>
                         <button type="button" class="btn-remove" onclick="removeUpdateItemRow(${updateItemCount})">삭제</button>
                     `;
@@ -2367,7 +2367,7 @@
                 <input type="number" class="form-input update-item-input" id="updateQuantity${updateItemCount}" placeholder="수량" min="1">
             </div>
             <div class="form-group" style="margin: 0;">
-                <input type="number" class="form-input update-item-input" id="updateUnitPrice${updateItemCount}" placeholder="단가" min="0" step="0.01">
+                <input type="number" class="form-input update-item-input" id="updateUnitPrice${updateItemCount}" placeholder="단가" min="0" step="any">
             </div>
             <button type="button" class="btn-remove" onclick="removeUpdateItemRow(${updateItemCount})">삭제</button>
         `;
