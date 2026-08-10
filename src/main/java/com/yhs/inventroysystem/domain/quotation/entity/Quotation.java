@@ -39,13 +39,13 @@ public class Quotation extends BaseTimeEntity {
     @BatchSize(size = 100)
     private List<QuotationItem> items = new ArrayList<>();
 
-    @Column(precision = 15, scale = 2)
+    @Column(precision = 15, scale = 3)
     private BigDecimal totalAmount; // 공급가액 (세전 금액)
 
-    @Column(precision = 15, scale = 2)
+    @Column(precision = 15, scale = 3)
     private BigDecimal taxAmount; // 부가세액
 
-    @Column(precision = 15, scale = 2)
+    @Column(precision = 15, scale = 3)
     private BigDecimal totalAfterTaxAmount; // 총액 (세후 금액)
 
     @Column(nullable = false)

@@ -26,10 +26,10 @@ public class QuotationItem extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 3)
     private BigDecimal unitPrice;
 
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 3)
     private BigDecimal totalPrice;
 
 
