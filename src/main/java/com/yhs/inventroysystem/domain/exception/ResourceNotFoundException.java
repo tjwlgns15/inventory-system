@@ -79,4 +79,8 @@ public class ResourceNotFoundException extends BusinessException {
     public static ResourceNotFoundException box(Long boxId) {
         return new ResourceNotFoundException("존재하지 않는 박스 템플릿입니다. ID: " + boxId);
     }
+
+    public static ResourceNotFoundException contract(Long contractId) {
+        return new ResourceNotFoundException("계약서 정보를 찾을 수 없습니다. ID: " + contractId);
+    }
 }

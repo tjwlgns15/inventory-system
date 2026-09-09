@@ -4,7 +4,8 @@ public enum FileStorageType {
     PART_IMAGE("uploads/parts/images", "localFileStorage"),
     DELIVERY_DOCUMENT("uploads/delivery/documents", "localFileStorage"),
     QUOTATION_DOCUMENT("uploads/quotation/documents", "localFileStorage"),
-    SHIPMENT_DOCUMENT("uploads/shipment/documents", "localFileStorage")
+    SHIPMENT_DOCUMENT("uploads/shipment/documents", "localFileStorage"),
+    CONTRACT_DOCUMENT("uploads/contract/documents", "localFileStorage"),
 
     ;
 
