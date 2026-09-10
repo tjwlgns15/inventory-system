@@ -370,6 +370,17 @@
             min-height: 90px;
         }
 
+        .validity-quick-select {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .validity-quick-select .btn-small {
+            flex: 1;
+            padding: 6px 0;
+        }
+
         .detail-form-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -629,15 +640,17 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">문서명 *</label>
-                    <input type="text" id="documentName" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">고객사 *</label>
-                    <input type="text" id="companyName" class="form-input" required>
-                </div>
+            <div class="form-group">
+                <label class="form-label">문서명 *</label>
+                <input type="text" id="documentName" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">고객사 *</label>
+                <select id="companySelect" class="form-input" onchange="onCompanySelectChange()" style="margin-bottom: 8px;">
+                    <option value="">-- 등록된 거래처에서 선택 (선택사항) --</option>
+                </select>
+                <input type="text" id="companyName" class="form-input" placeholder="거래처를 선택하거나 직접 입력하세요" required>
             </div>
 
             <div class="form-row">
@@ -648,6 +661,11 @@
                 <div class="form-group">
                     <label class="form-label">유효기간 종료일</label>
                     <input type="date" id="validityEndDate" class="form-input">
+                    <div class="validity-quick-select">
+                        <button type="button" class="btn-small btn-secondary" onclick="setValidityPeriod(1)">1년</button>
+                        <button type="button" class="btn-small btn-secondary" onclick="setValidityPeriod(2)">2년</button>
+                        <button type="button" class="btn-small btn-secondary" onclick="setValidityPeriod(3)">3년</button>
+                    </div>
                 </div>
             </div>
 
@@ -704,15 +722,17 @@
                 </div>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">문서명 *</label>
-                    <input type="text" id="updateDocumentName" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">고객사 *</label>
-                    <input type="text" id="updateCompanyName" class="form-input" required>
-                </div>
+            <div class="form-group">
+                <label class="form-label">문서명 *</label>
+                <input type="text" id="updateDocumentName" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">고객사 *</label>
+                <select id="updateCompanySelect" class="form-input" onchange="onUpdateCompanySelectChange()" style="margin-bottom: 8px;">
+                    <option value="">-- 등록된 거래처에서 선택 (선택사항) --</option>
+                </select>
+                <input type="text" id="updateCompanyName" class="form-input" placeholder="거래처를 선택하거나 직접 입력하세요" required>
             </div>
 
             <div class="form-row">
@@ -723,6 +743,11 @@
                 <div class="form-group">
                     <label class="form-label">유효기간 종료일</label>
                     <input type="date" id="updateValidityEndDate" class="form-input">
+                    <div class="validity-quick-select">
+                        <button type="button" class="btn-small btn-secondary" onclick="setUpdateValidityPeriod(1)">1년</button>
+                        <button type="button" class="btn-small btn-secondary" onclick="setUpdateValidityPeriod(2)">2년</button>
+                        <button type="button" class="btn-small btn-secondary" onclick="setUpdateValidityPeriod(3)">3년</button>
+                    </div>
                 </div>
             </div>
 
@@ -761,7 +786,9 @@
 
 <script>
     const API_BASE_URL = '/api/contracts';
+    const CLIENTS_API_URL = '/api/clients';
 
+    let allClients = [];
     let currentPage = 0;
     let currentPageSize = 25;
     let totalPages = 0;
@@ -774,12 +801,108 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         loadContracts();
+        loadClients();
         setTodayDate();
     });
 
     function setTodayDate() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('recordDate').value = today;
+    }
+
+    // ===== 거래처 =====
+    async function loadClients() {
+        try {
+            const response = await fetch(CLIENTS_API_URL);
+            if (!response.ok) throw new Error('거래처 목록 조회 실패');
+
+            allClients = await response.json();
+            renderCompanySelect('companySelect');
+            renderCompanySelect('updateCompanySelect');
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function renderCompanySelect(selectId) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        const parentClients = allClients.filter(client => !client.parentClientId);
+        const childClients = allClients.filter(client => client.parentClientId);
+
+        let html = '<option value="">-- 등록된 거래처에서 선택 (선택사항) --</option>';
+
+        parentClients.forEach(parent => {
+            const children = childClients.filter(child => child.parentClientId === parent.id);
+
+            if (children.length > 0) {
+                html += `<optgroup label="▶ ${escapeHtml(parent.name)} (${escapeHtml(parent.clientCode)})">`;
+                html += `<option value="${escapeHtml(parent.name)}">└─ ${escapeHtml(parent.name)} (본사)</option>`;
+                children.forEach(child => {
+                    html += `<option value="${escapeHtml(child.name)}">　└─ ${escapeHtml(child.name)} (${escapeHtml(child.clientCode)})</option>`;
+                });
+                html += `</optgroup>`;
+            } else {
+                html += `<option value="${escapeHtml(parent.name)}">${escapeHtml(parent.name)} (${escapeHtml(parent.clientCode)})</option>`;
+            }
+        });
+
+        select.innerHTML = html;
+    }
+
+    function onCompanySelectChange() {
+        const select = document.getElementById('companySelect');
+        if (select.value) {
+            document.getElementById('companyName').value = select.value;
+        }
+    }
+
+    function onUpdateCompanySelectChange() {
+        const select = document.getElementById('updateCompanySelect');
+        if (select.value) {
+            document.getElementById('updateCompanyName').value = select.value;
+        }
+    }
+
+    // ===== 유효기간 빠른 선택 =====
+    function calculateValidityEndDate(baseDateValue, years) {
+        const baseDate = baseDateValue ? new Date(baseDateValue) : new Date();
+        baseDate.setFullYear(baseDate.getFullYear() + years);
+        baseDate.setDate(baseDate.getDate() - 1); // 계약일로부터 정확히 N년째 되는 전날까지를 유효기간으로 설정
+        return baseDate.toISOString().split('T')[0];
+    }
+
+    function setValidityPeriod(years) {
+        const startDate = document.getElementById('validityStartDate').value
+            || document.getElementById('contractDate').value;
+
+        if (!startDate) {
+            showNotification('유효기간 시작일 또는 계약일을 먼저 입력해주세요', 'error');
+            return;
+        }
+
+        if (!document.getElementById('validityStartDate').value) {
+            document.getElementById('validityStartDate').value = startDate;
+        }
+
+        document.getElementById('validityEndDate').value = calculateValidityEndDate(startDate, years);
+    }
+
+    function setUpdateValidityPeriod(years) {
+        const startDate = document.getElementById('updateValidityStartDate').value
+            || document.getElementById('updateContractDate').value;
+
+        if (!startDate) {
+            showNotification('유효기간 시작일 또는 계약일을 먼저 입력해주세요', 'error');
+            return;
+        }
+
+        if (!document.getElementById('updateValidityStartDate').value) {
+            document.getElementById('updateValidityStartDate').value = startDate;
+        }
+
+        document.getElementById('updateValidityEndDate').value = calculateValidityEndDate(startDate, years);
     }
 
     // ===== 목록 조회 =====
@@ -870,6 +993,7 @@
     function openCreateModal() {
         document.getElementById('createModal').style.display = 'block';
         document.getElementById('createForm').reset();
+        document.getElementById('companySelect').value = '';
         setTodayDate();
     }
 
@@ -1118,6 +1242,7 @@
         closeDetailModal();
         selectedContractId = contractId;
 
+        document.getElementById('updateCompanySelect').value = '';
         document.getElementById('updateRecordDate').value = contractData.recordDate || '';
         document.getElementById('updateDocumentName').value = contractData.documentName || '';
         document.getElementById('updateCompanyName').value = contractData.companyName || '';
