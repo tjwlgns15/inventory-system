@@ -52,7 +52,7 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
     Page<Contract> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     @Query(
-            value = "SELECT DISTINCT c FROM Contract c WHERE c.deletedAt IS NULL ORDER BY c.recordDate DESC",
+            value = "SELECT DISTINCT c FROM Contract c WHERE c.deletedAt IS NULL",
             countQuery = "SELECT COUNT(DISTINCT c) FROM Contract c WHERE c.deletedAt IS NULL"
     )
     Page<Contract> findAllPaged(Pageable pageable);

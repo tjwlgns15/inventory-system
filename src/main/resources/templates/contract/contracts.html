@@ -591,9 +591,9 @@
                 <table>
                     <thead>
                     <tr>
-                        <th style="cursor: pointer;" onclick="toggleDateSort()">날짜 <span id="sortIcon">▼</span></th>
+                        <th style="cursor: pointer;" onclick="toggleSort('recordDate')">날짜 <span id="recordDateSortIcon">▼</span></th>
                         <th>문서명</th>
-                        <th>고객사</th>
+                        <th style="cursor: pointer;" onclick="toggleSort('companyName')">고객사 <span id="companyNameSortIcon"></span></th>
                         <th>계약일</th>
                         <th>유효기간</th>
                         <th>서명일</th>
@@ -795,6 +795,7 @@
     let totalElements = 0;
     let currentKeyword = '';
     let currentSortDirection = 'desc';
+    let currentSortBy = 'recordDate';
     let selectedContractId = null;
     let deleteTargetId = null;
     let currentContractData = null;
@@ -911,7 +912,7 @@
             const pageSizeSelect = document.getElementById('pageSizeSelect');
             currentPageSize = parseInt(pageSizeSelect.value);
 
-            let url = `${API_BASE_URL}?page=${currentPage}&size=${currentPageSize}&sortBy=recordDate&direction=${currentSortDirection}`;
+            let url = `${API_BASE_URL}?page=${currentPage}&size=${currentPageSize}&sortBy=${currentSortBy}&direction=${currentSortDirection}`;
             if (currentKeyword) {
                 url += `&keyword=${encodeURIComponent(currentKeyword)}`;
             }
@@ -982,11 +983,31 @@
         }
     }
 
-    function toggleDateSort() {
-        currentSortDirection = currentSortDirection === 'desc' ? 'asc' : 'desc';
-        document.getElementById('sortIcon').textContent = currentSortDirection === 'desc' ? '▼' : '▲';
+    function toggleSort(column) {
+        if (currentSortBy === column) {
+            currentSortDirection = currentSortDirection === 'desc' ? 'asc' : 'desc';
+        } else {
+            currentSortBy = column;
+            currentSortDirection = 'desc';
+        }
+
+        updateSortIcons();
         currentPage = 0;
         loadContracts();
+    }
+
+    function updateSortIcons() {
+        const icons = {
+            recordDate: document.getElementById('recordDateSortIcon'),
+            companyName: document.getElementById('companyNameSortIcon')
+        };
+
+        Object.entries(icons).forEach(([column, icon]) => {
+            if (!icon) return;
+            icon.textContent = column === currentSortBy
+                ? (currentSortDirection === 'desc' ? '▼' : '▲')
+                : '';
+        });
     }
 
     // ===== 등록 =====
