@@ -804,11 +804,19 @@
         loadContracts();
         loadClients();
         setTodayDate();
+        limitDateInputYearRange();
     });
 
     function setTodayDate() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('recordDate').value = today;
+    }
+
+    function limitDateInputYearRange() {
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            if (!input.min) input.min = '1900-01-01';
+            if (!input.max) input.max = '2099-12-31';
+        });
     }
 
     // ===== 거래처 =====
