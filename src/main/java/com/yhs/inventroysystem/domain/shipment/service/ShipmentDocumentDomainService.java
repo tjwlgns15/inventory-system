@@ -32,6 +32,7 @@ public class ShipmentDocumentDomainService {
         return shipmentDocumentRepository.findByShipmentId(shipmentId);
     }
 
+    @Transactional
     public void deleteDocument(ShipmentDocument document) {
         shipmentDocumentRepository.delete(document);
     }

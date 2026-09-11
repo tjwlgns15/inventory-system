@@ -27,7 +27,6 @@ import static com.yhs.inventroysystem.application.quotation.QuotationCommands.*;
 public class QuotationService {
 
     private final QuotationDomainService quotationDomainService;
-
     private final FileStorageService fileStorageService;
 
     public QuotationService(QuotationDomainService quotationDomainService,
@@ -121,12 +120,13 @@ public class QuotationService {
     @Transactional
     public void deleteQuotation(Long quotationId) {
         Quotation quotation = quotationDomainService.findByIdWithItems(quotationId);
-        List<QuotationDocument> documents = quotation.getDocuments();
+        List<QuotationDocument> documents = List.copyOf(quotation.getDocuments());
 
         for (QuotationDocument document : documents) {
             fileStorageService.delete(document.getFilePath());
         }
 
+        quotation.getDocuments().clear();
         quotation.markAsDeleted();
     }
 

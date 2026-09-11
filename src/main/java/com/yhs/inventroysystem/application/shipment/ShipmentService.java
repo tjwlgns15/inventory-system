@@ -5,8 +5,10 @@ import com.yhs.inventroysystem.domain.carrier.service.CarrierDomainService;
 import com.yhs.inventroysystem.domain.shipment.entity.*;
 import com.yhs.inventroysystem.domain.shipment.service.ShipmentBoxDomainService;
 import com.yhs.inventroysystem.domain.shipment.service.ShipmentDomainService;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageFactory;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageService;
+import com.yhs.inventroysystem.infrastructure.file.FileStorageType;
 import com.yhs.inventroysystem.infrastructure.pagenation.PageableUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +21,6 @@ import java.util.List;
 import static com.yhs.inventroysystem.application.shipment.ShipmentCommand.*;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
 public class ShipmentService {
@@ -27,6 +28,17 @@ public class ShipmentService {
     private final ShipmentDomainService shipmentDomainService;
     private final ShipmentBoxDomainService shipmentBoxDomainService;
     private final CarrierDomainService carrierDomainService;
+    private final FileStorageService fileStorageService;
+
+    public ShipmentService(ShipmentDomainService shipmentDomainService,
+                           ShipmentBoxDomainService shipmentBoxDomainService,
+                           CarrierDomainService carrierDomainService,
+                           FileStorageFactory fileStorageFactory) {
+        this.shipmentDomainService = shipmentDomainService;
+        this.shipmentBoxDomainService = shipmentBoxDomainService;
+        this.carrierDomainService = carrierDomainService;
+        this.fileStorageService = fileStorageFactory.getStorageService(FileStorageType.SHIPMENT_DOCUMENT);
+    }
 
     /**
      * 선적 생성
@@ -277,10 +289,18 @@ public class ShipmentService {
         log.info("Deleting shipment: {}", shipmentId);
 
         Shipment shipment = shipmentDomainService.getShipment(shipmentId);
+        List<ShipmentDocument> documents = List.copyOf(shipment.getDocuments());
+
+        for (ShipmentDocument document : documents) {
+            fileStorageService.delete(document.getFilePath());
+        }
+
+        shipment.getDocuments().clear();
         shipment.markAsDeleted();
 
         log.info("Shipment deleted successfully: {}", shipment.getInvoiceNumber());
     }
+
 
 
     // ========== Private Helper Methods ==========

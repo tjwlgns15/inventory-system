@@ -16,7 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.yhs.inventroysystem.application.contract.ContractCommands.*;
+import static com.yhs.inventroysystem.application.contract.ContractCommands.CreateCommand;
+import static com.yhs.inventroysystem.application.contract.ContractCommands.UpdateCommand;
 
 @Service
 @Transactional(readOnly = true)
@@ -88,12 +89,13 @@ public class ContractService {
     @Transactional
     public void deleteContract(Long contractId) {
         Contract contract = contractDomainService.findByIdWithDocuments(contractId);
-        List<ContractDocument> documents = contract.getDocuments();
+        List<ContractDocument> documents = List.copyOf(contract.getDocuments());
 
         for (ContractDocument document : documents) {
             fileStorageService.delete(document.getFilePath());
         }
 
+        contract.getDocuments().clear();
         contract.markAsDeleted();
     }
 }

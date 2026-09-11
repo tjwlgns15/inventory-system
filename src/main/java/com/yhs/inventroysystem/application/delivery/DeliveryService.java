@@ -257,13 +257,13 @@ public class DeliveryService {
 
         deliveryDomainService.validateDeliveryCompleted(delivery);
 
-        List<DeliveryDocument> documents = delivery.getDocuments();
+        List<DeliveryDocument> documents = List.copyOf(delivery.getDocuments());
 
         for (DeliveryDocument document : documents) {
             fileStorageService.delete(document.getFilePath());
         }
 
-        // 삭제
+        delivery.getDocuments().clear();
         delivery.markAsDeleted();
 
         // 제품 수량 복구
