@@ -164,6 +164,11 @@
             padding: 14px 12px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
             font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        td.col-wrap {
+            white-space: normal;
         }
 
         tbody tr:hover {
@@ -591,15 +596,15 @@
                 <table>
                     <thead>
                     <tr>
-                        <th style="cursor: pointer;" onclick="toggleSort('recordDate')">날짜 <span id="recordDateSortIcon">▼</span></th>
-                        <th>문서명</th>
-                        <th style="cursor: pointer;" onclick="toggleSort('companyName')">고객사 <span id="companyNameSortIcon"></span></th>
-                        <th>계약일</th>
-                        <th>유효기간</th>
-                        <th>서명일</th>
-                        <th>서명자</th>
-                        <th>비고</th>
-                        <th>작업</th>
+                        <th style="width: 8%; cursor: pointer;" onclick="toggleSort('recordDate')">날짜 <span id="recordDateSortIcon">▼</span></th>
+                        <th style="width: 16%;">문서명</th>
+                        <th style="width: 13%; cursor: pointer;" onclick="toggleSort('companyName')">고객사 <span id="companyNameSortIcon"></span></th>
+                        <th style="width: 8%;">계약일</th>
+                        <th style="width: 13%;">유효기간</th>
+                        <th style="width: 8%;">서명일</th>
+                        <th style="width: 7%;">서명자</th>
+                        <th style="width: 21%;">비고</th>
+                        <th style="width: 6%;">작업</th>
                     </tr>
                     </thead>
                     <tbody id="contractsTableBody">
@@ -959,13 +964,13 @@
 
             row.innerHTML = `
                 <td>${formatDate(contract.recordDate)}</td>
-                <td><strong>${escapeHtml(contract.documentName)}</strong></td>
+                <td class="col-wrap"><strong>${escapeHtml(contract.documentName)}</strong></td>
                 <td>${escapeHtml(contract.companyName)}</td>
                 <td>${formatDate(contract.contractDate)}</td>
                 <td>${validity}</td>
                 <td>${contract.signedDate ? formatDate(contract.signedDate) : signedBadge}</td>
                 <td>${escapeHtml(contract.signerName) || '-'}</td>
-                <td>${escapeHtml(contract.note) || '-'}</td>
+                <td class="col-wrap">${escapeHtml(contract.note) || '-'}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn btn-info btn-small" onclick="openDetailModal(${contract.id})">상세</button>
